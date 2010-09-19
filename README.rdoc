@@ -1,4 +1,4 @@
-= TinyTDS
+= TinyTds
 
 == Tiny Ruby Wrapper For FreeTDS
 

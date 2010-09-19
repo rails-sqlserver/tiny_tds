@@ -1,0 +1,13 @@
+= TinyTDS
+
+== Tiny Ruby Wrapper For FreeTDS
+
+== Install
+
+Install with Rubygems:
+
+    gem install tiny_tds
+
+== Author
+
+Written by Ken Collins

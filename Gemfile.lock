@@ -1,0 +1,18 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    mocha (0.9.8)
+      rake
+    rake (0.8.7)
+    rake-compiler (0.7.1)
+      rake (>= 0.8.3, < 0.9)
+    shoulda (2.10.3)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  mocha (= 0.9.8)
+  rake (>= 0.8.7)
+  rake-compiler
+  shoulda (= 2.10.3)

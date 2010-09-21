@@ -1,12 +1,19 @@
 = TinyTds
 
+
 == Tiny Ruby Wrapper For FreeTDS
+
 
 == Install
 
 Install with Rubygems:
 
     gem install tiny_tds
+
+From Source:
+
+  * Maybe use ruby extconf.rb --with-freetds-include=/opt/local/include/freetds
+
 
 == Author
 

@@ -1,4 +1,5 @@
 require 'rake'
+require 'rake/testtask'
 require 'rake/extensiontask'
 
 
@@ -11,7 +12,7 @@ def test_files
 end
 
 
-Rake::TestTask.new(profile_case) do |t|
+Rake::TestTask.new do |t|
   t.libs = test_libs
   t.test_files = test_files
   t.verbose = true

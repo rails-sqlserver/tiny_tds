@@ -8,7 +8,7 @@ def test_libs
 end
 
 def test_files
-  Dir.glob("test/**/*.rb").sort
+  Dir.glob("test/**/*_test.rb").sort
 end
 
 
@@ -24,6 +24,6 @@ end
 
 task :build => [:clean, :compile]
 
-task :default => :test
+task :default => [:build, :test]
 
 

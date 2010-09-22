@@ -1,7 +1,6 @@
 = TinyTds
 
-
-== Tiny Ruby Wrapper For FreeTDS
+Tiny Ruby Wrapper For FreeTDS Using DB-Library
 
 
 == Install

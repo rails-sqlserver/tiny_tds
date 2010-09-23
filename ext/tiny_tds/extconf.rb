@@ -35,7 +35,8 @@ def find_freetds_include_path
 end
 
 
-if have_freetds_headers(*FREETDS_HEADERS) || find_freetds_include_path
+have_sybdb = have_library('sybdb')
+if have_sybdb && (have_freetds_headers(*FREETDS_HEADERS) || find_freetds_include_path)
   
 else
   abort "-----\nCan not find FreeTDS include directory.\n-----"

@@ -17,12 +17,12 @@ extern VALUE mTinyTds, cTinyTdsError;
 
 // C Backend
 
-static VALUE rb_tinytds_raise_error() {
-  char *msg = "messed up";
-  VALUE e = rb_exc_new2(cTinyTdsError, msg);
-  rb_exc_raise(e);
-  return Qnil;
-}
+// static VALUE rb_tinytds_raise_error() {
+//   char *msg = "messed up";
+//   VALUE e = rb_exc_new2(cTinyTdsError, msg);
+//   rb_exc_raise(e);
+//   return Qnil;
+// }
 
 // C Backend (Allocatoin & Handlers)
 

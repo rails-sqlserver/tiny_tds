@@ -15,7 +15,8 @@ module TinyTds
     protected
     
     def connection_options(options={})
-      { :username => 'tinytds',
+      { :host => ENV['TINYTDS_UNIT_HOST'] || 'localhost',
+        :username => 'tinytds',
         :password => '',
         :database => 'tinytds_test'
       }.merge(options)

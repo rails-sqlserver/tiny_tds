@@ -7,8 +7,7 @@ module TinyTds
       :as => :hash,
       :symbolize_keys => false,
       :database_timezone => :local,
-      :application_timezone => nil,
-      :cache_rows => true
+      :application_timezone => nil
     }
     
     def self.default_query_options
@@ -17,13 +16,13 @@ module TinyTds
 
     def initialize(opts={})
       @query_options = @@default_query_options.dup
-      # init_connection
       user     = opts[:username]
       pass     = opts[:password]
       host     = opts[:host] || 'localhost'
       port     = opts[:port] || 3306
       database = opts[:database]
-      # connect(user, pass, host, port, database)
+      
+      connect(user, pass, host, port, database)
     end
 
     

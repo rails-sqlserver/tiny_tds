@@ -11,6 +11,16 @@ module TinyTds
     
     def test_base_tiny_tds_case ; assert(true) ; end
     
+    
+    protected
+    
+    def connection_options(options={})
+      { :username => 'tinytds',
+        :password => '',
+        :database => 'tinytds_test'
+      }.merge(options)
+    end
+    
   end
 end
 

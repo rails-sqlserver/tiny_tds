@@ -2,7 +2,6 @@
 #define TINYTDS_RESULT_H
 
 void init_tinytds_result();
-// VALUE rb_tinytds_result_to_obj(MYSQL_RES * r);
 
 typedef struct {
   VALUE fields;

@@ -1,6 +1,6 @@
 require 'mkmf'
 
-FREETDS_HEADERS = ['sqlfront.h', 'sybdb.h']
+FREETDS_HEADERS = ['sqlfront.h', 'sybdb.h', 'syberror.h']
 
 dir_config('freetds')
 

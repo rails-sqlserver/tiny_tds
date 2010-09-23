@@ -4,10 +4,10 @@
 void init_tinytds_client();
 
 typedef struct {
-  VALUE encoding;
-  short int active;
-  short int closed;
+  LOGINREC *login;
+  RETCODE return_code;
   DBPROCESS *client;
+  short int closed;
 } tinytds_client_wrapper;
 
 

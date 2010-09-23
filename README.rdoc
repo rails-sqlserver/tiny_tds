@@ -12,6 +12,7 @@ Install with Rubygems:
 From Source:
 
   * Maybe use ruby extconf.rb --with-freetds-include=/opt/local/include/freetds
+                              --with-freetds-lib=/opt/local/lib
 
 
 == Author

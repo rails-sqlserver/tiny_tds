@@ -66,7 +66,7 @@ static VALUE rb_tinytds_connect(VALUE self) {
     rb_raise(cTinyTdsError, "failed dbinit() function");
     return self;
   }
-  dberrhandle(tinytds_err_handler); 
+  dberrhandle(tinytds_err_handler);
   dbmsghandle(tinytds_msg_handler);
   GET_CLIENT(self);
   wrapper->login = dblogin();

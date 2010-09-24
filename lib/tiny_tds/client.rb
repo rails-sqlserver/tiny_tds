@@ -1,6 +1,15 @@
 module TinyTds
   class Client
     
+    VERSIONS = {
+      'unknown' => 0,
+      '46'      => 1,
+      '100'     => 2,
+      '42'      => 3,
+      '70'      => 4,
+      '80'      => 5
+    }.freeze
+    
     attr_reader :query_options
     
     @@default_query_options = {
@@ -16,11 +25,14 @@ module TinyTds
 
     def initialize(opts={})
       @query_options = @@default_query_options.dup
-      host     = opts[:host] || 'localhost'
       user     = opts[:username]
       pass     = opts[:password]
+      host     = opts[:host] || 'localhost'
       database = opts[:database]
-      connect
+      appname  = opts[:appname] || 'TinyTds'
+      version  = VERSIONS[opts[:tds_version].to_s] || VERSIONS['80']
+      raise ArgumentError, 'missing :username option' if user.nil? || user.empty?
+      connect(user, pass, host, database, appname, version)
     end
 
     

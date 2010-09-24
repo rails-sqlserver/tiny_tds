@@ -1,7 +1,7 @@
 module TinyTds
   class Client
     
-    VERSIONS = {
+    TDS_VERSIONS = {
       'unknown' => 0,
       '46'      => 1,
       '100'     => 2,
@@ -30,7 +30,7 @@ module TinyTds
       host     = opts[:host] || 'localhost'
       database = opts[:database]
       appname  = opts[:appname] || 'TinyTds'
-      version  = VERSIONS[opts[:tds_version].to_s] || VERSIONS['80']
+      version  = TDS_VERSIONS[opts[:tds_version].to_s] || TDS_VERSIONS['80']
       raise ArgumentError, 'missing :username option' if user.nil? || user.empty?
       connect(user, pass, host, database, appname, version)
     end

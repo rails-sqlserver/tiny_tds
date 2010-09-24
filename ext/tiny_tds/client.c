@@ -43,10 +43,10 @@ static void rb_tinytds_client_mark(void *wrapper) {
 
 static void rb_tinytds_client_free(void *ptr) {
   tinytds_client_wrapper *wrapper = (tinytds_client_wrapper *)ptr;
-  dbloginfree(wrapper->login);
-  if (!wrapper->closed) {
+  if (wrapper->login)
+    dbloginfree(wrapper->login);
+  if (wrapper->client && !wrapper->closed)
     dbclose(wrapper->client);
-  }
   xfree(ptr);
 }
 
@@ -54,7 +54,7 @@ static VALUE allocate(VALUE klass) {
   VALUE obj;
   tinytds_client_wrapper *wrapper;
   obj = Data_Make_Struct(klass, tinytds_client_wrapper, rb_tinytds_client_mark, rb_tinytds_client_free, wrapper);
-  wrapper->closed = 0;
+  wrapper->closed = 1;
   return obj;
 }
 
@@ -70,12 +70,17 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE user, VALUE pass, VALUE host, 
   dbmsghandle(tinytds_msg_handler);
   GET_CLIENT(self);
   wrapper->login = dblogin();
-  DBSETLUSER(wrapper->login, StringValuePtr(user)); 
-  DBSETLPWD(wrapper->login, NIL_P(pass) ? NULL : StringValuePtr(pass));
-  DBSETLVERSION(wrapper->login, NUM2INT(version));
+  if (!NIL_P(user))
+    DBSETLUSER(wrapper->login, StringValuePtr(user));
+  if (!NIL_P(pass))
+    DBSETLPWD(wrapper->login, StringValuePtr(pass));
+  if (!NIL_P(version))
+    DBSETLVERSION(wrapper->login, NUM2INT(version));
   if (!NIL_P(app))
-    DBSETLAPP(wrapper->login, StringValuePtr(app));  
+    DBSETLAPP(wrapper->login, StringValuePtr(app));
   wrapper->client = dbopen(wrapper->login, StringValuePtr(host));
+  if (wrapper->client)
+    wrapper->closed = 0;
   return self;
 }
 

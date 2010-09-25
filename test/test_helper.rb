@@ -23,6 +23,28 @@ module TinyTds
       }.merge(options)
     end
     
+    def assert_raise_tinytds_error(action)
+      error_raised = false
+      begin
+        action.call
+      rescue TinyTds::Error => e
+        error_raised = true
+      end
+      assert error_raised, 'expected a TinyTds::Error but none happened'
+      yield e
+    end
+    
+    def inspect_tinytds_exception
+      begin
+        yield
+      rescue TinyTds::Error => e
+        props = {
+          :source => e.source, :message => e.message, :severity => e.severity, 
+          :db_error_number => e.db_error_number, :os_error_number => e.os_error_number}
+        raise "TinyTds::Error - #{props.inspect}"
+      end
+    end
+    
   end
 end
 

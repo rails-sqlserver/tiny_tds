@@ -9,8 +9,9 @@ class ClientTest < TinyTds::TestCase
       @client = TinyTds::Client.new(connection_options)
     end
     
-    should '' do
-      
+    should 'have a getters for the tds version information (brittle since conf takes precedence)' do
+      assert_equal 9, @client.tds_version
+      assert_equal 'DBTDS_8_0 - Microsoft SQL Server 2000', @client.tds_version_info
     end
 
   end

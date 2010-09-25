@@ -14,23 +14,23 @@ static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, in
 
 
 
-// C Backend
+// Lib Backend (Helpers)
 
 static VALUE rb_tinytds_raise_error(char *error, char *source, int severity, int dberr, int oserr) {
   VALUE e = rb_exc_new2(cTinyTdsError, error);
   rb_funcall(e, intern_source_eql, 1, rb_str_new2(source));
   if (severity)
-    rb_funcall(e, intern_severity_eql, 1, INT2NUM(severity));
+    rb_funcall(e, intern_severity_eql, 1, INT2FIX(severity));
   if (dberr)
-    rb_funcall(e, intern_db_error_number_eql, 1, INT2NUM(dberr));
+    rb_funcall(e, intern_db_error_number_eql, 1, INT2FIX(dberr));
   if (oserr)
-    rb_funcall(e, intern_os_error_number_eql, 1, INT2NUM(oserr));  
+    rb_funcall(e, intern_os_error_number_eql, 1, INT2FIX(oserr));  
   rb_exc_raise(e);
   return Qnil;
 }
 
 
-// C Backend (Allocatoin & Handlers)
+// Lib Backend (Allocatoin & Handlers)
 
 int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr) {  
   // - Abort the program, or
@@ -83,7 +83,15 @@ static VALUE allocate(VALUE klass) {
 }
 
 
-// Ruby (protected) 
+// TinyTds::Client (public) 
+
+static VALUE rb_tinytds_tds_version(VALUE self) {
+  GET_CLIENT(self);
+  return INT2FIX(dbtds(wrapper->client));
+}
+
+
+// TinyTds::Client (protected) 
 
 static VALUE rb_tinytds_connect(VALUE self, VALUE user, VALUE pass, VALUE host, VALUE database, VALUE app, VALUE version, VALUE ltimeout, VALUE timeout) {
   if (dbinit() == FAIL) {
@@ -112,14 +120,17 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE user, VALUE pass, VALUE host, 
   return self;
 }
 
-// C Init
+
+// Lib Init
 
 void init_tinytds_client() {
   cTinyTdsClient = rb_define_class_under(mTinyTds, "Client", rb_cObject);
   rb_define_alloc_func(cTinyTdsClient, allocate);
+  /* Define TinyTds::Client Public Methods */
+  rb_define_method(cTinyTdsClient, "tds_version", rb_tinytds_tds_version, 0);
   /* Define TinyTds::Client Protected Methods */
   rb_define_protected_method(cTinyTdsClient, "connect", rb_tinytds_connect, 8);
-  /* Intern Error Accessors */
+  /* Intern TinyTds::Error Accessors */
   intern_source_eql = rb_intern("source=");
   intern_severity_eql = rb_intern("severity=");
   intern_db_error_number_eql = rb_intern("db_error_number=");

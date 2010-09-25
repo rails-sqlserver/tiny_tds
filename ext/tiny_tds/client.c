@@ -69,8 +69,10 @@ static void rb_tinytds_client_free(void *ptr) {
   tinytds_client_wrapper *wrapper = (tinytds_client_wrapper *)ptr;
   if (wrapper->login)
     dbloginfree(wrapper->login);
-  if (wrapper->client && !wrapper->closed)
+  if (wrapper->client && !wrapper->closed) {
     dbclose(wrapper->client);
+    wrapper->closed = 1;
+  }
   xfree(ptr);
 }
 
@@ -88,6 +90,20 @@ static VALUE allocate(VALUE klass) {
 static VALUE rb_tinytds_tds_version(VALUE self) {
   GET_CLIENT(self);
   return INT2FIX(dbtds(wrapper->client));
+}
+
+static VALUE rb_tinytds_close(VALUE self) {
+  GET_CLIENT(self);
+  if (wrapper->client && !wrapper->closed) {
+    dbclose(wrapper->client);
+    wrapper->closed = 1;
+  }
+  return Qtrue;
+}
+
+static VALUE rb_tinytds_closed(VALUE self) {
+  GET_CLIENT(self);
+  return wrapper->closed ? Qtrue : Qfalse;
 }
 
 
@@ -128,6 +144,8 @@ void init_tinytds_client() {
   rb_define_alloc_func(cTinyTdsClient, allocate);
   /* Define TinyTds::Client Public Methods */
   rb_define_method(cTinyTdsClient, "tds_version", rb_tinytds_tds_version, 0);
+  rb_define_method(cTinyTdsClient, "close", rb_tinytds_close, 0);
+  rb_define_method(cTinyTdsClient, "closed?", rb_tinytds_closed, 0);
   /* Define TinyTds::Client Protected Methods */
   rb_define_protected_method(cTinyTdsClient, "connect", rb_tinytds_connect, 8);
   /* Intern TinyTds::Error Accessors */

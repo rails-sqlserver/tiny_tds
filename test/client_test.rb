@@ -15,13 +15,13 @@ class ClientTest < TinyTds::TestCase
 
   end
   
-  context 'With in-valid credentials' do
+  context 'With in-valid options' do
 
     should 'raise an argument error when no :username is supplied' do
       assert_raise(ArgumentError) { TinyTds::Client.new :username => nil }
     end
     
-    should 'fail as expected with wrong username' do
+    should 'fail as expected with wrong :username' do
       options = connection_options.merge :username => 'willnotwork'
       action = lambda { TinyTds::Client.new(options) }
       assert_raise_tinytds_error(action) do |e|

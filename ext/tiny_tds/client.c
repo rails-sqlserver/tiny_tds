@@ -18,13 +18,12 @@ static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, in
 
 static VALUE rb_tinytds_raise_error(char *error, char *source, int severity, int dberr, int oserr) {
   VALUE e = rb_exc_new2(cTinyTdsError, error);
-  if (source != NULL)
-    rb_funcall(e, intern_source_eql, 1, rb_str_new2(source));
-  if (severity != NULL)
+  rb_funcall(e, intern_source_eql, 1, rb_str_new2(source));
+  if (severity)
     rb_funcall(e, intern_severity_eql, 1, INT2NUM(severity));
-  if (dberr != NULL)
+  if (dberr)
     rb_funcall(e, intern_db_error_number_eql, 1, INT2NUM(dberr));
-  if (oserr != NULL)
+  if (oserr)
     rb_funcall(e, intern_os_error_number_eql, 1, INT2NUM(oserr));  
   rb_exc_raise(e);
   return Qnil;
@@ -39,7 +38,7 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
   // - Cancel the operation that caused the error, or
   // - Keep trying (in the case of a timeout error).
   
-  static const char *source = "error";
+  static char *source = "error";
   if (dberr == SYBESMSG)
     return INT_CONTINUE;
   rb_tinytds_raise_error(dberrstr, source, severity, dberr, oserr);
@@ -53,8 +52,8 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
 }
 
 int tinytds_msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line) {
-  static const char *source = "message";
-  if (severity != NULL)
+  static char *source = "message";
+  if (severity)
     rb_tinytds_raise_error(msgtext, source, severity, msgno, msgstate);
   return 0;
 }

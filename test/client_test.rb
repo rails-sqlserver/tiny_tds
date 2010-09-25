@@ -21,7 +21,18 @@ class ClientTest < TinyTds::TestCase
       assert_raise(ArgumentError) { TinyTds::Client.new :username => nil }
     end
     
-    should 'fail as expected with wrong :username' do
+    should 'raise TinyTds exception with unreachable :host' do
+      options = connection_options.merge :login_timeout => 1, :host => '127.0.0.2'
+      action = lambda { TinyTds::Client.new(options) }
+      assert_raise_tinytds_error(action) do |e|
+        assert_match %r{unable to (open|connect)}i, e.message
+        assert_equal 9, e.severity
+        assert [20008,20009].include?(e.db_error_number)
+        assert_equal 36, e.os_error_number
+      end
+    end
+    
+    should 'raise TinyTds exception with wrong :username' do
       options = connection_options.merge :username => 'willnotwork'
       action = lambda { TinyTds::Client.new(options) }
       assert_raise_tinytds_error(action) do |e|

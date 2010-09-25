@@ -15,11 +15,13 @@ module TinyTds
     protected
     
     def connection_options(options={})
-      { :host     => ENV['TINYTDS_UNIT_HOST'] || 'localhost',
-        :username => 'tinytds',
-        :password => '',
-        :database => 'tinytds_test',
-        :appname  => 'TinyTds Dev'
+      { :host          => ENV['TINYTDS_UNIT_HOST'] || 'localhost',
+        :username      => 'tinytds',
+        :password      => '',
+        :database      => 'tinytds_test',
+        :appname       => 'TinyTds Dev',
+        :login_timeout => 5,
+        :timeout       => 5
       }.merge(options)
     end
     
@@ -38,9 +40,8 @@ module TinyTds
       begin
         yield
       rescue TinyTds::Error => e
-        props = {
-          :source => e.source, :message => e.message, :severity => e.severity, 
-          :db_error_number => e.db_error_number, :os_error_number => e.os_error_number}
+        props = { :source => e.source, :message => e.message, :severity => e.severity, 
+                  :db_error_number => e.db_error_number, :os_error_number => e.os_error_number }
         raise "TinyTds::Error - #{props.inspect}"
       end
     end

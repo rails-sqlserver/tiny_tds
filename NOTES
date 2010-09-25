@@ -4,15 +4,17 @@ TODO
   * Client & Connection with TONS OF TESTING.
     - Error & Message Handling
       * Test structs are not hanging oddly around on login failures.
-      • Look Into: dbsettime
       • Look Into: dbdead
-      • Look Into: Set Timeout
       • TSQL 'print' and 'raiserror' commands generate server messages that dbmsghandle will catch. (test)
       • See the dbsetuserdata reference page for an example of how to handle deadlock in this way.
       • If you have installed a server message handler, you may want to write your DB-Library error handler so 
         as to suppress the printing of any SYBESMSG error, to avoid notifying the user about the same error twice.
     - Make a return value for tds version using DBTDS(). Returns on line 86 of sybdb.h. Do not match setters.
   * Result Set with TONS OF TESTING.
+    - Error & Message Handling
+      • Look Into Timeouts
+        - dbsettime - Set the number of seconds that DB-Library will wait for a server response to a SQL command. (int seconds)
+          Set a connect_timeout= method like Mysql2 gem, hook into initial connect too.
     - 
 
 

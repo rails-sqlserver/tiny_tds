@@ -31,8 +31,10 @@ module TinyTds
       database = opts[:database]
       appname  = opts[:appname] || 'TinyTds'
       version  = TDS_VERSIONS[opts[:tds_version].to_s] || TDS_VERSIONS['80']
+      ltimeout = opts[:login_timeout] || 60
+      timeout  = opts[:timeout]
       raise ArgumentError, 'missing :username option' if user.nil? || user.empty?
-      connect(user, pass, host, database, appname, version)
+      connect(user, pass, host, database, appname, version, ltimeout, timeout)
     end
 
     

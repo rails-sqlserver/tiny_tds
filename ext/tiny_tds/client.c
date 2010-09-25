@@ -85,7 +85,7 @@ static VALUE allocate(VALUE klass) {
 
 // Ruby (protected) 
 
-static VALUE rb_tinytds_connect(VALUE self, VALUE user, VALUE pass, VALUE host, VALUE database, VALUE app, VALUE version) {
+static VALUE rb_tinytds_connect(VALUE self, VALUE user, VALUE pass, VALUE host, VALUE database, VALUE app, VALUE version, VALUE ltimeout, VALUE timeout) {
   if (dbinit() == FAIL) {
     rb_raise(cTinyTdsError, "failed dbinit() function");
     return self;
@@ -95,13 +95,17 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE user, VALUE pass, VALUE host, 
   GET_CLIENT(self);
   wrapper->login = dblogin();
   if (!NIL_P(user))
-    DBSETLUSER(wrapper->login, StringValuePtr(user));
+    dbsetluser(wrapper->login, StringValuePtr(user));
   if (!NIL_P(pass))
-    DBSETLPWD(wrapper->login, StringValuePtr(pass));
-  if (!NIL_P(version))
-    DBSETLVERSION(wrapper->login, NUM2INT(version));
+    dbsetlpwd(wrapper->login, StringValuePtr(pass));
   if (!NIL_P(app))
-    DBSETLAPP(wrapper->login, StringValuePtr(app));
+    dbsetlapp(wrapper->login, StringValuePtr(app));
+  if (!NIL_P(version))
+    dbsetlversion(wrapper->login, NUM2INT(version));
+  if (!NIL_P(ltimeout))
+    dbsetlogintime(NUM2INT(ltimeout));
+  if (!NIL_P(timeout))
+    dbsettime(NUM2INT(timeout));
   wrapper->client = dbopen(wrapper->login, StringValuePtr(host));
   if (wrapper->client)
     wrapper->closed = 0;
@@ -113,7 +117,8 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE user, VALUE pass, VALUE host, 
 void init_tinytds_client() {
   cTinyTdsClient = rb_define_class_under(mTinyTds, "Client", rb_cObject);
   rb_define_alloc_func(cTinyTdsClient, allocate);
-  rb_define_protected_method(cTinyTdsClient, "connect", rb_tinytds_connect, 6);
+  /* Define TinyTds::Client Protected Methods */
+  rb_define_protected_method(cTinyTdsClient, "connect", rb_tinytds_connect, 8);
   /* Intern Error Accessors */
   intern_source_eql = rb_intern("source=");
   intern_severity_eql = rb_intern("severity=");

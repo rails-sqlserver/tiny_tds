@@ -7,15 +7,18 @@ VALUE cTinyTdsClient;
 extern VALUE mTinyTds, cTinyTdsError;
 static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, intern_os_error_number_eql;
 
-#define REQUIRE_OPEN_DB(wrapper) \
-  if(wrapper->closed) { \
-    rb_raise(cMysql2Error, "closed MySQL connection"); \
+
+// Lib Macros
+
+#define GET_CLIENT_WRAPPER(self) \
+  tinytds_client_wrapper *cwrap; \
+  Data_Get_Struct(self, tinytds_client_wrapper, cwrap)
+
+#define REQUIRE_OPEN_CLIENT(cwrap) \
+  if(cwrap->closed) { \
+    rb_raise(cTinyTdsError, "closed connection"); \
     return Qnil; \
   }
-
-#define GET_CLIENT(self) \
-  tinytds_client_wrapper *wrapper; \
-  Data_Get_Struct(self, tinytds_client_wrapper, wrapper)
 
 
 // Lib Backend (Helpers)
@@ -34,24 +37,13 @@ static VALUE rb_tinytds_raise_error(char *error, char *source, int severity, int
 }
 
 
-// Lib Backend (Allocatoin & Handlers)
+// Lib Backend (Memory Management & Handlers)
 
 int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr) {  
-  // - Abort the program, or
-  // - Return an error code and mark the DBPROCESS as “dead” (making it unusable), or
-  // - Cancel the operation that caused the error, or
-  // - Keep trying (in the case of a timeout error).
-  
   static char *source = "error";
   if (dberr == SYBESMSG)
     return INT_CONTINUE;
   rb_tinytds_raise_error(dberrstr, source, severity, dberr, oserr);
-  
-  // if ((dbproc == NULL) || (dbdead(dbproc)))
-  //   return INT_EXIT;
-  // if (oserr != DBNOERR) {
-  //   return INT_CANCEL;
-  // }
   return INT_CONTINUE;
 }
 
@@ -62,29 +54,30 @@ int tinytds_msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severi
   return 0;
 }
 
-static void rb_tinytds_client_mark(void *wrapper) {
-  tinytds_client_wrapper *w = wrapper;
-  if (w) {
-    
+static void rb_tinytds_client_mark(void *ptr) {
+  tinytds_client_wrapper *cwrap = (tinytds_client_wrapper *)ptr;
+  if (cwrap) {
+    rb_gc_mark(cwrap->encoding);
   }
 }
 
 static void rb_tinytds_client_free(void *ptr) {
-  tinytds_client_wrapper *wrapper = (tinytds_client_wrapper *)ptr;
-  if (wrapper->login)
-    dbloginfree(wrapper->login);
-  if (wrapper->client && !wrapper->closed) {
-    dbclose(wrapper->client);
-    wrapper->closed = 1;
+  tinytds_client_wrapper *cwrap = (tinytds_client_wrapper *)ptr;
+  if (cwrap->login)
+    dbloginfree(cwrap->login);
+  if (cwrap->client && !cwrap->closed) {
+    dbclose(cwrap->client);
+    cwrap->closed = 1;
   }
   xfree(ptr);
 }
 
 static VALUE allocate(VALUE klass) {
   VALUE obj;
-  tinytds_client_wrapper *wrapper;
-  obj = Data_Make_Struct(klass, tinytds_client_wrapper, rb_tinytds_client_mark, rb_tinytds_client_free, wrapper);
-  wrapper->closed = 1;
+  tinytds_client_wrapper *cwrap;
+  obj = Data_Make_Struct(klass, tinytds_client_wrapper, rb_tinytds_client_mark, rb_tinytds_client_free, cwrap);
+  cwrap->closed = 1;
+  cwrap->encoding = Qnil;
   return obj;
 }
 
@@ -92,28 +85,36 @@ static VALUE allocate(VALUE klass) {
 // TinyTds::Client (public) 
 
 static VALUE rb_tinytds_tds_version(VALUE self) {
-  GET_CLIENT(self);
-  return INT2FIX(dbtds(wrapper->client));
+  GET_CLIENT_WRAPPER(self);
+  return INT2FIX(dbtds(cwrap->client));
 }
 
 static VALUE rb_tinytds_close(VALUE self) {
-  GET_CLIENT(self);
-  if (wrapper->client && !wrapper->closed) {
-    dbclose(wrapper->client);
-    wrapper->closed = 1;
+  GET_CLIENT_WRAPPER(self);
+  if (cwrap->client && !cwrap->closed) {
+    dbclose(cwrap->client);
+    cwrap->closed = 1;
   }
   return Qtrue;
 }
 
 static VALUE rb_tinytds_closed(VALUE self) {
-  GET_CLIENT(self);
-  return wrapper->closed ? Qtrue : Qfalse;
+  GET_CLIENT_WRAPPER(self);
+  return cwrap->closed ? Qtrue : Qfalse;
 }
 
-static VALUE rb_tinytds_query(VALUE self) {
-  GET_CLIENT(self);
-  REQUIRE_OPEN_DB(wrapper);
-  
+static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
+  GET_CLIENT_WRAPPER(self);
+  REQUIRE_OPEN_CLIENT(cwrap);
+  dbcmd(cwrap->client, StringValuePtr(sql));
+  dbsqlexec(cwrap->client);
+  VALUE result = rb_tinytds_new_result_obj(cwrap->client);
+  /* rb_iv_set(result, "@query_options", rb_funcall(rb_iv_get(self, "@query_options"), rb_intern("dup"), 0)); */
+#ifdef HAVE_RUBY_ENCODING_H
+  GET_RESULT_WRAPPER(result);
+  rwrap->encoding = cwrap->encoding;
+#endif
+  return result;  
 }
 
 
@@ -126,23 +127,23 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE user, VALUE pass, VALUE host, 
   }
   dberrhandle(tinytds_err_handler);
   dbmsghandle(tinytds_msg_handler);
-  GET_CLIENT(self);
-  wrapper->login = dblogin();
+  GET_CLIENT_WRAPPER(self);
+  cwrap->login = dblogin();
   if (!NIL_P(user))
-    dbsetluser(wrapper->login, StringValuePtr(user));
+    dbsetluser(cwrap->login, StringValuePtr(user));
   if (!NIL_P(pass))
-    dbsetlpwd(wrapper->login, StringValuePtr(pass));
+    dbsetlpwd(cwrap->login, StringValuePtr(pass));
   if (!NIL_P(app))
-    dbsetlapp(wrapper->login, StringValuePtr(app));
+    dbsetlapp(cwrap->login, StringValuePtr(app));
   if (!NIL_P(version))
-    dbsetlversion(wrapper->login, NUM2INT(version));
+    dbsetlversion(cwrap->login, NUM2INT(version));
   if (!NIL_P(ltimeout))
     dbsetlogintime(NUM2INT(ltimeout));
   if (!NIL_P(timeout))
     dbsettime(NUM2INT(timeout));
-  wrapper->client = dbopen(wrapper->login, StringValuePtr(host));
-  if (wrapper->client)
-    wrapper->closed = 0;
+  cwrap->client = dbopen(cwrap->login, StringValuePtr(host));
+  if (cwrap->client)
+    cwrap->closed = 0;
   return self;
 }
 
@@ -156,7 +157,7 @@ void init_tinytds_client() {
   rb_define_method(cTinyTdsClient, "tds_version", rb_tinytds_tds_version, 0);
   rb_define_method(cTinyTdsClient, "close", rb_tinytds_close, 0);
   rb_define_method(cTinyTdsClient, "closed?", rb_tinytds_closed, 0);
-  rb_define_method(cTinyTdsClient, "query", rb_tinytds_query, 0);
+  rb_define_method(cTinyTdsClient, "execute", rb_tinytds_execute, 1);
   /* Define TinyTds::Client Protected Methods */
   rb_define_protected_method(cTinyTdsClient, "connect", rb_tinytds_connect, 8);
   /* Intern TinyTds::Error Accessors */

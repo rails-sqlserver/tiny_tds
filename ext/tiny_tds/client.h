@@ -9,6 +9,7 @@ typedef struct {
   RETCODE return_code;
   DBPROCESS *client;
   short int closed;
+  VALUE encoding;
 } tinytds_client_wrapper;
 
 

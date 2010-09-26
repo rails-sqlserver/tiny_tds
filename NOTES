@@ -2,12 +2,26 @@
 TODO
 
   * Client & Connection with TONS OF TESTING.
+    * Character Set
+      - Look Into: DBSETLCHARSET, dbcharsetconv, dbservcharset, dbgetcharset
     - Error & Message Handling
       * Test structs are not hanging oddly around on login failures.
+      * Misc code to implement in error handler maybe?
+        // - Abort the program, or
+        // - Return an error code and mark the DBPROCESS as “dead” (making it unusable), or
+        // - Cancel the operation that caused the error, or
+        // - Keep trying (in the case of a timeout error).
+        // if ((dbproc == NULL) || (dbdead(dbproc)))
+        //   return INT_EXIT;
+        // if (oserr != DBNOERR) {
+        //   return INT_CANCEL;
+        // }
       • Look Into: dbdead
       • If you have installed a server message handler, you may want to write your DB-Library error handler so 
         as to suppress the printing of any SYBESMSG error, to avoid notifying the user about the same error twice.
+
   * Result Set with TONS OF TESTING.
+    - Make sure empty string returns the expected query value, array, etc. Maybe nil?
     - Error & Message Handling
       • Look Into Timeouts
         - dbsettime - Set the number of seconds that DB-Library will wait for a server response to a SQL command. (int seconds)

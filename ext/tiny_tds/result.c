@@ -9,6 +9,41 @@ static ID intern_new, intern_utc, intern_local, intern_encoding_from_charset_cod
 static ID sym_symbolize_keys, sym_as, sym_array, sym_database_timezone, sym_application_timezone, sym_local, sym_utc;
 
 
+
+// Lib Backend (Memory Management)
+
+static void rb_tinytds_result_mark(void *ptr) {
+  tinytds_result_wrapper *rwrap = (tinytds_result_wrapper *)ptr;
+  if (rwrap) {
+    rb_gc_mark(rwrap->fields);
+    rb_gc_mark(rwrap->rows);
+    rb_gc_mark(rwrap->encoding);
+  }
+}
+
+static void rb_tinytds_result_free(void *ptr) {
+  tinytds_result_wrapper *rwrap = (tinytds_result_wrapper *)ptr;
+  xfree(ptr);
+}
+
+VALUE rb_tinytds_new_result_obj(DBPROCESS *c) {
+  VALUE obj;
+  tinytds_result_wrapper *rwrap;
+  obj = Data_Make_Struct(cTinyTdsResult, tinytds_result_wrapper, rb_tinytds_result_mark, rb_tinytds_result_free, rwrap);
+  rwrap->client = c;
+  rwrap->fields = Qnil;
+  rwrap->rows = Qnil;
+  rwrap->encoding = Qnil;
+  rwrap->number_of_fields = 0;
+  rwrap->number_of_rows = 0;
+  rwrap->last_row_processed = 0;
+  rb_obj_call_init(obj, 0, NULL);
+  return obj;
+}
+
+
+// Lib Init
+
 void init_tinytds_result() {
   /* Data Classes */
   cBigDecimal = rb_const_get(rb_cObject, rb_intern("BigDecimal"));

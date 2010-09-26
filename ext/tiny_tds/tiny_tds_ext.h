@@ -1,3 +1,4 @@
+
 #ifndef TINYTDS_EXT
 #define TINYTDS_EXT
 
@@ -10,3 +11,4 @@
 #include <result.h>
 
 #endif
+

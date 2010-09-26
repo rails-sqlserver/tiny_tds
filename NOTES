@@ -4,7 +4,6 @@ TODO
   * Client & Connection with TONS OF TESTING.
     - Error & Message Handling
       * Test structs are not hanging oddly around on login failures.
-      * Set the login_timeout to long, then put in and test some type of interrupt handler.
       • Look Into: dbdead
       • If you have installed a server message handler, you may want to write your DB-Library error handler so 
         as to suppress the printing of any SYBESMSG error, to avoid notifying the user about the same error twice.

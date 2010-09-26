@@ -1,17 +1,21 @@
+
 #include <tiny_tds_ext.h>
 #include <client.h>
 #include <errno.h>
-
 
 VALUE cTinyTdsClient;
 extern VALUE mTinyTds, cTinyTdsError;
 static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, intern_os_error_number_eql;
 
+#define REQUIRE_OPEN_DB(wrapper) \
+  if(wrapper->closed) { \
+    rb_raise(cMysql2Error, "closed MySQL connection"); \
+    return Qnil; \
+  }
+
 #define GET_CLIENT(self) \
   tinytds_client_wrapper *wrapper; \
   Data_Get_Struct(self, tinytds_client_wrapper, wrapper)
-
-
 
 
 // Lib Backend (Helpers)
@@ -106,6 +110,12 @@ static VALUE rb_tinytds_closed(VALUE self) {
   return wrapper->closed ? Qtrue : Qfalse;
 }
 
+static VALUE rb_tinytds_query(VALUE self) {
+  GET_CLIENT(self);
+  REQUIRE_OPEN_DB(wrapper);
+  
+}
+
 
 // TinyTds::Client (protected) 
 
@@ -146,6 +156,7 @@ void init_tinytds_client() {
   rb_define_method(cTinyTdsClient, "tds_version", rb_tinytds_tds_version, 0);
   rb_define_method(cTinyTdsClient, "close", rb_tinytds_close, 0);
   rb_define_method(cTinyTdsClient, "closed?", rb_tinytds_closed, 0);
+  rb_define_method(cTinyTdsClient, "query", rb_tinytds_query, 0);
   /* Define TinyTds::Client Protected Methods */
   rb_define_protected_method(cTinyTdsClient, "connect", rb_tinytds_connect, 8);
   /* Intern TinyTds::Error Accessors */

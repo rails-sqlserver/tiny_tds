@@ -1,3 +1,4 @@
+
 #ifndef TINYTDS_RESULT_H
 #define TINYTDS_RESULT_H
 

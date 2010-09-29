@@ -139,7 +139,7 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
         // Failed dbresults() function? Raise hell?
       }
     }
-  } else {
+  } else if (!NIL_P(block)) {
     unsigned long i;
     for (i = 0; i < rwrap->number_of_rows; i++) {
       rb_yield(rb_ary_entry(rwrap->rows, i));

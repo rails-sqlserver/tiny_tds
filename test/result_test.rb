@@ -34,6 +34,14 @@ class ResultTest < TinyTds::TestCase
       end
       assert_instance_of Array, data
     end
+    
+    should 'allow successive calls to each returning the same data' do
+      result = @client.execute(@query1)
+      data = result.each
+      assert_nothing_raised() { result.each }
+      assert_equal data.object_id, result.each.object_id
+      assert_equal data.first.object_id, result.each.first.object_id
+    end
 
   end
   

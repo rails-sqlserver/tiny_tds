@@ -80,6 +80,22 @@ class ResultTest < TinyTds::TestCase
       assert_instance_of Array, result.fields
     end
     
+    should 'allow the result to be canceled before reading' do
+      result = @client.execute(@query1)
+      result.cancel
+      assert_nothing_raised() { @client.execute(@query1).each }
+    end
+    
+    should 'throw an error when you execute another query with other results pending' do
+      result1 = @client.execute(@query1)
+      action = lambda { @client.execute(@query1) }
+      assert_raise_tinytds_error(action) do |e|
+        assert_match %r|with results pending|i, e.message
+        assert_equal 7, e.severity
+        assert_equal 20019, e.db_error_number
+      end
+    end
+    
     should_eventually 'use same string object for hash keys'
     
     context 'when casting to native ruby values' do

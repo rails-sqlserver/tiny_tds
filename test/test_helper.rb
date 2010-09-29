@@ -36,10 +36,8 @@ module TinyTds
       end
     end
     
-    TINYTDS_SCHEMAS.each do |schema|
-      define_method "#{schema}?" do
-        schema == self.class.current_schema
-      end
+    def current_schema
+      self.class.current_schema
     end
     
     def connection_options(options={})

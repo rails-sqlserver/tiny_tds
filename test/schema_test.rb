@@ -5,18 +5,26 @@ class SchemaTest < TinyTds::TestCase
   context 'With specific schema' do
 
     setup do
-      # if !@schema_imported
-      #   schema_file = File.expand_path File.join(File.dirname(__FILE__), 'schema', "#{TinyTds.current_schema}.sql")
-      #   schema_sql = FIle.read(schema_file)
-      #   TinyTds::Client.new(connection_options).execute(schema_sql)
-      #   @schema_imported = true
-      # end
+      load_current_schema
     end
 
     should '' do
       
     end
 
+  end
+  
+  
+  protected
+  
+  def load_current_schema
+    @current_schema_loaded ||= begin
+      loader = TinyTds::Client.new(connection_options)
+      schema_file = File.expand_path File.join(File.dirname(__FILE__), 'schema', "#{current_schema}.sql")
+      schema_sql = File.read(schema_file)
+      loader.execute(schema_sql).cancel
+      loader.close
+    end
   end
   
   

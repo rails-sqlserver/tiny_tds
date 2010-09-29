@@ -173,6 +173,13 @@ static VALUE rb_tinytds_result_fields(VALUE self) {
   return rwrap->fields;
 }
 
+static VALUE rb_tinytds_result_cancel(VALUE self) {
+  GET_RESULT_WRAPPER(self);
+  if (rwrap->client)
+    dbcancel(rwrap->client);
+  return Qtrue;
+}
+
 
 // Lib Init
 
@@ -186,6 +193,7 @@ void init_tinytds_result() {
   /* Define TinyTds::Result Public Methods */
   rb_define_method(cTinyTdsResult, "each", rb_tinytds_result_each, -1);
   rb_define_method(cTinyTdsResult, "fields", rb_tinytds_result_fields, 0);
+  rb_define_method(cTinyTdsResult, "cancel", rb_tinytds_result_cancel, 0);
   /* Intern String Helpers */
   intern_encoding_from_charset_code = rb_intern("encoding_from_charset_code");
   intern_new = rb_intern("new");

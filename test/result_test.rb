@@ -104,6 +104,11 @@ class ResultTest < TinyTds::TestCase
         value = @client.execute('SELECT 1 AS [fixnum]').first['fixnum']
         assert_equal 1, value
       end
+      
+      should 'return nil for NULL' do
+        value = @client.execute('SELECT NULL AS [null]').first['null']
+        assert_equal nil, value
+      end
 
     end
 

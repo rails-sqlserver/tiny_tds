@@ -81,6 +81,15 @@ class ResultTest < TinyTds::TestCase
     end
     
     should_eventually 'use same string object for hash keys'
+    
+    context 'when casting to native ruby values' do
+
+      should 'return fixnum for 1' do
+        value = @client.execute('SELECT 1 AS [fixnum]').first['fixnum']
+        assert_equal 1, value
+      end
+
+    end
 
   end
   

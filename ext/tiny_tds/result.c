@@ -68,6 +68,25 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
   /* Storing Values */
   for (i = 0; i < rwrap->number_of_fields; i++) {
     VALUE val = Qnil;
+    BYTE *data = dbdata(rwrap->client, i+1);
+    int coltype = dbcoltype(rwrap->client, i+1);
+    switch(coltype) {
+      case SYBINT1:
+        val = INT2FIX(*(DBTINYINT *)data);
+        break;
+      case SYBINT2:
+        val = INT2FIX(*(DBSMALLINT *)data);
+        break;
+      case SYBINT4:
+        val = INT2NUM(*(DBINT *)data);
+        break;
+      case SYBINT8:
+        val = INT2NUM(*(DBINT *)data);
+        break;
+      default:
+        val = rb_str_new2(data);
+        break;
+    }
     if (as_array) {
       rb_ary_store(row, i, val);
     } else {

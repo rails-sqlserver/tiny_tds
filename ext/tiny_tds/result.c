@@ -55,7 +55,8 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
     rwrap->fields = rb_ary_new2(rwrap->number_of_fields);
     for (i = 0; i < rwrap->number_of_fields; i++) {
       char *colname = dbcolname(rwrap->client, i+1);
-      rb_ary_store(rwrap->fields, i, rb_str_new2(colname));
+      VALUE field = symbolize_keys ? ID2SYM(rb_intern(colname)) : rb_str_new2(colname);
+      rb_ary_store(rwrap->fields, i, field);
     }
   }
   /* Create Empty Row */
@@ -148,6 +149,11 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
   return rwrap->rows;
 }
 
+static VALUE rb_tinytds_result_fields(VALUE self) {
+  GET_RESULT_WRAPPER(self);
+  return rwrap->fields;
+}
+
 
 // Lib Init
 
@@ -160,7 +166,7 @@ void init_tinytds_result() {
   cTinyTdsResult = rb_define_class_under(mTinyTds, "Result", rb_cObject);
   /* Define TinyTds::Result Public Methods */
   rb_define_method(cTinyTdsResult, "each", rb_tinytds_result_each, -1);
-  // rb_define_method(cTinyTdsResult, "fields", rb_mysql_result_fetch_fields, 0);
+  rb_define_method(cTinyTdsResult, "fields", rb_tinytds_result_fields, 0);
   /* Intern String Helpers */
   intern_encoding_from_charset_code = rb_intern("encoding_from_charset_code");
   intern_new = rb_intern("new");

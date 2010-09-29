@@ -70,7 +70,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
     VALUE val = Qnil;
     BYTE *data = dbdata(rwrap->client, i+1);
     int coltype = dbcoltype(rwrap->client, i+1);
-    int null_val = dbdatlen(rwrap->client, i+1) == 0;
+    int null_val = ((data == NULL) && (dbdatlen(rwrap->client, i+1) == 0));
     if (!null_val) {
       switch(coltype) {
         case SYBINT1:

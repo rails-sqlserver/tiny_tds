@@ -2,6 +2,7 @@
 TODO
 
   * Client & Connection with TONS OF TESTING.
+    * Close connection method (use in schema load)
     * Character Set
       - Look Into: DBSETLCHARSET, dbcharsetconv, dbservcharset, dbgetcharset
     - Error & Message Handling

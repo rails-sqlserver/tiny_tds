@@ -7,12 +7,12 @@ VALUE rb_tinytds_new_result_obj(DBPROCESS *c);
 
 typedef struct {
   DBPROCESS *client;
+  RETCODE return_code;
   VALUE fields;
   VALUE rows;
   VALUE encoding;
   long number_of_fields;
   unsigned long number_of_rows;
-  unsigned long last_row_processed;
 } tinytds_result_wrapper;
 
 

@@ -24,11 +24,12 @@ TODO
     - Make sure empty string returns the expected query value, array, etc. Maybe nil?
     - Error & Message Handling
       • Look Into Timeouts
-        - dbsettime - Set the number of seconds that DB-Library will wait for a server response to a SQL command. (int seconds)
-          Set a connect_timeout= method like Mysql2 gem, hook into initial connect too.
+        - dbsettime - Set the number of seconds that DB-Library will wait for a server response to a SQL 
+          command. (int seconds) Set a connect_timeout= method like Mysql2 gem, hook into initial connect too.
       • TSQL 'print' and 'raiserror' commands generate server messages that dbmsghandle will catch. (test)
       • See the dbsetuserdata reference page for an example of how to handle deadlock in this way.
-    - 
+    - Looking into use dbfreebuf when the result is built as a way of preemptively clearing the command buffer. 
+      Maybe use DBNOAUTOFREE with this.
 
 
 C Notes (general)
@@ -50,6 +51,7 @@ FreeTDS Tiny Notes
   * The 7.0 TDS version transfers all character data in UCS-2 (Unicode, 2bytes/character)
   * Debug flags if needed: http://www.freetds.org/userguide/freetdsconf.htm
   * Localization/Unicode
+    - http://tenderlovemaking.com/2009/06/26/string-encoding-in-ruby-1-9-c-extensions/
     - http://www.freetds.org/userguide/localization.htm
     - http://www.freetds.org/userguide/aboutunicode.htm
     - FreeTDS is not fully compatible with multi-byte character sets such as UCS-2. 
@@ -72,6 +74,11 @@ C Notes (db-lib)
     • TDS8_COLLATION - Check for ???
   * Fun stuff
     • Maybe use dbsetinterrupt
+
+
+Questions For FreeTDS List
+
+  * Is it possible to over ride the "tds version" in the conf file? If not what does dbsetlversion do?
 
 
 Notes For Result Sets

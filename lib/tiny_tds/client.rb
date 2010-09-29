@@ -30,7 +30,7 @@ module TinyTds
       :symbolize_keys => false,
       :database_timezone => :local,
       :application_timezone => nil
-    }.freeze
+    }
     
     attr_reader :query_options
     

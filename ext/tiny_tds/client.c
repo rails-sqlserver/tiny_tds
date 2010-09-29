@@ -109,11 +109,11 @@ static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
   dbcmd(cwrap->client, StringValuePtr(sql));
   dbsqlexec(cwrap->client);
   VALUE result = rb_tinytds_new_result_obj(cwrap->client);
-  /* rb_iv_set(result, "@query_options", rb_funcall(rb_iv_get(self, "@query_options"), rb_intern("dup"), 0)); */
-#ifdef HAVE_RUBY_ENCODING_H
-  GET_RESULT_WRAPPER(result);
-  rwrap->encoding = cwrap->encoding;
-#endif
+  rb_iv_set(result, "@query_options", rb_funcall(rb_iv_get(self, "@query_options"), rb_intern("dup"), 0)); // TODO: intern these string?
+  #ifdef HAVE_RUBY_ENCODING_H
+    GET_RESULT_WRAPPER(result);
+    rwrap->encoding = cwrap->encoding;
+  #endif
   return result;  
 }
 

@@ -2,6 +2,7 @@
 TODO
 
   * Client & Connection with TONS OF TESTING.
+    * Test empty command buffer execute and good fail.
     * Character Set
       - Look Into: DBSETLCHARSET, dbcharsetconv, dbservcharset, dbgetcharset
     - Error & Message Handling

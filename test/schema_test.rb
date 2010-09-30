@@ -3,15 +3,15 @@ require 'test_helper'
 class SchemaTest < TinyTds::TestCase
   
   context 'With specific schema' do
-
+  
     setup do
       load_current_schema
     end
-
+  
     should '' do
       
     end
-
+  
   end
   
   

@@ -23,7 +23,8 @@ static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, in
 
 // Lib Backend (Helpers)
 
-static VALUE rb_tinytds_raise_error(char *error, char *source, int severity, int dberr, int oserr) {
+static VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, char *error, char *source, int severity, int dberr, int oserr) {
+  if (cancel) { dbsqlok(dbproc); dbcancel(dbproc); }
   VALUE e = rb_exc_new2(cTinyTdsError, error);
   rb_funcall(e, intern_source_eql, 1, rb_str_new2(source));
   if (severity)
@@ -43,14 +44,18 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
   static char *source = "error";
   if (dberr == SYBESMSG)
     return INT_CONTINUE;
-  rb_tinytds_raise_error(dberrstr, source, severity, dberr, oserr);
+  rb_tinytds_raise_error(dbproc, 0, dberrstr, source, severity, dberr, oserr);
   return INT_CONTINUE;
 }
 
 int tinytds_msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line) {
   static char *source = "message";
+  /* TODO: Why Does FreeTDS Not Cope With Errors So Well
+     208: SELECT * FROM [foobar] - TinyTds::Error - {:severity=>16, :db_error_number=>208, :message=>"Invalid object name 'foobar'.", :os_error_number=>1, :source=>"message"} */
+  if (msgno == 208)
+    rb_tinytds_raise_error(dbproc, 1, msgtext, source, severity, msgno, msgstate);
   if (severity)
-    rb_tinytds_raise_error(msgtext, source, severity, msgno, msgstate);
+    rb_tinytds_raise_error(dbproc, 0, msgtext, source, severity, msgno, msgstate);
   return 0;
 }
 
@@ -106,8 +111,11 @@ static VALUE rb_tinytds_closed(VALUE self) {
 static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
   GET_CLIENT_WRAPPER(self);
   REQUIRE_OPEN_CLIENT(cwrap);
-  dbcmd(cwrap->client, StringValuePtr(sql));
-  dbsqlexec(cwrap->client);
+  dbcmd(cwrap->client, StringValuePtr(sql));  
+  if (dbsqlexec(cwrap->client) == FAIL) {
+    printf("\nTODO: Account for dbsqlexec() returned FAIL.\n");
+    return Qfalse;
+  }
   VALUE result = rb_tinytds_new_result_obj(cwrap->client);
   rb_iv_set(result, "@query_options", rb_funcall(rb_iv_get(self, "@query_options"), rb_intern("dup"), 0)); // TODO: intern these string?
   #ifdef HAVE_RUBY_ENCODING_H

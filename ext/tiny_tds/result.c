@@ -159,8 +159,11 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
         }
         rwrap->number_of_rows = rowi;
       } else {
-        // Failed dbresults() function? Raise hell?
+        printf("\nTODO: Account for failed dbresults() must have returned FAIL.\n");
       }
+    }
+    if (return_code == FAIL) {
+      printf("\nTODO: Something in the while loop set the return code to FAIL.\n");
     }
   } else if (!NIL_P(block)) {
     unsigned long i;

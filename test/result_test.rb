@@ -86,20 +86,10 @@ class ResultTest < TinyTds::TestCase
       assert_nothing_raised() { @client.execute(@query1).each }
     end
     
-    should 'throw an error when you execute another query with other results pending' do
-      result1 = @client.execute(@query1)
-      action = lambda { @client.execute(@query1) }
-      assert_raise_tinytds_error(action) do |e|
-        assert_match %r|with results pending|i, e.message
-        assert_equal 7, e.severity
-        assert_equal 20019, e.db_error_number
-      end
-    end
-    
     should_eventually 'use same string object for hash keys'
     
     context 'when casting to native ruby values' do
-
+    
       should 'return fixnum for 1' do
         value = @client.execute('SELECT 1 AS [fixnum]').first['fixnum']
         assert_equal 1, value
@@ -108,6 +98,29 @@ class ResultTest < TinyTds::TestCase
       should 'return nil for NULL' do
         value = @client.execute('SELECT NULL AS [null]').first['null']
         assert_equal nil, value
+      end
+    
+    end
+    
+    context 'when shit happens' do
+
+      should 'throw an error when you execute another query with other results pending' do
+        result1 = @client.execute(@query1)
+        action = lambda { @client.execute(@query1) }
+        assert_raise_tinytds_error(action) do |e|
+          assert_match %r|with results pending|i, e.message
+          assert_equal 7, e.severity
+          assert_equal 20019, e.db_error_number
+        end
+      end
+
+      should 'raise error for bad sql' do
+        assert_raise(TinyTds::Error) { @client.execute('SELECT * FROM [foobar]') }
+      end
+
+      should 'allow good query after bad table name' do
+        assert_raise(TinyTds::Error) { @client.execute('SELECT * FROM [foobar]') }
+        assert_nothing_raised() { @client.execute(@query1).each }
       end
 
     end

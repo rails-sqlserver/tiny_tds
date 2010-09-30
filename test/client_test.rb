@@ -22,11 +22,11 @@ class ClientTest < TinyTds::TestCase
       assert_equal 9, @client.tds_version
       assert_equal 'DBTDS_8_0 - Microsoft SQL Server 2000', @client.tds_version_info
     end
-
+  
   end
   
   context 'With in-valid options' do
-
+  
     should 'raise an argument error when no :username is supplied' do
       assert_raise(ArgumentError) { TinyTds::Client.new :username => nil }
     end
@@ -52,7 +52,7 @@ class ClientTest < TinyTds::TestCase
         assert_equal 1, e.os_error_number
       end
     end
-
+  
   end
   
   

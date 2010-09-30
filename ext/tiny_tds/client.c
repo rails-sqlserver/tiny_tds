@@ -6,6 +6,7 @@
 VALUE cTinyTdsClient;
 extern VALUE mTinyTds, cTinyTdsError;
 static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, intern_os_error_number_eql;
+static ID intern_dup;
 
 
 // Lib Macros
@@ -113,7 +114,7 @@ static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
     return Qfalse;
   }
   VALUE result = rb_tinytds_new_result_obj(cwrap->client);
-  rb_iv_set(result, "@query_options", rb_funcall(rb_iv_get(self, "@query_options"), rb_intern("dup"), 0)); // TODO: intern these string?
+  rb_iv_set(result, "@query_options", rb_funcall(rb_iv_get(self, "@query_options"), intern_dup, 0));
   #ifdef HAVE_RUBY_ENCODING_H
     GET_RESULT_WRAPPER(result);
     rwrap->encoding = cwrap->encoding;
@@ -169,6 +170,8 @@ void init_tinytds_client() {
   intern_severity_eql = rb_intern("severity=");
   intern_db_error_number_eql = rb_intern("db_error_number=");
   intern_os_error_number_eql = rb_intern("os_error_number=");
+  /* Intern Misc */
+  intern_dup = rb_intern("dup");
 }
 
 

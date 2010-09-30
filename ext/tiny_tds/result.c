@@ -109,7 +109,7 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
   ID opt_db_tz, opt_app_tz, db_timezone, app_timezone;
   int symbolize_keys = 0, as_array = 0, cache_rows = 1;
   /* Merge Options Hash, Populate Opts & Block Var */
-  defaults = rb_iv_get(self, "@query_options"); // TODO: intern these string?
+  defaults = rb_iv_get(self, "@query_options");
   if (rb_scan_args(argc, argv, "01&", &opts, &block) == 1) {
     opts = rb_funcall(defaults, intern_merge, 1, opts);
   } else {

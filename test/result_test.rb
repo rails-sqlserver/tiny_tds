@@ -103,7 +103,12 @@ class ResultTest < TinyTds::TestCase
     end
     
     context 'when shit happens' do
-
+      
+      should 'cope with nil or empty buffer' do
+        assert_raise(TypeError) { @client.execute(nil) } 
+        assert_equal [], @client.execute('').each
+      end
+      
       should 'throw an error when you execute another query with other results pending' do
         result1 = @client.execute(@query1)
         action = lambda { @client.execute(@query1) }
@@ -114,19 +119,37 @@ class ResultTest < TinyTds::TestCase
         end
       end
 
-      should 'raise error for bad sql' do
-        assert_raise(TinyTds::Error) { @client.execute('SELECT * FROM [foobar]') }
+      should 'error gracefully with bad table name' do
+        assert_raise_tinytds_error(lambda{ @client.execute('SELECT * FROM [foobar]') }) do |e|
+          assert_match %r|invalid object name.*foobar|i, e.message
+          assert_equal 16, e.severity
+          assert_equal 208, e.db_error_number
+        end
+        assert_followup_query
       end
-
-      should 'allow good query after bad table name' do
-        assert_raise(TinyTds::Error) { @client.execute('SELECT * FROM [foobar]') }
-        assert_nothing_raised() { @client.execute(@query1).each }
+      
+      should 'error gracefully with invalid syntax' do        
+        assert_raise_tinytds_error(lambda{ @client.execute('this will not work') }) do |e|
+          assert_match %r|incorrect syntax|i, e.message
+          assert_equal 15, e.severity
+          assert_equal 156, e.db_error_number
+        end
+        assert_followup_query
       end
 
     end
 
   end
   
+  
+  protected
+  
+  def assert_followup_query
+    assert_nothing_raised do
+      result = @client.execute(@query1)
+      assert_equal 1, result.first['one']
+    end
+  end
   
 end
 

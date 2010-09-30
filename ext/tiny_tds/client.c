@@ -50,12 +50,8 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
 
 int tinytds_msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line) {
   static char *source = "message";
-  /* TODO: Why Does FreeTDS Not Cope With Errors So Well
-     208: SELECT * FROM [foobar] - TinyTds::Error - {:severity=>16, :db_error_number=>208, :message=>"Invalid object name 'foobar'.", :os_error_number=>1, :source=>"message"} */
-  if (msgno == 208)
-    rb_tinytds_raise_error(dbproc, 1, msgtext, source, severity, msgno, msgstate);
   if (severity)
-    rb_tinytds_raise_error(dbproc, 0, msgtext, source, severity, msgno, msgstate);
+    rb_tinytds_raise_error(dbproc, 1, msgtext, source, severity, msgno, msgstate);
   return 0;
 }
 
@@ -111,7 +107,7 @@ static VALUE rb_tinytds_closed(VALUE self) {
 static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
   GET_CLIENT_WRAPPER(self);
   REQUIRE_OPEN_CLIENT(cwrap);
-  dbcmd(cwrap->client, StringValuePtr(sql));  
+  dbcmd(cwrap->client, StringValuePtr(sql));
   if (dbsqlexec(cwrap->client) == FAIL) {
     printf("\nTODO: Account for dbsqlexec() returned FAIL.\n");
     return Qfalse;

@@ -1,4 +1,26 @@
 
+
+NATIVE NOTES
+
+  * Binary Notes
+    v = "GIF89a\x01\x00\x01\x00\x91\x00\x00\xFF\xFF\xFF\xFF\xFF\xFF\xFE\x01\x02\x00\x00\x00!\xF9\x04\x04\x14\x00\xFF\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
+    v = "GIF89a\x01\x00\x01\x00\x91\x00\x00\xFF\xFF\xFF\xFF\xFF\xFF\xFE\x01\x02\x00\x00\x00!\xF9\x04\x04\x14\x00\xFF\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;".force_encoding(Encoding::BINARY)
+    dbv = "0x#{v.unpack("H*")[0]}"
+        => "0x47494638396101000100910000fffffffffffffe010200000021f904041400ff002c00000000010001000002024401003b"
+    dbv_raw = "47494638396101000100910000fffffffffffffe010200000021f904041400ff002c00000000010001000002024401003b"
+    [dbv_raw].pack('H*') # => "GIF89a\x01\x00\x01\x00\x91\x00\x00\xFF\xFF\xFF\xFF\xFF\xFF\xFE\x01\x02\x00\x00\x00!\xF9\x04\x04\x14\x00\xFF\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
+    The 50 value padd it a bit, makes v this
+      0x47494638396101000100910000FFFFFFFFFFFFFE010200000021F904041400FF002C00000000010001000002024401003B00
+      "GIF89a\x01\x00\x01\x00\x91\x00\x00\xFF\xFF\xFF\xFF\xFF\xFF\xFE\x01\x02\x00\x00\x00!\xF9\x04\x04\x14\x00\xFF\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;\x00"
+
+  * hierarchyid Notes
+    http://technet.microsoft.com/en-us/library/bb677212.aspx
+    http://blogs.msdn.com/b/manisblog/archive/2007/08/17/sql-server-2008-hierarchyid.aspx
+    '/1/'  0x58   ['58'].pack('H*') # => "X"
+    '/2/'  0x68   ['68'].pack('H*') # => "h"
+    
+    
+
 TODO
 
   * Client & Connection with TONS OF TESTING.
@@ -6,6 +28,7 @@ TODO
     * Character Set
       - Look Into: DBSETLCHARSET, dbcharsetconv, dbservcharset, dbgetcharset
     - Error & Message Handling
+      * Test inserting invalid xml in xml data type, timed our for me.
       * Test structs are not hanging oddly around on login failures.
       * Misc code to implement in error handler maybe?
         // - Abort the program, or

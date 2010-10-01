@@ -15,6 +15,11 @@ From Source:
                               --with-freetds-lib=/opt/local/lib
 
 
+== Testing
+
+  * env TINYTDS_UNIT_HOST=mc2005 TINYTDS_SCHEMA=sqlserver_2005 rake
+
+
 == Author
 
 Written by Ken Collins

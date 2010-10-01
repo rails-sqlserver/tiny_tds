@@ -14,17 +14,17 @@ CREATE TABLE [datatypes] (
 	[binary_50] [binary](50) NULL,
 	[bit] [bit] NULL,
 	[char_10] [char](10) NULL,
-	[date] [date] NULL,
-	[datetime] [datetime] NULL,
-	[datetime2_7] [datetime2](7) NULL,
-	[datetimeoffset_2] [datetimeoffset](2) NULL,
-	[datetimeoffset_7] [datetimeoffset](7) NULL,
+  -- [date] [date] NULL,
+  -- [datetime] [datetime] NULL,
+  -- [datetime2_7] [datetime2](7) NULL,
+  -- [datetimeoffset_2] [datetimeoffset](2) NULL,
+  -- [datetimeoffset_7] [datetimeoffset](7) NULL,
 	[decimal_9_2] [decimal](9, 2) NULL,
 	[decimal_16_4] [decimal](16, 4) NULL,
 	[float] [float] NULL,
-	[geography] [geography] NULL,
-	[geometry] [geometry] NULL,
-	[hierarchyid] [hierarchyid] NULL,
+  -- [geography] [geography] NULL,
+  -- [geometry] [geometry] NULL,
+  -- [hierarchyid] [hierarchyid] NULL,
 	[image] [image] NULL,
 	[int] [int] NULL,
 	[money] [money] NULL,
@@ -40,8 +40,8 @@ CREATE TABLE [datatypes] (
 	[smallmoney] [smallmoney] NULL,
 	[sql_variant] [sql_variant] NULL,
 	[text] [text] NULL,
-	[time_2] [time](2) NULL,
-	[time_7] [time](7) NULL,
+  -- [time_2] [time](2) NULL,
+  -- [time_7] [time](7) NULL,
 	[timestamp] [timestamp] NULL,
 	[tinyint] [tinyint] NULL,
 	[uniqueidentifier] [uniqueidentifier] NULL,
@@ -60,28 +60,28 @@ INSERT INTO [datatypes] ([id], [binary_50])         VALUES ( 21, 0x4749463839610
 INSERT INTO [datatypes] ([id], [bit])               VALUES ( 31, 1 )
 INSERT INTO [datatypes] ([id], [bit])               VALUES ( 32, 0 )
 INSERT INTO [datatypes] ([id], [char_10])           VALUES ( 41, '1234567890' )
-INSERT INTO [datatypes] ([id], [date])              VALUES ( 51, '0001-01-01' )
-INSERT INTO [datatypes] ([id], [date])              VALUES ( 52, '9999-12-31' )
-INSERT INTO [datatypes] ([id], [datetime])          VALUES ( 61, '1753-01-01T00:00:00.000' )
-INSERT INTO [datatypes] ([id], [datetime])          VALUES ( 62, '9999-12-31T23:59:59.997' )
-INSERT INTO [datatypes] ([id], [datetime2_7])       VALUES ( 71, '0001-01-01T00:00:00.0000000Z' )
-INSERT INTO [datatypes] ([id], [datetime2_7])       VALUES ( 72, '1984-01-24T04:20:00.0000000-08:00' )
-INSERT INTO [datatypes] ([id], [datetime2_7])       VALUES ( 73, '9999-12-31T23:59:59.9999999Z' )
-INSERT INTO [datatypes] ([id], [datetimeoffset_2])  VALUES ( 81, '1984-01-24T04:20:00.0000000-08:00' ) -- 1984-01-24 04:20:00.00 -08:00
-INSERT INTO [datatypes] ([id], [datetimeoffset_2])  VALUES ( 82, '1984-01-24T04:20:00.0000000Z' )      -- 1984-01-24 04:20:00.00 +00:00
-INSERT INTO [datatypes] ([id], [datetimeoffset_2])  VALUES ( 83, '9999-12-31T23:59:59.9999999Z' )      -- 9999-12-31 23:59:59.99 +00:00
-INSERT INTO [datatypes] ([id], [datetimeoffset_7])  VALUES ( 84, '1984-01-24T04:20:00.0000000-08:00' ) -- 1984-01-24 04:20:00.0000000 -08:00
-INSERT INTO [datatypes] ([id], [datetimeoffset_7])  VALUES ( 85, '1984-01-24T04:20:00.0000000Z' )      -- 1984-01-24 04:20:00.0000000 +00:00
-INSERT INTO [datatypes] ([id], [datetimeoffset_7])  VALUES ( 86, '9999-12-31T23:59:59.9999999Z' )      -- 9999-12-31 23:59:59.9999999 +00:00
+-- INSERT INTO [datatypes] ([id], [date])              VALUES ( 51, '0001-01-01' )
+-- INSERT INTO [datatypes] ([id], [date])              VALUES ( 52, '9999-12-31' )
+-- INSERT INTO [datatypes] ([id], [datetime])          VALUES ( 61, '1753-01-01T00:00:00.000' )
+-- INSERT INTO [datatypes] ([id], [datetime])          VALUES ( 62, '9999-12-31T23:59:59.997' )
+-- INSERT INTO [datatypes] ([id], [datetime2_7])       VALUES ( 71, '0001-01-01T00:00:00.0000000Z' )
+-- INSERT INTO [datatypes] ([id], [datetime2_7])       VALUES ( 72, '1984-01-24T04:20:00.0000000-08:00' )
+-- INSERT INTO [datatypes] ([id], [datetime2_7])       VALUES ( 73, '9999-12-31T23:59:59.9999999Z' )
+-- INSERT INTO [datatypes] ([id], [datetimeoffset_2])  VALUES ( 81, '1984-01-24T04:20:00.0000000-08:00' ) -- 1984-01-24 04:20:00.00 -08:00
+-- INSERT INTO [datatypes] ([id], [datetimeoffset_2])  VALUES ( 82, '1984-01-24T04:20:00.0000000Z' )      -- 1984-01-24 04:20:00.00 +00:00
+-- INSERT INTO [datatypes] ([id], [datetimeoffset_2])  VALUES ( 83, '9999-12-31T23:59:59.9999999Z' )      -- 9999-12-31 23:59:59.99 +00:00
+-- INSERT INTO [datatypes] ([id], [datetimeoffset_7])  VALUES ( 84, '1984-01-24T04:20:00.0000000-08:00' ) -- 1984-01-24 04:20:00.0000000 -08:00
+-- INSERT INTO [datatypes] ([id], [datetimeoffset_7])  VALUES ( 85, '1984-01-24T04:20:00.0000000Z' )      -- 1984-01-24 04:20:00.0000000 +00:00
+-- INSERT INTO [datatypes] ([id], [datetimeoffset_7])  VALUES ( 86, '9999-12-31T23:59:59.9999999Z' )      -- 9999-12-31 23:59:59.9999999 +00:00
 INSERT INTO [datatypes] ([id], [decimal_9_2])       VALUES ( 91, 12345.01 )
 INSERT INTO [datatypes] ([id], [decimal_9_2])       VALUES ( 92, 1234567.89 )
 INSERT INTO [datatypes] ([id], [decimal_16_4])      VALUES ( 93, 0.0 )
 INSERT INTO [datatypes] ([id], [decimal_16_4])      VALUES ( 94, 123456789012.3456 )
 INSERT INTO [datatypes] ([id], [float])             VALUES ( 101, 123.00000001 )
-INSERT INTO [datatypes] ([id], [geography])         VALUES ( 111, geography::STGeomFromText('LINESTRING(-122.360 47.656, -122.343 47.656)', 4326) ) -- 0xE610000001148716D9CEF7D34740D7A3703D0A975EC08716D9CEF7D34740CBA145B6F3955EC0
-INSERT INTO [datatypes] ([id], [geometry])          VALUES ( 121, geometry::STGeomFromText('LINESTRING (100 100, 20 180, 180 180)', 0) ) -- 0x0000000001040300000000000000000059400000000000005940000000000000344000000000008066400000000000806640000000000080664001000000010000000001000000FFFFFFFF0000000002
-INSERT INTO [datatypes] ([id], [hierarchyid])       VALUES ( 131, CAST('/1/' AS hierarchyid) ) -- 0x58
-INSERT INTO [datatypes] ([id], [hierarchyid])       VALUES ( 132, CAST('/2/' AS hierarchyid) ) -- 0x68
+-- INSERT INTO [datatypes] ([id], [geography])         VALUES ( 111, geography::STGeomFromText('LINESTRING(-122.360 47.656, -122.343 47.656)', 4326) ) -- 0xE610000001148716D9CEF7D34740D7A3703D0A975EC08716D9CEF7D34740CBA145B6F3955EC0
+-- INSERT INTO [datatypes] ([id], [geometry])          VALUES ( 121, geometry::STGeomFromText('LINESTRING (100 100, 20 180, 180 180)', 0) ) -- 0x0000000001040300000000000000000059400000000000005940000000000000344000000000008066400000000000806640000000000080664001000000010000000001000000FFFFFFFF0000000002
+-- INSERT INTO [datatypes] ([id], [hierarchyid])       VALUES ( 131, CAST('/1/' AS hierarchyid) ) -- 0x58
+-- INSERT INTO [datatypes] ([id], [hierarchyid])       VALUES ( 132, CAST('/2/' AS hierarchyid) ) -- 0x68
 INSERT INTO [datatypes] ([id], [image])             VALUES ( 141, 0x47494638396101000100910000fffffffffffffe010200000021f904041400ff002c00000000010001000002024401003b )
 INSERT INTO [datatypes] ([id], [int])               VALUES ( 151, -2147483647 )
 INSERT INTO [datatypes] ([id], [int])               VALUES ( 152, 2147483646 )
@@ -112,10 +112,10 @@ INSERT INTO [datatypes] ([id], [sql_variant])       VALUES ( 261, 261 )
 INSERT INTO [datatypes] ([id], [sql_variant])       VALUES ( 262, 'test sql_variant')
 INSERT INTO [datatypes] ([id], [sql_variant])       VALUES ( 263, N'test sql_variant åå')
 INSERT INTO [datatypes] ([id], [text])              VALUES ( 271, 'test text' )
-INSERT INTO [datatypes] ([id], [time_2])            VALUES ( 281, '1901-01-01T15:45:00.0100001Z' )      -- 15:45:00.01
-INSERT INTO [datatypes] ([id], [time_2])            VALUES ( 282, '1984-01-24T04:20:00.0000001-08:00' ) -- 04:20:00.00
-INSERT INTO [datatypes] ([id], [time_7])            VALUES ( 283, '1901-01-01T15:45:00.0100001Z' )      -- 15:45:00.0100001
-INSERT INTO [datatypes] ([id], [time_7])            VALUES ( 284, '1984-01-24T04:20:00.0000001-08:00' ) -- 04:20:00.0000001
+-- INSERT INTO [datatypes] ([id], [time_2])            VALUES ( 281, '1901-01-01T15:45:00.0100001Z' )      -- 15:45:00.01
+-- INSERT INTO [datatypes] ([id], [time_2])            VALUES ( 282, '1984-01-24T04:20:00.0000001-08:00' ) -- 04:20:00.00
+-- INSERT INTO [datatypes] ([id], [time_7])            VALUES ( 283, '1901-01-01T15:45:00.0100001Z' )      -- 15:45:00.0100001
+-- INSERT INTO [datatypes] ([id], [time_7])            VALUES ( 284, '1984-01-24T04:20:00.0000001-08:00' ) -- 04:20:00.0000001
 -- INSERT INTO [datatypes] ([id], [timestamp])         VALUES ( 291, NOT ALLOWED ) -- 0x000000000000113F
 INSERT INTO [datatypes] ([id], [tinyint])           VALUES ( 301, 0 )
 INSERT INTO [datatypes] ([id], [tinyint])           VALUES ( 302, 255 )

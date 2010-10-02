@@ -12,8 +12,8 @@ class SchemaTest < TinyTds::TestCase
     context 'for shared types' do
 
       should 'cast bigint' do
-        # assert_equal -9223372036854775807, find_value(11,:bigint)
-        # assert_equal 9223372036854775806, find_value(12,:bigint)
+        assert_equal -9223372036854775807, find_value(11,:bigint)
+        assert_equal 9223372036854775806, find_value(12,:bigint)
       end
       
       should 'cast int' do

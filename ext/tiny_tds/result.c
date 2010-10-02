@@ -83,7 +83,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
           val = INT2NUM(*(DBINT *)data);
           break;
         case SYBINT8:
-          val = LL2NUM(*(int *)data);
+          val = INT2NUM(*(long *)data);
           break;
         default:
           val = rb_str_new2((char *)data);

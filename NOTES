@@ -45,6 +45,7 @@ TODO
         as to suppress the printing of any SYBESMSG error, to avoid notifying the user about the same error twice.
 
   * Result Set with TONS OF TESTING.
+    - Looking into using DBCOUNT to return affected rows.
     - Make sure empty string returns the expected query value, array, etc. Maybe nil?
     - Error & Message Handling
       • Look Into Timeouts

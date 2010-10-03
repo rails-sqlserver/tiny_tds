@@ -1,4 +1,18 @@
 
+/*
+
+  * Binary Data - Our test binary data is a 1 pixel gif. The basic (raw) data is below. Quoting this data 
+    would involve this (encode) method and be (encoded) with the 0x prefix for raw SQL. In other clients the 
+    (raw_db) value without the 0x prefix would need to be (packed) again yield the original (raw) value.
+  
+    (raw)     - "GIF89a\001\000\001\000\221\000\000\377\377\377\377\377\377\376\001\002\000\000\000!\371\004\004\024\000\377\000,\000\000\000\000\001\000\001\000\000\002\002D\001\000;"
+    (encode)  - "0x#{raw.unpack("H*")[0]}"
+    (encoded) - "0x47494638396101000100910000fffffffffffffe010200000021f904041400ff002c00000000010001000002024401003b"
+    (raw_db)  - "47494638396101000100910000fffffffffffffe010200000021f904041400ff002c00000000010001000002024401003b"
+    (packed)  - [raw_db].pack('H*')
+    
+*/
+
 IF  EXISTS (
   SELECT TABLE_NAME
   FROM INFORMATION_SCHEMA.TABLES 

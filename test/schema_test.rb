@@ -7,13 +7,22 @@ class SchemaTest < TinyTds::TestCase
     setup do
       load_current_schema
       @client ||= TinyTds::Client.new(connection_options)
+      @gif1px = "GIF89a\001\000\001\000\221\000\000\377\377\377\377\377\377\376\001\002\000\000\000!\371\004\004\024\000\377\000,\000\000\000\000\001\000\001\000\000\002\002D\001\000;"
     end
   
     context 'for shared types' do
-
+      
       should 'cast bigint' do
         assert_equal -9223372036854775807, find_value(11,:bigint)
         assert_equal 9223372036854775806, find_value(12,:bigint)
+      end
+      
+      should 'cast binary' do
+        assert_equal @gif1px, find_value(21,:binary_50)
+      end
+      
+      should 'cast image' do
+        assert_equal @gif1px, find_value(141,:image)
       end
       
       should 'cast int' do

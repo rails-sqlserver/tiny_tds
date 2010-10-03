@@ -68,9 +68,11 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
   /* Storing Values */
   for (i = 0; i < rwrap->number_of_fields; i++) {
     VALUE val = Qnil;
-    BYTE *data = dbdata(rwrap->client, i+1);
-    int coltype = dbcoltype(rwrap->client, i+1);
-    int null_val = ((data == NULL) && (dbdatlen(rwrap->client, i+1) == 0));
+    int col = i+1;
+    int coltype = dbcoltype(rwrap->client, col);
+    BYTE *data = dbdata(rwrap->client, col);
+    DBINT data_len = dbdatlen(rwrap->client, col);
+    int null_val = ((data == NULL) && (data_len == 0));
     if (!null_val) {
       switch(coltype) {
         case SYBINT1:
@@ -85,8 +87,14 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
         case SYBINT8:
           val = INT2NUM(*(long *)data);
           break;
+        case SYBBINARY:
+        case SYBIMAGE:
+          // TODO: When we HAVE_RUBY_ENCODING_H we will rb_enc_associate(val, binaryEncoding)
+          // that will be a static init var too like mysql2 gem.
+          val = rb_str_new((char *)data, (long)data_len);
+          break;
         default:
-          val = rb_str_new2((char *)data);
+          val = rb_str_new((char *)data, (long)data_len);
           break;
       }
     }

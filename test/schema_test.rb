@@ -21,6 +21,12 @@ class SchemaTest < TinyTds::TestCase
         assert_equal @gif1px, find_value(21,:binary_50)
       end
       
+      should 'cast bit' do
+        assert_equal true, find_value(31,:bit)
+        assert_equal false, find_value(32,:bit)
+        assert_equal nil, find_value(21,:bit)
+      end
+      
       should 'cast image' do
         assert_equal @gif1px, find_value(141,:image)
       end

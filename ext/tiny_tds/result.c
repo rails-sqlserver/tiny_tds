@@ -87,6 +87,9 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
         case SYBINT8:
           val = INT2NUM(*(long *)data);
           break;
+        case SYBBIT:
+          val = *(int *)data ? Qtrue : Qfalse;
+          break;
         case SYBBINARY:
         case SYBIMAGE:
           // TODO: When we HAVE_RUBY_ENCODING_H we will rb_enc_associate(val, binaryEncoding)

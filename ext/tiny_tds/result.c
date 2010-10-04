@@ -106,7 +106,6 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
               min   = date_rec.minute,
               sec   = date_rec.second,
               msec  = date_rec.millisecond;
-        
           if (year+month+day+hour+min+sec+msec == 0) {
             val = Qnil;
           } else {
@@ -145,7 +144,6 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
               }
             }
           }
-        
           break;
         }
         // TODO: Figure out what uses SYBDATETIME4, if anything...

@@ -31,6 +31,13 @@ class SchemaTest < TinyTds::TestCase
         assert_equal '1234567890', find_value(41,:char_10)
       end
       
+      should 'cast decimal' do
+        assert_equal BigDecimal.new('12345.01'), find_value(91,:decimal_9_2)
+        assert_equal BigDecimal.new('1234567.89'), find_value(92,:decimal_9_2)
+        assert_equal BigDecimal.new('0.0'), find_value(93,:decimal_16_4)
+        assert_equal BigDecimal.new('123456789012.3456'), find_value(94,:decimal_16_4)
+      end
+      
       should 'cast image' do
         assert_equal @gif1px, find_value(141,:image)
       end

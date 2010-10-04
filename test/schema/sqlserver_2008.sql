@@ -13,15 +13,6 @@
     
 */
 
-IF  EXISTS (
-  SELECT TABLE_NAME
-  FROM INFORMATION_SCHEMA.TABLES 
-  WHERE TABLE_CATALOG = 'tinytds_test' 
-  AND TABLE_TYPE = 'BASE TABLE' 
-  AND TABLE_NAME = 'datatypes'
-) 
-DROP TABLE [datatypes]
-
 CREATE TABLE [datatypes] (
   [id] [int] NOT NULL IDENTITY(1,1) PRIMARY KEY,
 	[bigint] [bigint] NULL,

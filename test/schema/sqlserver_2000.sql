@@ -28,7 +28,7 @@ CREATE TABLE [datatypes] (
 	[binary_50] [binary](50) NULL,
 	[bit] [bit] NULL,
 	[char_10] [char](10) NULL,
-	[date] [date] NULL,
+  -- [date] [date] NULL,
 	[datetime] [datetime] NULL,
   -- [datetime2_7] [datetime2](7) NULL,
   -- [datetimeoffset_2] [datetimeoffset](2) NULL,

@@ -91,15 +91,14 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
           val = *(int *)data ? Qtrue : Qfalse;
           break;
         case SYBNUMERIC:
-        case SYBDECIMAL:
-          { 
-            DBTYPEINFO *data_info = dbcoltypeinfo(rwrap->client, col);
-            int data_slength = (int)data_info->precision + (int)data_info->scale + 1;
-            char converted_decimal[data_slength];
-            dbconvert(rwrap->client, coltype, data, data_len, SYBVARCHAR, (BYTE *)converted_decimal, -1);
-            val = rb_funcall(cBigDecimal, intern_new, 1, rb_str_new2((char *)converted_decimal));
-          }
+        case SYBDECIMAL: { 
+          DBTYPEINFO *data_info = dbcoltypeinfo(rwrap->client, col);
+          int data_slength = (int)data_info->precision + (int)data_info->scale + 1;
+          char converted_decimal[data_slength];
+          dbconvert(rwrap->client, coltype, data, data_len, SYBVARCHAR, (BYTE *)converted_decimal, -1);
+          val = rb_funcall(cBigDecimal, intern_new, 1, rb_str_new2((char *)converted_decimal));
           break;
+        }
         case SYBBINARY:
         case SYBIMAGE:
           // TODO: When we HAVE_RUBY_ENCODING_H we will rb_enc_associate(val, binaryEncoding)

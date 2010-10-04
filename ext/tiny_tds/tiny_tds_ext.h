@@ -1,6 +1,7 @@
 
 #ifndef TINYTDS_EXT
 #define TINYTDS_EXT
+#define MSDBLIB
 
 #include <ruby.h>
 #include <sqlfront.h>

@@ -61,7 +61,7 @@ module TinyTds
 
     private
       def self.local_offset
-        ::Time.local(2010).utc_offset.to_r / 28800000
+        ::Time.local(2010).utc_offset.to_r / 86400
       end
   end
 end

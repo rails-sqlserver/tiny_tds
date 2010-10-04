@@ -52,8 +52,8 @@ class SchemaTest < TinyTds::TestCase
         # We use DateTime for edge-case dates, but they're really slow.
         # TODO: Is there another way to make this pass without explicitly adding local time offset?
         #       I tried adding a time offset to the value in the schema SQL file, but it didn't work.
-        # assert_equal DateTime.parse('1753-01-01T00:00:00.000-08:00'), find_value(61,:datetime)
-        # assert_equal DateTime.parse('9999-12-31T23:59:59.997-08:00'), find_value(62,:datetime)
+        assert_equal DateTime.parse('1753-01-01T00:00:00.000-08:00'), find_value(61,:datetime)
+        assert_equal DateTime.parse('9999-12-31T23:59:59.997-08:00'), find_value(62,:datetime)
 
         # We use Time for normal dates since they're faster.
         assert_equal Time.parse("2010-01-01T12:34:56.123"), find_value(63,:datetime)

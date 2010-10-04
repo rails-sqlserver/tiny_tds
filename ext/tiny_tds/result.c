@@ -3,7 +3,7 @@
 
 VALUE cTinyTdsResult;
 extern VALUE mTinyTds, cTinyTdsClient, cTinyTdsError;
-VALUE cBigDecimal, cDate, cDateTime;
+VALUE cBigDecimal, cDate, cDateTime, cRational;
 VALUE opt_decimal_zero, opt_float_zero, opt_time_year, opt_time_month, opt_utc_offset;
 static ID intern_new, intern_utc, intern_local, intern_encoding_from_charset_code, intern_localtime, intern_merge, intern_local_offset, intern_civil, intern_new_offset;
 static ID sym_symbolize_keys, sym_as, sym_array, sym_database_timezone, sym_application_timezone, sym_local, sym_utc;
@@ -119,7 +119,12 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
                 if (db_timezone == intern_local) {
                   offset = rb_funcall(cTinyTdsClient, intern_local_offset, 0);
                 }
-                val = rb_funcall(cDateTime, intern_civil, 7, INT2NUM(year), INT2NUM(month), INT2NUM(day), INT2NUM(hour), INT2NUM(min), INT2NUM(sec), offset);
+                VALUE datetime_sec = INT2NUM(sec);
+                if (msec != 0) {
+                  VALUE rational_msec = rb_funcall(cRational, intern_new, 2, INT2NUM(msec*1000), rb_eval_string("10**6")); // FIXME: Is there a better way to do this than using rb_eval_string?
+                  datetime_sec = rb_funcall(datetime_sec, rb_intern("+"), 1, rational_msec);                  
+                }
+                val = rb_funcall(cDateTime, intern_civil, 7, INT2NUM(year), INT2NUM(month), INT2NUM(day), INT2NUM(hour), INT2NUM(min), datetime_sec, offset);
                 if (!NIL_P(app_timezone)) {
                   if (app_timezone == intern_local) {
                     offset = rb_funcall(cTinyTdsClient, intern_local_offset, 0);
@@ -260,6 +265,7 @@ void init_tinytds_result() {
   cBigDecimal = rb_const_get(rb_cObject, rb_intern("BigDecimal"));
   cDate = rb_const_get(rb_cObject, rb_intern("Date"));
   cDateTime = rb_const_get(rb_cObject, rb_intern("DateTime"));
+  cRational = rb_const_get(rb_cObject, rb_intern("Rational"));
   /* Define TinyTds::Result */
   cTinyTdsResult = rb_define_class_under(mTinyTds, "Result", rb_cObject);
   /* Define TinyTds::Result Public Methods */

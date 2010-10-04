@@ -98,7 +98,6 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
           break;
         case SYBDATETIME: {
           DBDATEREC date_rec;
-          VALUE date_parts[8];
           dbdatecrack(rwrap->client, &date_rec, (DBDATETIME*)data);
           int year  = date_rec.year,
               month = date_rec.month,

@@ -59,6 +59,9 @@ module TinyTds
       "#{info[:name]} - #{info[:description]}" if info
     end
 
-    
+    private
+      def self.local_offset
+        ::Time.local(2010).utc_offset.to_r / 28800000
+      end
   end
 end

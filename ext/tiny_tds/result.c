@@ -96,7 +96,63 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
           // that will be a static init var too like mysql2 gem.
           val = rb_str_new((char *)data, (long)data_len);
           break;
+        case SYBDATETIME: {
+          DBDATEREC date_rec;
+          VALUE date_parts[8];
+          dbdatecrack(rwrap->client, &date_rec, (DBDATETIME*)data);
+          int year  = date_rec.year,
+              month = date_rec.month,
+              day   = date_rec.day,
+              hour  = date_rec.hour,
+              min   = date_rec.minute,
+              sec   = date_rec.second,
+              msec  = date_rec.millisecond;
+        
+          if (year+month+day+hour+min+sec+msec == 0) {
+            val = Qnil;
+          } else {
+            if (month < 1 || day < 1) {
+              rb_raise(cTinyTdsError, "Invalid date");
+              val = Qnil;
+            } else {
+              if (year < 1902 || year+month+day > 2058) { // use DateTime instead
+                VALUE offset = INT2NUM(0);
+                if (db_timezone == intern_local) {
+                  offset = rb_funcall(cTinyTdsClient, intern_local_offset, 0);
+                }
+                val = rb_funcall(cDateTime, intern_civil, 7, INT2NUM(year), INT2NUM(month), INT2NUM(day), INT2NUM(hour), INT2NUM(min), INT2NUM(sec), offset);
+                if (!NIL_P(app_timezone)) {
+                  if (app_timezone == intern_local) {
+                    offset = rb_funcall(cTinyTdsClient, intern_local_offset, 0);
+                    val = rb_funcall(val, intern_new_offset, 1, offset);
+                  } else { // utc
+                    val = rb_funcall(val, intern_new_offset, 1, opt_utc_offset);
+                  }
+                }
+              } else {
+                val = rb_funcall(rb_cTime, db_timezone, 7, INT2NUM(year), INT2NUM(month), INT2NUM(day), INT2NUM(hour), INT2NUM(min), INT2NUM(sec), INT2NUM(msec*1000));
+                if (!NIL_P(app_timezone)) {
+                  if (app_timezone == intern_local) {
+                    val = rb_funcall(val, intern_localtime, 0);
+                  } else { // utc
+                    val = rb_funcall(val, intern_utc, 0);
+                  }
+                }
+              }
+            }
+          }
+        
+          break;
+        }
+        // TODO: Figure out what uses SYBDATETIME4, if anything...
+        // case SYBDATETIME4:
+        //   break;
+        case SYBCHAR:
+          val = rb_str_new((char *)data, (long)data_len);
+          break;
         default:
+          // This is useful for debugging purposes:
+          // fprintf(stderr, "\nUnhandled coltype detected: %d\n", coltype);
           val = rb_str_new((char *)data, (long)data_len);
           break;
       }

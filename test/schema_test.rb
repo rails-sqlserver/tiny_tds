@@ -111,6 +111,28 @@ class SchemaTest < TinyTds::TestCase
         assert_equal -32767, find_value(241, :smallint)
         assert_equal 32766, find_value(242, :smallint)
       end
+
+      should 'cast text' do
+        assert_equal 'test text', find_value(271, :text)
+      end
+      
+      should 'cast tinyint' do
+        assert_equal 0, find_value(301, :tinyint)
+        assert_equal 255, find_value(302, :tinyint)
+      end
+      
+      should 'cast uniqueidentifier' do
+        assert_not_nil find_value(311, :uniqueidentifier) # FIXME: How can we test this since we're calling NEWID() as the value?
+      end
+      
+      should 'cast varbinary' do
+        assert_equal @gif1px, find_value(321, :varbinary_50)
+      end
+      
+      should 'cast varchar' do
+        assert_equal 'test varchar_50', find_value(341, :varchar_50)
+      end
+      
     end
     
     context 'for 2005 and up' do

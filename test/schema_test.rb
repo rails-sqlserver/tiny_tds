@@ -38,6 +38,10 @@ class SchemaTest < TinyTds::TestCase
         assert_equal BigDecimal.new('123456789012.3456'), find_value(94,:decimal_16_4)
       end
       
+      should 'cast float' do
+        assert_equal 123.00000001, find_value(101,:float)
+      end
+      
       should 'cast image' do
         assert_equal @gif1px, find_value(141,:image)
       end

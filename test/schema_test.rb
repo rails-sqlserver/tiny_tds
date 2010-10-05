@@ -74,6 +74,11 @@ class SchemaTest < TinyTds::TestCase
         # assert_equal DateTime.parse('9999-12-31T23:59:59.9999999Z'), find_value(73,:datetime2_7)
       end
       
+      
+      should 'cast smalldatetime' do
+        assert_equal Time.parse('1901-01-01T15:45:00.000'), find_value(231, :smalldatetime)
+        assert_equal Time.parse('2078-06-05T04:20:00.000').to_s, find_value(232, :smalldatetime).to_s
+      end
     end
     
     context 'for 2005 and up' do

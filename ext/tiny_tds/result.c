@@ -167,9 +167,14 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
           }
           break;
         }
-        // TODO: Figure out what uses SYBDATETIME4, if anything...
-        // case SYBDATETIME4:
-        //   break;
+        case SYBDATETIME4: {
+          DBDATETIME4* date = (DBDATETIME4*)data;
+          DBUSMALLINT days_since_1900 = date->days, minutes = date->minutes;
+          val = rb_funcall(rb_cTime, db_timezone, 6, INT2NUM(1900), INT2NUM(1), INT2NUM(1), INT2NUM(0), INT2NUM(0), INT2NUM(0));
+          unsigned long int seconds_since_1900 = ((long)days_since_1900 * 24 * 3600) + ((long)minutes * 60);
+          val = rb_funcall(val, rb_intern("+"), 1, INT2NUM(seconds_since_1900));
+          break;
+        }
         case SYBCHAR:
           val = rb_str_new((char *)data, (long)data_len);
           break;

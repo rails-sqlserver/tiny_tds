@@ -175,6 +175,11 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
           val = rb_funcall(val, rb_intern("+"), 1, INT2NUM(seconds_since_1900));
           break;
         }
+        case SYBREAL: {
+          float col_to_float = *(float *)data;
+          val = rb_float_new(col_to_float);
+          break;
+        }
         case SYBCHAR:
         case SYBTEXT:
           val = rb_str_new((char *)data, (long)data_len);

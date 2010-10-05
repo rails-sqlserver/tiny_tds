@@ -98,6 +98,9 @@ class SchemaTest < TinyTds::TestCase
         assert_equal 'test nvarchar_max åå', find_value(212, :nvarchar_max)
       end
       
+      should 'cast real' do
+        assert_in_delta 123.45, find_value(221, :real), 0.00001 # TODO: Should this be done another way?
+      end
       
       should 'cast smalldatetime' do
         assert_equal Time.parse('1901-01-01T15:45:00.000'), find_value(231, :smalldatetime)

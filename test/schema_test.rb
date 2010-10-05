@@ -40,6 +40,8 @@ class SchemaTest < TinyTds::TestCase
       
       should 'cast float' do
         assert_equal 123.00000001, find_value(101,:float)
+        assert_equal 0.0, find_value(102,:float)
+        assert_equal find_value(102,:float).object_id, find_value(102,:float).object_id, 'use global zero float'
       end
       
       should 'cast image' do

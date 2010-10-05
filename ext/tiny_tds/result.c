@@ -99,7 +99,12 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
           val = rb_funcall(cBigDecimal, intern_new, 1, rb_str_new2((char *)converted_decimal));
           break;
         }
-        case SYBFLT8:
+        case SYBFLT8: {
+          double col_to_double = *(double *)data;
+          val = (col_to_double == 0.000000) ? opt_float_zero : rb_float_new(col_to_double);
+          break;
+        }
+        case SYBMONEYN:
           val = rb_float_new(*(double *)data);
           break;
         case SYBBINARY:

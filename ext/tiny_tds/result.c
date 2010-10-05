@@ -176,6 +176,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
           break;
         }
         case SYBCHAR:
+        case SYBTEXT:
           val = rb_str_new((char *)data, (long)data_len);
           break;
         default:

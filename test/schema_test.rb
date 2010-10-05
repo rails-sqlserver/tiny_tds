@@ -74,10 +74,39 @@ class SchemaTest < TinyTds::TestCase
         # assert_equal DateTime.parse('9999-12-31T23:59:59.9999999Z'), find_value(73,:datetime2_7)
       end
       
+      should 'cast nchar' do
+        assert_equal '1234567890', find_value(171, :nchar_10)
+        assert_equal '123456åå', find_value(172, :nchar_10)
+      end
+      
+      should 'cast ntext' do
+        assert_equal 'test ntext', find_value(181, :ntext)
+        assert_equal 'test ntext åå', find_value(182, :ntext)
+      end
+      
+      should 'cast numeric' do
+        assert_equal 191, find_value(191, :numeric_18_0)
+        assert_equal 123456789012345678, find_value(192, :numeric_18_0)
+        assert_equal 12345678901234567890.01, find_value(193, :numeric_36_2)
+        assert_equal 123.46, find_value(194, :numeric_36_2)
+      end
+      
+      should 'cast nvarchar' do
+        assert_equal 'test nvarchar_50', find_value(201, :nvarchar_50)
+        assert_equal 'test nvarchar_50 åå', find_value(202, :nvarchar_50)
+        assert_equal 'test nvarchar_max', find_value(211, :nvarchar_max)
+        assert_equal 'test nvarchar_max åå', find_value(212, :nvarchar_max)
+      end
+      
       
       should 'cast smalldatetime' do
         assert_equal Time.parse('1901-01-01T15:45:00.000'), find_value(231, :smalldatetime)
         assert_equal Time.parse('2078-06-05T04:20:00.000').to_s, find_value(232, :smalldatetime).to_s
+      end
+
+      should 'cast smallint' do
+        assert_equal -32767, find_value(241, :smallint)
+        assert_equal 32766, find_value(242, :smallint)
       end
     end
     

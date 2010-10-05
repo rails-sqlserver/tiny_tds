@@ -119,6 +119,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
         case SYBDATETIME: {
           DBDATEREC date_rec;
           dbdatecrack(rwrap->client, &date_rec, (DBDATETIME*)data);
+#ifdef MSDBLIB
           int year  = date_rec.year,
               month = date_rec.month,
               day   = date_rec.day,
@@ -126,6 +127,16 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
               min   = date_rec.minute,
               sec   = date_rec.second,
               msec  = date_rec.millisecond;
+#else
+          int year  = date_rec.dateyear,
+              month = date_rec.datemonth,
+              day   = date_rec.datedmonth,
+              hour  = date_rec.datehour,
+              min   = date_rec.dateminute,
+              sec   = date_rec.datesecond,
+              msec  = date_rec.datemsecond;
+#endif
+
           if (year+month+day+hour+min+sec+msec == 0) {
             val = Qnil;
           } else {

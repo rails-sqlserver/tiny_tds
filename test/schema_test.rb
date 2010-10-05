@@ -129,7 +129,7 @@ class SchemaTest < TinyTds::TestCase
   
   def find_value(id, column)
     sql = "SELECT [#{column}] FROM [datatypes] WHERE [id] = #{id}"
-    @client.execute(sql).first[column.to_s]
+    @client.execute(sql).each.first[column.to_s]
   end
   
   

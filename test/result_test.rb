@@ -91,12 +91,12 @@ class ResultTest < TinyTds::TestCase
     context 'when casting to native ruby values' do
     
       should 'return fixnum for 1' do
-        value = @client.execute('SELECT 1 AS [fixnum]').first['fixnum']
+        value = @client.execute('SELECT 1 AS [fixnum]').each.first['fixnum']
         assert_equal 1, value
       end
       
       should 'return nil for NULL' do
-        value = @client.execute('SELECT NULL AS [null]').first['null']
+        value = @client.execute('SELECT NULL AS [null]').each.first['null']
         assert_equal nil, value
       end
     
@@ -147,7 +147,7 @@ class ResultTest < TinyTds::TestCase
   def assert_followup_query
     assert_nothing_raised do
       result = @client.execute(@query1)
-      assert_equal 1, result.first['one']
+      assert_equal 1, result.each.first['one']
     end
   end
   

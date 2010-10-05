@@ -31,6 +31,21 @@ class SchemaTest < TinyTds::TestCase
         assert_equal '1234567890', find_value(41, :char_10)
       end
       
+      should 'cast datetime' do
+        # FIXME: You must compile with MSDBLIB to support dates before 1900.
+        # We use DateTime for edge-case dates, but they're really slow.
+        # TODO: Is there another way to make this pass without explicitly adding local time offset?
+        #       I tried adding a time offset to the value in the schema SQL file, but it didn't work.
+        assert_equal DateTime.parse('1753-01-01T00:00:00.000-08:00'), find_value(61, :datetime)
+        assert_equal DateTime.parse('9999-12-31T23:59:59.997-08:00'), find_value(62, :datetime)
+        # We use Time for normal dates since they're faster.
+        assert_equal Time.parse("2010-01-01T12:34:56.123"), find_value(63, :datetime)
+        # SYBCHAR
+        # assert_equal DateTime.parse('0001-01-01T00:00:00.0000000Z'), find_value(71,:datetime2_7)
+        # assert_equal DateTime.parse('1984-01-24T04:20:00.0000000-08:00'), find_value(72,:datetime2_7)
+        # assert_equal DateTime.parse('9999-12-31T23:59:59.9999999Z'), find_value(73,:datetime2_7)
+      end
+      
       should 'cast decimal' do
         assert_equal BigDecimal.new('12345.01'), find_value(91, :decimal_9_2)
         assert_equal BigDecimal.new('1234567.89'), find_value(92, :decimal_9_2)
@@ -57,21 +72,6 @@ class SchemaTest < TinyTds::TestCase
         assert_equal 4.20, find_value(161, :money)
         assert_equal -922337203685477.5807, find_value(162, :money)
         assert_equal 922337203685477.5806, find_value(163, :money)
-      end
-
-      should 'cast datetime' do
-        # FIXME: You must compile with MSDBLIB to support dates before 1900.
-        # We use DateTime for edge-case dates, but they're really slow.
-        # TODO: Is there another way to make this pass without explicitly adding local time offset?
-        #       I tried adding a time offset to the value in the schema SQL file, but it didn't work.
-        assert_equal DateTime.parse('1753-01-01T00:00:00.000-08:00'), find_value(61, :datetime)
-        assert_equal DateTime.parse('9999-12-31T23:59:59.997-08:00'), find_value(62, :datetime)
-        # We use Time for normal dates since they're faster.
-        assert_equal Time.parse("2010-01-01T12:34:56.123"), find_value(63, :datetime)
-        # SYBCHAR
-        # assert_equal DateTime.parse('0001-01-01T00:00:00.0000000Z'), find_value(71,:datetime2_7)
-        # assert_equal DateTime.parse('1984-01-24T04:20:00.0000000-08:00'), find_value(72,:datetime2_7)
-        # assert_equal DateTime.parse('9999-12-31T23:59:59.9999999Z'), find_value(73,:datetime2_7)
       end
       
       should 'cast nchar' do
@@ -128,7 +128,7 @@ class SchemaTest < TinyTds::TestCase
       end
       
       should 'cast uniqueidentifier' do
-        assert_not_nil find_value(311, :uniqueidentifier) # FIXME: How can we test this since we're calling NEWID() as the value?
+        assert_match %r|\w{8}-\w{4}-\w{4}-\w{4}-\w{12}|, find_value(311, :uniqueidentifier)
       end
       
       should 'cast varbinary' do

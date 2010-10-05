@@ -108,17 +108,19 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
           char converted_money[data_len];
           dbconvert(rwrap->client, coltype, data, data_len, SYBVARCHAR, (BYTE *)converted_money, -1);
           val = rb_funcall(cBigDecimal, intern_new, 1, rb_str_new2((char *)converted_money));
+          break;
+        }
         case SYBMONEY4: {
-          DBMONEY4* money = (DBMONEY4*)data;
+          DBMONEY4 *money = (DBMONEY4 *)data;
           char converted_money[20];
           sprintf(converted_money, "%f", money->mny4 / 10000.0);
-          // fprintf(stderr, "\nDBMONEY4: %f\n", money->mny4 / 10000.0);
           val = rb_funcall(cBigDecimal, intern_new, 1, rb_str_new2(converted_money));
           break;
         }
         case SYBBINARY:
         case SYBIMAGE:
-        case 36: // FIXME: This is SYBUNIQUE, but the constant isn't defined for some reason.
+        case 36: 
+          // FIXME: This is SYBUNIQUE, but the constant isn't defined for some reason.
           // TODO: When we HAVE_RUBY_ENCODING_H we will rb_enc_associate(val, binaryEncoding)
           // that will be a static init var too like mysql2 gem.
           val = rb_str_new((char *)data, (long)data_len);

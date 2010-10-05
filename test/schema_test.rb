@@ -52,6 +52,12 @@ class SchemaTest < TinyTds::TestCase
         assert_equal -2147483647, find_value(151,:int)
         assert_equal 2147483646, find_value(152,:int)
       end
+      
+      should 'cast money' do
+        assert_equal 4.20, find_value(161,:money)
+        assert_equal -922337203685477.5807, find_value(162,:money)
+        assert_equal 922337203685477.5806, find_value(163,:money)
+      end
 
       should 'cast datetime' do
         # FIXME: You must compile with MSDBLIB to support dates before 1900.

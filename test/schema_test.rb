@@ -13,29 +13,29 @@ class SchemaTest < TinyTds::TestCase
     context 'for shared types' do
       
       should 'cast bigint' do
-        assert_equal -9223372036854775807, find_value(11,:bigint)
-        assert_equal 9223372036854775806, find_value(12,:bigint)
+        assert_equal -9223372036854775807, find_value(11, :bigint)
+        assert_equal 9223372036854775806, find_value(12, :bigint)
       end
       
       should 'cast binary' do
-        assert_equal @gif1px, find_value(21,:binary_50)
+        assert_equal @gif1px, find_value(21, :binary_50)
       end
       
       should 'cast bit' do
-        assert_equal true, find_value(31,:bit)
-        assert_equal false, find_value(32,:bit)
-        assert_equal nil, find_value(21,:bit)
+        assert_equal true, find_value(31, :bit)
+        assert_equal false, find_value(32, :bit)
+        assert_equal nil, find_value(21, :bit)
       end
       
       should 'cast char' do
-        assert_equal '1234567890', find_value(41,:char_10)
+        assert_equal '1234567890', find_value(41, :char_10)
       end
       
       should 'cast decimal' do
-        assert_equal BigDecimal.new('12345.01'), find_value(91,:decimal_9_2)
-        assert_equal BigDecimal.new('1234567.89'), find_value(92,:decimal_9_2)
-        assert_equal BigDecimal.new('0.0'), find_value(93,:decimal_16_4)
-        assert_equal BigDecimal.new('123456789012.3456'), find_value(94,:decimal_16_4)
+        assert_equal BigDecimal.new('12345.01'), find_value(91, :decimal_9_2)
+        assert_equal BigDecimal.new('1234567.89'), find_value(92, :decimal_9_2)
+        assert_equal BigDecimal.new('0.0'), find_value(93, :decimal_16_4)
+        assert_equal BigDecimal.new('123456789012.3456'), find_value(94, :decimal_16_4)
       end
       
       should 'cast float' do
@@ -49,14 +49,14 @@ class SchemaTest < TinyTds::TestCase
       end
       
       should 'cast int' do
-        assert_equal -2147483647, find_value(151,:int)
-        assert_equal 2147483646, find_value(152,:int)
+        assert_equal -2147483647, find_value(151, :int)
+        assert_equal 2147483646, find_value(152, :int)
       end
       
       should 'cast money' do
-        assert_equal 4.20, find_value(161,:money)
-        assert_equal -922337203685477.5807, find_value(162,:money)
-        assert_equal 922337203685477.5806, find_value(163,:money)
+        assert_equal 4.20, find_value(161, :money)
+        assert_equal -922337203685477.5807, find_value(162, :money)
+        assert_equal 922337203685477.5806, find_value(163, :money)
       end
 
       should 'cast datetime' do
@@ -64,10 +64,10 @@ class SchemaTest < TinyTds::TestCase
         # We use DateTime for edge-case dates, but they're really slow.
         # TODO: Is there another way to make this pass without explicitly adding local time offset?
         #       I tried adding a time offset to the value in the schema SQL file, but it didn't work.
-        assert_equal DateTime.parse('1753-01-01T00:00:00.000-08:00'), find_value(61,:datetime)
-        assert_equal DateTime.parse('9999-12-31T23:59:59.997-08:00'), find_value(62,:datetime)
+        assert_equal DateTime.parse('1753-01-01T00:00:00.000-08:00'), find_value(61, :datetime)
+        assert_equal DateTime.parse('9999-12-31T23:59:59.997-08:00'), find_value(62, :datetime)
         # We use Time for normal dates since they're faster.
-        assert_equal Time.parse("2010-01-01T12:34:56.123"), find_value(63,:datetime)
+        assert_equal Time.parse("2010-01-01T12:34:56.123"), find_value(63, :datetime)
         # SYBCHAR
         # assert_equal DateTime.parse('0001-01-01T00:00:00.0000000Z'), find_value(71,:datetime2_7)
         # assert_equal DateTime.parse('1984-01-24T04:20:00.0000000-08:00'), find_value(72,:datetime2_7)
@@ -149,8 +149,8 @@ class SchemaTest < TinyTds::TestCase
       
       should 'cast date' do
         # Date datatype comes in as SYBCHAR
-        assert_equal '0001-01-01', find_value(51,:date)
-        assert_equal '9999-12-31', find_value(52,:date)
+        assert_equal '0001-01-01', find_value(51, :date)
+        assert_equal '9999-12-31', find_value(52, :date)
       end
       
       should 'cast datetimeoffset' do

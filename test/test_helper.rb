@@ -72,6 +72,14 @@ module TinyTds
       end
     end
     
+    def ruby18?
+      RUBY_VERSION < '1.9'
+    end
+    
+    def ruby19?
+      RUBY_VERSION >= '1.9'
+    end
+    
     
   end
 end

@@ -112,6 +112,12 @@ class SchemaTest < TinyTds::TestCase
         assert_equal 32766, find_value(242, :smallint)
       end
 
+      should 'cast smallmoney' do
+        assert_equal BigDecimal.new("4.20"), find_value(251, :smallmoney)
+        assert_equal BigDecimal.new("-214748.3647"), find_value(252, :smallmoney)
+        assert_equal BigDecimal.new("214748.3646"), find_value(253, :smallmoney)
+      end
+
       should 'cast text' do
         assert_equal 'test text', find_value(271, :text)
       end

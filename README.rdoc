@@ -22,4 +22,4 @@ From Source:
 
 == Author
 
-Written by Ken Collins
+Written by Ken Collins and Erik Bryn

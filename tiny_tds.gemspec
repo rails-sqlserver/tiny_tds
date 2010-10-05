@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.description = 'Tiny ruby wrapper for FreeTDS to use with the ActiveRecord SQLServerAdapter'
   s.homepage = 'http://github.com/rails-sqlserver/tiny_tds'
   s.version = '0.0.1'
-  s.authors = ['Ken Collins']
+  s.authors = ['Ken Collins', 'Erik Bryn']
   s.email = 'ken@metaskills.net'
   s.extensions = ['ext/tiny_tds/extconf.rb']
   s.files = Dir['CHANGELOG', 'MIT-LICENSE', 'README.rdoc', 'ext/**/*', 'lib/**/*']

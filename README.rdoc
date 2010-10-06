@@ -1,6 +1,9 @@
 = TinyTds
 
-Tiny Ruby Wrapper For FreeTDS Using DB-Library
+Tiny Ruby Wrapper For FreeTDS Using DB-Library.
+
+  * Inspired by the Mysql2 gem.
+    http://github.com/brianmario/mysql2
 
 
 == Install

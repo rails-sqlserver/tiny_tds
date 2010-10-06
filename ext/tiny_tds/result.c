@@ -350,6 +350,6 @@ void init_tinytds_result() {
   opt_time_month = INT2NUM(1);
   opt_utc_offset = INT2NUM(0);
   /* Hard-Coded VALUEs */
-  hc_tensix_power = rb_eval_string("10**6");
+  hc_tensix_power = INT2NUM(1000000);
   rb_global_variable(&hc_tensix_power);
 }

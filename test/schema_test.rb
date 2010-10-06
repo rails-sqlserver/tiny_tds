@@ -63,9 +63,9 @@ class SchemaTest < TinyTds::TestCase
       end
       
       should 'cast money' do
-        assert_equal 4.20, find_value(161, :money)
-        assert_equal -922337203685477.5807, find_value(162, :money)
-        assert_equal 922337203685477.5806, find_value(163, :money)
+        assert_equal BigDecimal.new('4.20'), find_value(161, :money)
+        assert_equal BigDecimal.new('922337203685477.5806'), find_value(163 ,:money)
+        assert_equal BigDecimal.new('-922337203685477.5807'), find_value(162 ,:money)
       end
       
       should 'cast nchar' do

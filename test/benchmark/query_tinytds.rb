@@ -8,7 +8,7 @@ extend BenchPress
 author 'Ken Collins'
 summary 'Benchmark TinyTds Querys'
 
-reps 10_000
+reps 1_000
 
 @client = TinyTds::Client.new({ 
   :host          => ENV['TINYTDS_UNIT_HOST'],
@@ -21,30 +21,64 @@ reps 10_000
 })
 
 @query_nothing  = "SELECT NULL AS [null]"
-@query_ints     = "SELECT [int], [bigint] FROM [datatypes]"
-@query_decimal  = "SELECT [decimal_9_2], [decimal_16_4] FROM [datatypes]"
-@query_dates    = "SELECT [datetime] FROM [datatypes]"
+@query_ints     = "SELECT [int], [bigint], [smallint], [tinyint] FROM [datatypes]"
+@query_binaries = "SELECT [binary_50], [image], [varbinary_50] FROM [datatypes]"
+@query_bits     = "SELECT [bit] FROM [datatypes]"
+@query_chars    = "SELECT [char_10], [nchar_10], [ntext], [nvarchar_50], [text], [varchar_50] FROM [datatypes]"
+@query_dates    = "SELECT [datetime], [smalldatetime] FROM [datatypes]"
+@query_decimals = "SELECT [decimal_9_2], [decimal_16_4], [numeric_18_0], [numeric_36_2] FROM [datatypes]"
+@query_floats   = "SELECT [float], [real] FROM [datatypes]"
+@query_moneys   = "SELECT [money], [smallmoney] FROM [datatypes]"
+@query_guids    = "SELECT [uniqueidentifier] FROM [datatypes]"
 @query_all      = "SELECT * FROM [datatypes]"
+
+def select_all(query)
+  @client.execute(query).each
+end
 
 
 measure "Nothing" do
-  @client.execute(@query_nothing).each
+  select_all @query_nothing
 end
 
 measure "Integers" do
-  @client.execute(@query_ints).each
+  select_all @query_ints
 end
 
-measure "Decimal" do
-  @client.execute(@query_decimal).each
+measure "Binaries" do
+  select_all @query_binaries
+end
+
+measure "Bits" do
+  select_all @query_bits
+end
+
+measure "Chars" do
+  select_all @query_chars
 end
 
 measure "Dates" do
-  @client.execute(@query_dates).each
+  select_all @query_dates
+end
+
+measure "Decimals" do
+  select_all @query_decimals
+end
+
+measure "Floats" do
+  select_all @query_floats
+end
+
+measure "Moneys" do
+  select_all @query_moneys
+end
+
+measure "Guids" do
+  select_all @query_guids
 end
 
 measure "All" do
-  @client.execute(@query_all).each
+  select_all @query_all
 end
 
 
@@ -53,20 +87,25 @@ end
 System Information
 ------------------
     Operating System:    Mac OS X 10.6.4 (10F569)
-    CPU:                 Quad-Core Intel Xeon 2.66 GHz
-    Processor Count:     4
-    Memory:              8 GB
+    CPU:                 Intel Core 2 Duo 2.4 GHz
+    Processor Count:     2
+    Memory:              4 GB
     ruby 1.8.7 (2010-08-16 patchlevel 302) [i686-darwin10.4.0]
 
-"Nothing" is up to 90% faster over 10,000 repetitions
------------------------------------------------------
+"Nothing" is up to 92% faster over 1,000 repetitions
+----------------------------------------------------
 
-    Nothing     2.24084496498108 secs    Fastest
-    Integers    3.32325601577759 secs    32% Slower
-    Decimal     3.47629904747009 secs    35% Slower
-    Dates       5.74888300895691 secs    61% Slower
-    All         24.3843479156494 secs    90% Slower
+    Nothing     0.271593809127808 secs    Fastest
+    Bits        0.408716201782227 secs    33% Slower
+    Guids       0.422524213790894 secs    35% Slower
+    Floats      0.445225954055786 secs    38% Slower
+    Moneys      0.503009796142578 secs    46% Slower
+    Integers    0.546446084976196 secs    50% Slower
+    Binaries    0.574711084365845 secs    52% Slower
+    Decimals    0.576212167739868 secs    52% Slower
+    Chars       0.724279880523682 secs    62% Slower
+    Dates       0.874240159988403 secs    68% Slower
+    All         3.45646595954895  secs    92% Slower
 
 =end
-
 

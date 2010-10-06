@@ -91,8 +91,6 @@ class SchemaTest < TinyTds::TestCase
       should 'cast nvarchar' do
         assert_equal 'test nvarchar_50', find_value(201, :nvarchar_50)
         assert_equal 'test nvarchar_50 åå', find_value(202, :nvarchar_50)
-        assert_equal 'test nvarchar_max', find_value(211, :nvarchar_max)
-        assert_equal 'test nvarchar_max åå', find_value(212, :nvarchar_max)
       end
       
       should 'cast real' do
@@ -143,7 +141,12 @@ class SchemaTest < TinyTds::TestCase
     end
     
     context 'for 2005 and up' do
-
+      
+      should 'cast nvarchar(max)' do
+        assert_equal 'test nvarchar_max', find_value(211, :nvarchar_max)
+        assert_equal 'test nvarchar_max åå', find_value(212, :nvarchar_max)
+      end
+      
     end
     
     context 'for 2008 and up' do

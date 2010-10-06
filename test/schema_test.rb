@@ -32,21 +32,15 @@ class SchemaTest < TinyTds::TestCase
       end
       
       should 'cast datetime' do
-        # FIXME: You must compile with MSDBLIB to support dates before 1900.
-        # We use DateTime for edge-case dates, but they're really slow.
-        # TODO: Is there another way to make this pass without explicitly adding local time offset?
-        #       I tried adding a time offset to the value in the schema SQL file, but it didn't work.
+        assert_instance_of DateTime, find_value(61, :datetime), 'We use DateTime for edge-case dates, but they are really slow.'
         assert_equal DateTime.parse('1753-01-01T00:00:00.000-08:00'), find_value(61, :datetime)
         assert_equal DateTime.parse('9999-12-31T23:59:59.997-08:00'), find_value(62, :datetime)
-        # We use Time for normal dates since they're faster.
+        assert_instance_of Time, find_value(63, :datetime), 'We use Time for normal dates since they are faster.'
         assert_equal Time.parse("2010-01-01T12:34:56.123"), find_value(63, :datetime)
-        # SYBCHAR
-        # assert_equal DateTime.parse('0001-01-01T00:00:00.0000000Z'), find_value(71,:datetime2_7)
-        # assert_equal DateTime.parse('1984-01-24T04:20:00.0000000-08:00'), find_value(72,:datetime2_7)
-        # assert_equal DateTime.parse('9999-12-31T23:59:59.9999999Z'), find_value(73,:datetime2_7)
       end
       
       should 'cast decimal' do
+        assert_instance_of BigDecimal, find_value(91, :decimal_9_2)
         assert_equal BigDecimal.new('12345.01'), find_value(91, :decimal_9_2)
         assert_equal BigDecimal.new('1234567.89'), find_value(92, :decimal_9_2)
         assert_equal BigDecimal.new('0.0'), find_value(93, :decimal_16_4)
@@ -85,10 +79,11 @@ class SchemaTest < TinyTds::TestCase
       end
       
       should 'cast numeric' do
-        assert_equal 191, find_value(191, :numeric_18_0)
-        assert_equal 123456789012345678, find_value(192, :numeric_18_0)
-        assert_equal 12345678901234567890.01, find_value(193, :numeric_36_2)
-        assert_equal 123.46, find_value(194, :numeric_36_2)
+        assert_instance_of BigDecimal, find_value(191, :numeric_18_0)
+        assert_equal BigDecimal('191'), find_value(191, :numeric_18_0)
+        assert_equal BigDecimal('123456789012345678'), find_value(192, :numeric_18_0)
+        assert_equal BigDecimal('12345678901234567890.01'), find_value(193, :numeric_36_2)
+        assert_equal BigDecimal('123.46'), find_value(194, :numeric_36_2)
       end
       
       should 'cast nvarchar' do
@@ -113,6 +108,7 @@ class SchemaTest < TinyTds::TestCase
       end
 
       should 'cast smallmoney' do
+        assert_instance_of BigDecimal, find_value(251, :smallmoney)
         assert_equal BigDecimal.new("4.20"), find_value(251, :smallmoney)
         assert_equal BigDecimal.new("-214748.3647"), find_value(252, :smallmoney)
         assert_equal BigDecimal.new("214748.3646"), find_value(253, :smallmoney)

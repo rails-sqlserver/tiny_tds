@@ -119,12 +119,16 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
         }
         case SYBBINARY:
         case SYBIMAGE:
-        case 36: 
-          // FIXME: This is SYBUNIQUE, but the constant isn't defined for some reason.
           // TODO: When we HAVE_RUBY_ENCODING_H we will rb_enc_associate(val, binaryEncoding)
           // that will be a static init var too like mysql2 gem.
           val = rb_str_new((char *)data, (long)data_len);
           break;
+        case 36: { // SYBUNIQUE
+          char converted_unique[32];
+          dbconvert(rwrap->client, coltype, data, 32, SYBVARCHAR, (BYTE *)converted_unique, -1);
+          val = rb_str_new2((char *)converted_unique);
+          break;
+        } 
         case SYBDATETIME: {
           DBDATEREC date_rec;
           dbdatecrack(rwrap->client, &date_rec, (DBDATETIME*)data);

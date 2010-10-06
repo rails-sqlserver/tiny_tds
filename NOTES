@@ -23,6 +23,11 @@ TODO
         as to suppress the printing of any SYBESMSG error, to avoid notifying the user about the same error twice.
 
   * Result Set with TONS OF TESTING.
+    - Date and time checklist.
+      • Make tests pass for everyone (see below maybe)
+      • Makes sure raise'ing "Invalid date" is right, deos this happen? If so, we need to cancel all results!
+      • Do we need to add tests for usec support?
+      • Is intern local right? I thought DB time was the winner? Not local app client?
     - Looking into using DBCOUNT to return affected rows.
     - Make sure empty string returns the expected query value, array, etc. Maybe nil?
     - Error & Message Handling

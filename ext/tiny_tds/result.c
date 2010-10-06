@@ -5,7 +5,9 @@ VALUE cTinyTdsResult;
 extern VALUE mTinyTds, cTinyTdsClient, cTinyTdsError;
 VALUE cBigDecimal, cDate, cDateTime, cRational;
 VALUE opt_decimal_zero, opt_float_zero, opt_time_year, opt_time_month, opt_utc_offset;
-static ID intern_new, intern_utc, intern_local, intern_encoding_from_charset_code, intern_localtime, intern_merge, intern_local_offset, intern_civil, intern_new_offset;
+VALUE hc_tensix_power;
+static ID intern_new, intern_utc, intern_local, intern_encoding_from_charset_code, intern_localtime, intern_merge, 
+          intern_local_offset, intern_civil, intern_new_offset, intern_plus, intern_divide;
 static ID sym_symbolize_keys, sym_as, sym_array, sym_database_timezone, sym_application_timezone, sym_local, sym_utc;
 
 
@@ -117,7 +119,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
           val = rb_funcall(cBigDecimal, intern_new, 2, rb_str_new2(converted_money), INT2NUM(4));
           // FIXME: This is kinda ghetto, but I don't know how to do this in C without converting to float,
           //        which then leads to precision problems.
-          val = rb_funcall(val, rb_intern("/"), 1, INT2NUM(10000));
+          val = rb_funcall(val, intern_divide, 1, INT2NUM(10000));
           break;
         }
         case SYBMONEY4: {
@@ -149,7 +151,6 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
               min   = date_rec.minute,
               sec   = date_rec.second,
               msec  = date_rec.millisecond;
-
           if (year+month+day+hour+min+sec+msec == 0) {
             val = Qnil;
           } else {
@@ -157,15 +158,16 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
               rb_raise(cTinyTdsError, "Invalid date");
               val = Qnil;
             } else {
-              if (year < 1902 || year+month+day > 2058) { // use DateTime instead
+              /* Use DateTime */
+              if (year < 1902 || year+month+day > 2058) {
                 VALUE offset = INT2NUM(0);
                 if (db_timezone == intern_local) {
                   offset = rb_funcall(cTinyTdsClient, intern_local_offset, 0);
                 }
                 VALUE datetime_sec = INT2NUM(sec);
                 if (msec != 0) {
-                  VALUE rational_msec = rb_funcall(cRational, intern_new, 2, INT2NUM(msec*1000), rb_eval_string("10**6")); // FIXME: Is there a better way to do this than using rb_eval_string?
-                  datetime_sec = rb_funcall(datetime_sec, rb_intern("+"), 1, rational_msec);                  
+                  VALUE rational_msec = rb_funcall(cRational, intern_new, 2, INT2NUM(msec*1000), hc_tensix_power);
+                  datetime_sec = rb_funcall(datetime_sec, intern_plus, 1, rational_msec);                  
                 }
                 val = rb_funcall(cDateTime, intern_civil, 7, INT2NUM(year), INT2NUM(month), INT2NUM(day), INT2NUM(hour), INT2NUM(min), datetime_sec, offset);
                 if (!NIL_P(app_timezone)) {
@@ -176,6 +178,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
                     val = rb_funcall(val, intern_new_offset, 1, opt_utc_offset);
                   }
                 }
+              /* Use Time */
               } else {
                 val = rb_funcall(rb_cTime, db_timezone, 7, INT2NUM(year), INT2NUM(month), INT2NUM(day), INT2NUM(hour), INT2NUM(min), INT2NUM(sec), INT2NUM(msec*1000));
                 if (!NIL_P(app_timezone)) {
@@ -195,7 +198,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
           DBUSMALLINT days_since_1900 = date->days, minutes = date->minutes;
           val = rb_funcall(rb_cTime, db_timezone, 6, INT2NUM(1900), INT2NUM(1), INT2NUM(1), INT2NUM(0), INT2NUM(0), INT2NUM(0));
           unsigned long int seconds_since_1900 = ((long)days_since_1900 * 24 * 3600) + ((long)minutes * 60);
-          val = rb_funcall(val, rb_intern("+"), 1, INT2NUM(seconds_since_1900));
+          val = rb_funcall(val, intern_plus, 1, INT2NUM(seconds_since_1900));
           break;
         }
         case SYBCHAR:
@@ -203,8 +206,6 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
           val = rb_str_new((char *)data, (long)data_len);
           break;
         default:
-          // This is useful for debugging purposes:
-          // fprintf(stderr, "\nUnhandled coltype detected: %d\n", coltype);
           val = rb_str_new((char *)data, (long)data_len);
           break;
       }
@@ -330,6 +331,8 @@ void init_tinytds_result() {
   intern_local_offset = rb_intern("local_offset");
   intern_civil = rb_intern("civil");
   intern_new_offset = rb_intern("new_offset");
+  intern_plus = rb_intern("+");
+  intern_divide = rb_intern("/");
   /* Symbol Helpers */
   sym_symbolize_keys = ID2SYM(rb_intern("symbolize_keys"));
   sym_as = ID2SYM(rb_intern("as"));
@@ -346,4 +349,7 @@ void init_tinytds_result() {
   opt_time_year = INT2NUM(2000);
   opt_time_month = INT2NUM(1);
   opt_utc_offset = INT2NUM(0);
+  /* Hard-Coded VALUEs */
+  hc_tensix_power = rb_eval_string("10**6");
+  rb_global_variable(&hc_tensix_power);
 }

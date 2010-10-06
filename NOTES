@@ -33,26 +33,25 @@ TODO
       • See the dbsetuserdata reference page for an example of how to handle deadlock in this way.
     - Looking into use dbfreebuf when the result is built as a way of preemptively clearing the command buffer. 
       Maybe use DBNOAUTOFREE with this.
+    - Test large data set in wchars
+    - See if wchar max is only supported in newer FreeTDS
+    - Test different database/client encodings. Might need to make a map of database.yml possibilities
+      that correlate to SQL Server. Might just need to handle this at Ruby's libiconv level (yes).
+    - Review Mysql2 gem for how it might handle #each_with_index (does it load all) or something like a
+      :first option. Need to make sure we have a way to SELECT *, then only load the first row, and canel
+      the remaining rows.
+  
+  * Make an escape method. Like Mysql2 gem.
 
 
-C Notes (general)
 
-  * Check <ctype.h> for conversion functions?
+FreeTDS Notes
 
-
-FreeTDS Tiny Notes
-
-  * Reference source utilities and unit tests.
   * Compile Flags
-    --enable-msdblib  (must have for db-lib client)
-      As of version 0.63, this option specifies just the default behavior. 
-      Programs can change the default at compile time by defining MSDBLIB or SYBDBLIB.
-    --disable-debug   (test speed improvement)
-    --disable-odbc    (just to make sure)
-    --with-tdsver     (check if run time of 7.0 and 8.0 work, prefer 8.0)
-  * Make adapter rake tasks use "make clean" before doing the utf8 variant of ruby odbc.
+    --disable-debug (test speed improvement)
+      http://www.freetds.org/userguide/logging.htm
+      http://www.freetds.org/userguide/seemtooslow.htm
   * The 7.0 TDS version transfers all character data in UCS-2 (Unicode, 2bytes/character)
-  * Debug flags if needed: http://www.freetds.org/userguide/freetdsconf.htm
   * Localization/Unicode
     - http://tenderlovemaking.com/2009/06/26/string-encoding-in-ruby-1-9-c-extensions/
     - http://www.freetds.org/userguide/localization.htm
@@ -63,28 +62,16 @@ FreeTDS Tiny Notes
       reported by the server (generally per connection, but in the case of TDS 8.0, 
       per result set column)
   * Make sure to test 7.0 TDS version.
-  * Turn off logging! (test speed improvement)
-    - http://www.freetds.org/userguide/logging.htm
-    - http://www.freetds.org/userguide/seemtooslow.htm
-
-
-C Notes (db-lib)
-
-  * Open headers: mate /opt/local/include/freetds
+  * Is it possible to over ride the "tds version" in the conf file? If not what does dbsetlversion do?
+  * Right now we have no interrupt handler to cancel a bad SELECT * or long SQL. Maybe use dbsetinterrupt
   * <tds.h>
     • _tds_compiletime_settings - Check for libiconv, msdblib
     • _tds_encoding - Check for ???
     • TDS8_COLLATION - Check for ???
-  * Fun stuff
-    • Maybe use dbsetinterrupt
 
 
-Questions For FreeTDS List
 
-  * Is it possible to over ride the "tds version" in the conf file? If not what does dbsetlversion do?
-
-
-Notes For Result Sets
+Notes From FreeTDS Mailing List
 
   * Attempt was map (char,varchar) to TStringField and (nchar,nvarchar) to TWideStringField.
     

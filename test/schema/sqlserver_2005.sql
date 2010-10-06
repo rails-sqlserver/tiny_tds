@@ -85,6 +85,7 @@ INSERT INTO [datatypes] ([id], [decimal_16_4])      VALUES ( 93, 0.0 )
 INSERT INTO [datatypes] ([id], [decimal_16_4])      VALUES ( 94, 123456789012.3456 )
 INSERT INTO [datatypes] ([id], [float])             VALUES ( 101, 123.00000001 )
 INSERT INTO [datatypes] ([id], [float])             VALUES ( 102, 0.0 )
+INSERT INTO [datatypes] ([id], [float])             VALUES ( 103, 123.45 )
 -- INSERT INTO [datatypes] ([id], [geography])         VALUES ( 111, geography::STGeomFromText('LINESTRING(-122.360 47.656, -122.343 47.656)', 4326) ) -- 0xE610000001148716D9CEF7D34740D7A3703D0A975EC08716D9CEF7D34740CBA145B6F3955EC0
 -- INSERT INTO [datatypes] ([id], [geometry])          VALUES ( 121, geometry::STGeomFromText('LINESTRING (100 100, 20 180, 180 180)', 0) ) -- 0x0000000001040300000000000000000059400000000000005940000000000000344000000000008066400000000000806640000000000080664001000000010000000001000000FFFFFFFF0000000002
 -- INSERT INTO [datatypes] ([id], [hierarchyid])       VALUES ( 131, CAST('/1/' AS hierarchyid) ) -- 0x58
@@ -108,6 +109,8 @@ INSERT INTO [datatypes] ([id], [nvarchar_50])       VALUES ( 202, N'test nvarcha
 INSERT INTO [datatypes] ([id], [nvarchar_max])      VALUES ( 211, N'test nvarchar_max' )
 INSERT INTO [datatypes] ([id], [nvarchar_max])      VALUES ( 212, N'test nvarchar_max åå' )
 INSERT INTO [datatypes] ([id], [real])              VALUES ( 221, 123.45 )
+INSERT INTO [datatypes] ([id], [real])              VALUES ( 222, 0.0 )
+INSERT INTO [datatypes] ([id], [real])              VALUES ( 223, 0.00001 )
 INSERT INTO [datatypes] ([id], [smalldatetime])     VALUES ( 231, '1901-01-01T15:45:00.000Z' ) -- 1901-01-01 15:45:00
 INSERT INTO [datatypes] ([id], [smalldatetime])     VALUES ( 232, '2078-06-05T04:20:00.000Z' ) -- 2078-06-05 04:20:00
 INSERT INTO [datatypes] ([id], [smallint])          VALUES ( 241, -32767 )

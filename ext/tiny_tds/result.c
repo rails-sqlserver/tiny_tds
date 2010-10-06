@@ -104,6 +104,11 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
           val = (col_to_double == 0.000000) ? opt_float_zero : rb_float_new(col_to_double);
           break;
         }
+        case SYBREAL: {
+          float col_to_float = *(float *)data;
+          val = (col_to_float == 0.0) ? opt_float_zero : rb_float_new(col_to_float);
+          break;
+        }
         case SYBMONEY: {
           DBMONEY *money = (DBMONEY *)data;
           char converted_money[25];
@@ -191,11 +196,6 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
           val = rb_funcall(rb_cTime, db_timezone, 6, INT2NUM(1900), INT2NUM(1), INT2NUM(1), INT2NUM(0), INT2NUM(0), INT2NUM(0));
           unsigned long int seconds_since_1900 = ((long)days_since_1900 * 24 * 3600) + ((long)minutes * 60);
           val = rb_funcall(val, rb_intern("+"), 1, INT2NUM(seconds_since_1900));
-          break;
-        }
-        case SYBREAL: {
-          float col_to_float = *(float *)data;
-          val = rb_float_new(col_to_float);
           break;
         }
         case SYBCHAR:

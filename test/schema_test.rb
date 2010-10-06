@@ -51,6 +51,7 @@ class SchemaTest < TinyTds::TestCase
         assert_equal 123.00000001, find_value(101,:float)
         assert_equal 0.0, find_value(102,:float)
         assert_equal find_value(102,:float).object_id, find_value(102,:float).object_id, 'use global zero float'
+        assert_equal 123.45, find_value(103,:float)
       end
       
       should 'cast image' do
@@ -95,7 +96,10 @@ class SchemaTest < TinyTds::TestCase
       end
       
       should 'cast real' do
-        assert_in_delta 123.45, find_value(221, :real), 0.00001 # TODO: Should this be done another way?
+        assert_in_delta 123.45, find_value(221, :real), 0.01
+        assert_equal 0.0, find_value(222, :real)
+        assert_equal find_value(222, :real).object_id, find_value(222, :real).object_id, 'use global zero float'
+        assert_in_delta 0.00001, find_value(223, :real), 0.000001
       end
       
       should 'cast smalldatetime' do

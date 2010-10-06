@@ -105,7 +105,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
           break;
         }
         case SYBMONEY: {
-          DBMONEY* money = (DBMONEY*)data;
+          DBMONEY *money = (DBMONEY *)data;
           char converted_money[25];
           long money_value = ((long)money->mnyhigh << 32) | money->mnylow;
           sprintf(converted_money, "%ld", money_value);

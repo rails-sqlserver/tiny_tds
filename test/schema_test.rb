@@ -148,7 +148,7 @@ class SchemaTest < TinyTds::TestCase
         assert_equal 'test nvarchar_max åå', find_value(212, :nvarchar_max)
       end
       
-    end
+    end if sqlserver_2005? || sqlserver_2008?
     
     context 'for 2008 and up' do
       
@@ -168,7 +168,7 @@ class SchemaTest < TinyTds::TestCase
         # assert_equal nil, find_value(86,:datetimeoffset_7)
       end
       
-    end
+    end if sqlserver_2008?
   
   end
   

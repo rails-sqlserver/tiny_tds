@@ -123,10 +123,16 @@ static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
   return result;  
 }
 
+static VALUE rb_tinytds_charset(VALUE self) {
+  GET_CLIENT_WRAPPER(self);
+  REQUIRE_OPEN_CLIENT(cwrap);
+  return cwrap->encoding;
+}
+
 
 // TinyTds::Client (protected) 
 
-static VALUE rb_tinytds_connect(VALUE self, VALUE user, VALUE pass, VALUE host, VALUE database, VALUE app, VALUE version, VALUE ltimeout, VALUE timeout) {
+static VALUE rb_tinytds_connect(VALUE self, VALUE user, VALUE pass, VALUE host, VALUE database, VALUE app, VALUE version, VALUE ltimeout, VALUE timeout, VALUE encoding) {
   if (dbinit() == FAIL) {
     rb_raise(cTinyTdsError, "failed dbinit() function");
     return self;
@@ -147,9 +153,13 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE user, VALUE pass, VALUE host, 
     dbsetlogintime(NUM2INT(ltimeout));
   if (!NIL_P(timeout))
     dbsettime(NUM2INT(timeout));
+  if (!NIL_P(encoding))
+    DBSETLCHARSET(cwrap->login, StringValuePtr(encoding));
   cwrap->client = dbopen(cwrap->login, StringValuePtr(host));
-  if (cwrap->client)
+  if (cwrap->client) {
     cwrap->closed = 0;
+    cwrap->encoding = encoding;
+  }
   return self;
 }
 
@@ -164,8 +174,9 @@ void init_tinytds_client() {
   rb_define_method(cTinyTdsClient, "close", rb_tinytds_close, 0);
   rb_define_method(cTinyTdsClient, "closed?", rb_tinytds_closed, 0);
   rb_define_method(cTinyTdsClient, "execute", rb_tinytds_execute, 1);
+  rb_define_method(cTinyTdsClient, "charset", rb_tinytds_charset, 0);
   /* Define TinyTds::Client Protected Methods */
-  rb_define_protected_method(cTinyTdsClient, "connect", rb_tinytds_connect, 8);
+  rb_define_protected_method(cTinyTdsClient, "connect", rb_tinytds_connect, 9);
   /* Intern TinyTds::Error Accessors */
   intern_source_eql = rb_intern("source=");
   intern_severity_eql = rb_intern("severity=");

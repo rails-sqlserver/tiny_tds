@@ -22,6 +22,17 @@ class ClientTest < TinyTds::TestCase
       assert_equal 9, @client.tds_version
       assert_equal 'DBTDS_8_0 - Microsoft SQL Server 2000', @client.tds_version_info
     end
+    
+    should 'use UTF-8 client char set by default' do
+      assert_equal 'UTF-8', @client.charset
+    end
+    
+    should 'allow valid iconv character set' do
+      ['CP1251', 'ISO-8859-1'].each do |encoding|
+        client = TinyTds::Client.new(connection_options.merge(:encoding => encoding))
+        assert_equal encoding, client.charset
+      end
+    end
   
   end
   
@@ -35,7 +46,7 @@ class ClientTest < TinyTds::TestCase
       options = connection_options.merge :login_timeout => 1, :host => '127.0.0.2'
       action = lambda { TinyTds::Client.new(options) }
       assert_raise_tinytds_error(action) do |e|
-        assert_match %r{unable to (open|connect)}i, e.message
+        assert_match(/unable to (open|connect)/i, e.message)
         assert_equal 9, e.severity
         assert [20008,20009].include?(e.db_error_number)
         assert_equal 36, e.os_error_number
@@ -50,6 +61,16 @@ class ClientTest < TinyTds::TestCase
         assert_equal 14, e.severity
         assert_equal 18456, e.db_error_number
         assert_equal 1, e.os_error_number
+      end
+    end
+    
+    should 'fail miserably with unknown encoding option' do
+      options = connection_options.merge :encoding => 'ISO-WTF'
+      action = lambda { TinyTds::Client.new(options) }
+      assert_raise_tinytds_error(action) do |e|
+        assert_match(/unexpected eof from the server/i, e.message)
+        assert_equal 9, e.severity
+        assert_equal 20017, e.db_error_number
       end
     end
   

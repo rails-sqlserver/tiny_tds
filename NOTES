@@ -67,6 +67,8 @@ Encoding Notes
 
   * Testing
     - All metadata (table names and such) are encoded according to UCS-2 on the wire. (test non-ascii col names)
+    - Unicode in conditions string
+    - Unicode in inserts
   
   * Misc Website
     - http://blog.grayproductions.net/categories/character_encodings
@@ -80,15 +82,7 @@ Encoding Notes
     - Aliases: "UCS-2BE"=>"UTF-16BE", "CP1251"=>"Windows-1251"
                "BINARY"=>"ASCII-8BIT", "ASCII"=>"US-ASCII"
     - Might need to make a map of common database.yml possibilities
-      +------------------------------------+
-      |   db.yml  |  Enc.find  |  freetds  |
-      +------------------------------------+
-      |    utf8   |   UTF-8    |     ?     |
-      |   cp1251  |     "      |     ?     |
-      |   ascii   |     "      |     ?     |
-      |   binary  |     "      |     ?     |
-      +------------------------------------+
-
+      Any valid iconv character set (iconv -l)
   * FreeTDS Info
     - The 7.0 TDS version transfers all character data in UCS-2 (Unicode, 2bytes/character)
     - Look Into: DBSETLCHARSET, dbcharsetconv, dbservcharset, dbgetcharset

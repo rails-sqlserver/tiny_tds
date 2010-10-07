@@ -8,7 +8,7 @@ class SchemaTest < TinyTds::TestCase
     setup do
       load_current_schema
       @client ||= TinyTds::Client.new(connection_options)
-      @gif1px = "GIF89a\001\000\001\000\221\000\000\377\377\377\377\377\377\376\001\002\000\000\000!\371\004\004\024\000\377\000,\000\000\000\000\001\000\001\000\000\002\002D\001\000;"
+      @gif1px = ruby19? ? File.read('test/schema/1px.gif',:mode=>"rb:BINARY") : File.read('test/schema/1px.gif')
     end
   
     context 'for shared types' do
@@ -19,7 +19,9 @@ class SchemaTest < TinyTds::TestCase
       end
       
       should 'cast binary' do
-        assert_equal @gif1px, find_value(21, :binary_50)
+        value = find_value(21, :binary_50)
+        assert_equal @gif1px, value
+        assert_equal Encoding.find('BINARY'), value.encoding if ruby19?
       end
       
       should 'cast bit' do
@@ -57,7 +59,9 @@ class SchemaTest < TinyTds::TestCase
       end
       
       should 'cast image' do
-        assert_equal @gif1px, find_value(141,:image)
+        value = find_value(141,:image)
+        assert_equal @gif1px, value
+        assert_equal Encoding.find('BINARY'), value.encoding if ruby19?
       end
       
       should 'cast int' do
@@ -107,19 +111,19 @@ class SchemaTest < TinyTds::TestCase
         assert_equal Time.parse('1901-01-01T15:45:00.000'), find_value(231, :smalldatetime)
         assert_equal Time.parse('2078-06-05T04:20:00.000').to_s, find_value(232, :smalldatetime).to_s
       end
-
+      
       should 'cast smallint' do
         assert_equal -32767, find_value(241, :smallint)
         assert_equal 32766, find_value(242, :smallint)
       end
-
+      
       should 'cast smallmoney' do
         assert_instance_of BigDecimal, find_value(251, :smallmoney)
         assert_equal BigDecimal.new("4.20"), find_value(251, :smallmoney)
         assert_equal BigDecimal.new("-214748.3647"), find_value(252, :smallmoney)
         assert_equal BigDecimal.new("214748.3646"), find_value(253, :smallmoney)
       end
-
+      
       should 'cast text' do
         assert_equal 'test text', find_value(271, :text)
       end
@@ -134,7 +138,9 @@ class SchemaTest < TinyTds::TestCase
       end
       
       should 'cast varbinary' do
-        assert_equal @gif1px, find_value(321, :varbinary_50)
+        value = find_value(321, :varbinary_50)
+        assert_equal @gif1px, value
+        assert_equal Encoding.find('BINARY'), value.encoding if ruby19?
       end
       
       should 'cast varchar' do

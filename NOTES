@@ -26,6 +26,7 @@ TODO
     - Date and time checklist.
       • Make tests pass for everyone (see below maybe)
       • Makes sure raise'ing "Invalid date" is right, deos this happen? If so, we need to cancel all results!
+        Maybe use just rb_warn.
       • Do we need to add tests for usec support?
       • Is intern local right? I thought DB time was the winner? Not local app client?
     - Looking into using DBCOUNT to return affected rows.

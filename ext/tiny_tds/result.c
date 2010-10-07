@@ -10,6 +10,9 @@ static ID intern_new, intern_utc, intern_local, intern_encoding_from_charset_cod
           intern_local_offset, intern_civil, intern_new_offset, intern_plus, intern_divide;
 static ID sym_symbolize_keys, sym_as, sym_array, sym_database_timezone, sym_application_timezone, sym_local, sym_utc;
 
+#ifdef HAVE_RUBY_ENCODING_H
+rb_encoding *binaryEncoding;
+#endif
 
 
 // Lib Backend (Memory Management)
@@ -131,9 +134,10 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
         }
         case SYBBINARY:
         case SYBIMAGE:
-          // TODO: When we HAVE_RUBY_ENCODING_H we will rb_enc_associate(val, binaryEncoding)
-          // that will be a static init var too like mysql2 gem.
           val = rb_str_new((char *)data, (long)data_len);
+          #ifdef HAVE_RUBY_ENCODING_H
+            rb_enc_associate(val, binaryEncoding);
+          #endif
           break;
         case 36: { // SYBUNIQUE
           char converted_unique[32];
@@ -352,4 +356,7 @@ void init_tinytds_result() {
   /* Hard-Coded VALUEs */
   hc_tensix_power = INT2NUM(1000000);
   rb_global_variable(&hc_tensix_power);
+  #ifdef HAVE_RUBY_ENCODING_H
+    binaryEncoding = rb_enc_find("binary");
+  #endif
 }

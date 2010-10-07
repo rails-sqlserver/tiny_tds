@@ -110,7 +110,8 @@ static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
   REQUIRE_OPEN_CLIENT(cwrap);
   dbcmd(cwrap->client, StringValuePtr(sql));
   if (dbsqlexec(cwrap->client) == FAIL) {
-    printf("\nTODO: Account for dbsqlexec() returned FAIL.\n");
+    // TODO: Account for dbsqlexec() returned FAIL.
+    rb_warn("TinyTds: dbsqlexec() returned FAIL.\n");
     return Qfalse;
   }
   VALUE result = rb_tinytds_new_result_obj(cwrap->client);

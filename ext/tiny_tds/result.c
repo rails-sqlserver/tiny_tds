@@ -120,8 +120,6 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
           long money_value = ((long)money->mnyhigh << 32) | money->mnylow;
           sprintf(converted_money, "%ld", money_value);
           val = rb_funcall(cBigDecimal, intern_new, 2, rb_str_new2(converted_money), INT2NUM(4));
-          // FIXME: This is kinda ghetto, but I don't know how to do this in C without converting to float,
-          //        which then leads to precision problems.
           val = rb_funcall(val, intern_divide, 1, INT2NUM(10000));
           break;
         }
@@ -283,11 +281,13 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
         }
         rwrap->number_of_rows = rowi;
       } else {
-        printf("\nTODO: Account for failed dbresults() must have returned FAIL.\n");
+        // TODO: Account for failed dbresults() must have returned FAIL.
+        rb_warn("TinyTds: dbresults() must have returned FAIL.\n");
       }
     }
     if (return_code == FAIL) {
-      printf("\nTODO: Something in the while loop set the return code to FAIL.\n");
+      // TODO: Account for something in the dbresults() while loop set the return code to FAIL.
+      rb_warn("TinyTds: Something in the dbresults() while loop set the return code to FAIL.\n");
     }
   } else if (!NIL_P(block)) {
     unsigned long i;

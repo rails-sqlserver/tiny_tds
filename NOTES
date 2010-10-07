@@ -3,8 +3,6 @@ TODO
 
   * Client & Connection with TONS OF TESTING.
     * Test empty command buffer execute and good fail.
-    * Character Set
-      - Look Into: DBSETLCHARSET, dbcharsetconv, dbservcharset, dbgetcharset
     - Error & Message Handling
       * Test inserting invalid xml in xml data type, timed our for me.
       * Test structs are not hanging oddly around on login failures.
@@ -57,30 +55,44 @@ FreeTDS Notes
     --disable-debug (test speed improvement)
       http://www.freetds.org/userguide/logging.htm
       http://www.freetds.org/userguide/seemtooslow.htm
-  * The 7.0 TDS version transfers all character data in UCS-2 (Unicode, 2bytes/character)
-  * Localization/Unicode
+  * Is it possible to over ride the "tds version" in the conf file? If not what does dbsetlversion do?
+  * Right now we have no interrupt handler to cancel a bad SELECT * or long SQL. Maybe use dbsetinterrupt
+
+
+
+
+--------------
+Encoding Notes
+--------------
+
+  * Misc Website
+    - http://blog.grayproductions.net/categories/character_encodings
     - http://tenderlovemaking.com/2009/06/26/string-encoding-in-ruby-1-9-c-extensions/
     - http://www.freetds.org/userguide/localization.htm
     - http://www.freetds.org/userguide/aboutunicode.htm
+    
+  * Ruby 1.9 & Rails Info
+    - Objects: #<Encoding:UTF-16BE>, #<Encoding:Windows-1251>, #<Encoding:UTF-16LE>
+    - Aliases: "UCS-2BE"=>"UTF-16BE", "CP1251"=>"Windows-1251"
+    - Might need to make a map of common database.yml possibilities
+    
+  * FreeTDS Info
+    - The 7.0 TDS version transfers all character data in UCS-2 (Unicode, 2bytes/character)
+    - Look Into: DBSETLCHARSET, dbcharsetconv, dbservcharset, dbgetcharset
     - FreeTDS is not fully compatible with multi-byte character sets such as UCS-2. 
       You must use an ASCII-extension charset (e.g., UTF-8, ISO-8859-*)[2]
     - FreeTDS determines the server's encoding from the TDS protocol and information 
       reported by the server (generally per connection, but in the case of TDS 8.0, 
       per result set column)
-  * Make sure to test 7.0 TDS version.
-  * Is it possible to over ride the "tds version" in the conf file? If not what does dbsetlversion do?
-  * Right now we have no interrupt handler to cancel a bad SELECT * or long SQL. Maybe use dbsetinterrupt
-  * <tds.h>
-    • _tds_compiletime_settings - Check for libiconv, msdblib
-    • _tds_encoding - Check for ???
-    • TDS8_COLLATION - Check for ???
+    - <tds.h>
+      • _tds_compiletime_settings - Check for libiconv, msdblib
+      • _tds_encoding - Check for ???
+      • TDS8_COLLATION - Check for ???
 
-
-
-Notes From FreeTDS Mailing List
-
-  * Attempt was map (char,varchar) to TStringField and (nchar,nvarchar) to TWideStringField.
-    
+  * Notes From FreeTDS Mailing List
+    ----------------------------------------------------------------------------------------------------------
+    = Attempt was map (char,varchar) to TStringField and (nchar,nvarchar) to TWideStringField.
+    ----------------------------------------------------------------------------------------------------------
     Unfortunately it will be quite difficult with db-lib, because FreeTDS intentionally conceals the server
     column definition. It was a design decision (maybe not the right one!) but it's very deep in the library.  
     As soon as UCS-2 data arrive from the server, they are immediately converted to the client's encoding.
@@ -93,25 +105,25 @@ Notes From FreeTDS Mailing List
     to the client's charset is a matter of *binding*, and binding should be handled as late as 
     possible. dbbind() is where the conversion should happen, and dbdata() should return the 
     original UCS-2 data as delivered by the server.
-
-  * FreeTDS and SQL Server 2008 UTF-16 characters
-    
+    ----------------------------------------------------------------------------------------------------------
+    = FreeTDS and SQL Server 2008 UTF-16 characters
+    ----------------------------------------------------------------------------------------------------------
     From all that I learned about this, it seems it would be safe intepreting the UCS-2 characters as UTF-16
     ... I would appreciate your help with such a change... for sure I can help with testing it.
-
+    >> 
     I have a suggestion for a hack. If you're right and I'm right, it might work. In src/tds/iconv.c, the 
     string constant "UCS-2LE" appears 4 times. Change them to "UTF-16LE".  Recompile.  Make sure you're using 
     GNU libiconv. Run your test. Watch for smoke. If UTF-16 really is a superset of UCS-2, it should Just Work. 
     That change doesn't fake anything; it just treats as UTF-16 what would otherwise be regarded as UCS-2. 
     If it works, please update the comments and the variable names (and for extra credit, the documentation), 
     post your patch and call it a day. --jkl
-  
+    >> 
     So far I can say it is working very well! Unicode characters outside the BMP are now correctly converted to 
     UTF-16 and back to UTF-8. The characters in the UCS-2 range still seem to work too.
-
+    >> 
     The big problem about moving from ucs2 to utf16 is portability. There are some implementations (like HP-UX one) 
     which sticks to ucs2 internal format and BMP 0. In these implementations conversions to/from ucs2 are available
     without problems while conversions to/from utf16 are not. We don't handle utf16 in our replacements library but 
-    is not that hard to add it (I already wrote the patch).
+    is not that hard to add it (I already wrote the patch). --jkl
 
 

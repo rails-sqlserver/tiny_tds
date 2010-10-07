@@ -30,6 +30,7 @@ class SchemaTest < TinyTds::TestCase
       
       should 'cast char' do
         assert_equal '1234567890', find_value(41, :char_10)
+        assert_equal '12345678', find_value(42, :char_10)
       end
       
       should 'cast datetime' do
@@ -73,7 +74,8 @@ class SchemaTest < TinyTds::TestCase
       
       should 'cast nchar' do
         assert_equal '1234567890', find_value(171, :nchar_10)
-        assert_equal '123456åå', find_value(172, :nchar_10)
+        assert_equal '123456åå  ', find_value(172, :nchar_10)
+        assert_equal 'abc123    ', find_value(173, :nchar_10)
       end
       
       should 'cast ntext' do

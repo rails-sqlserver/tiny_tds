@@ -4,8 +4,7 @@
 VALUE cTinyTdsResult;
 extern VALUE mTinyTds, cTinyTdsClient, cTinyTdsError;
 VALUE cBigDecimal, cDate, cDateTime, cRational;
-VALUE opt_decimal_zero, opt_float_zero, opt_time_year, opt_time_month, opt_utc_offset;
-VALUE hc_tensix_power;
+VALUE opt_decimal_zero, opt_float_zero, opt_one, opt_zero, opt_four, opt_19hdr, opt_tenk, opt_onemil;
 static ID intern_new, intern_utc, intern_local, intern_encoding_from_charset_code, intern_localtime, intern_merge, 
           intern_local_offset, intern_civil, intern_new_offset, intern_plus, intern_divide;
 static ID sym_symbolize_keys, sym_as, sym_array, sym_database_timezone, sym_application_timezone, sym_local, sym_utc;
@@ -119,8 +118,8 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
           char converted_money[25];
           long money_value = ((long)money->mnyhigh << 32) | money->mnylow;
           sprintf(converted_money, "%ld", money_value);
-          val = rb_funcall(cBigDecimal, intern_new, 2, rb_str_new2(converted_money), INT2NUM(4));
-          val = rb_funcall(val, intern_divide, 1, INT2NUM(10000));
+          val = rb_funcall(cBigDecimal, intern_new, 2, rb_str_new2(converted_money), opt_four);
+          val = rb_funcall(val, intern_divide, 1, opt_tenk);
           break;
         }
         case SYBMONEY4: {
@@ -162,13 +161,13 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
             } else {
               /* Use DateTime */
               if (year < 1902 || year+month+day > 2058) {
-                VALUE offset = INT2NUM(0);
+                VALUE offset = opt_zero;
                 if (db_timezone == intern_local) {
                   offset = rb_funcall(cTinyTdsClient, intern_local_offset, 0);
                 }
                 VALUE datetime_sec = INT2NUM(sec);
                 if (msec != 0) {
-                  VALUE rational_msec = rb_funcall(cRational, intern_new, 2, INT2NUM(msec*1000), hc_tensix_power);
+                  VALUE rational_msec = rb_funcall(cRational, intern_new, 2, INT2NUM(msec*1000), opt_onemil);
                   datetime_sec = rb_funcall(datetime_sec, intern_plus, 1, rational_msec);                  
                 }
                 val = rb_funcall(cDateTime, intern_civil, 7, INT2NUM(year), INT2NUM(month), INT2NUM(day), INT2NUM(hour), INT2NUM(min), datetime_sec, offset);
@@ -177,7 +176,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
                     offset = rb_funcall(cTinyTdsClient, intern_local_offset, 0);
                     val = rb_funcall(val, intern_new_offset, 1, offset);
                   } else { // utc
-                    val = rb_funcall(val, intern_new_offset, 1, opt_utc_offset);
+                    val = rb_funcall(val, intern_new_offset, 1, opt_zero);
                   }
                 }
               /* Use Time */
@@ -198,7 +197,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
         case SYBDATETIME4: {
           DBDATETIME4 *date = (DBDATETIME4 *)data;
           DBUSMALLINT days_since_1900 = date->days, minutes = date->minutes;
-          val = rb_funcall(rb_cTime, db_timezone, 6, INT2NUM(1900), INT2NUM(1), INT2NUM(1), INT2NUM(0), INT2NUM(0), INT2NUM(0));
+          val = rb_funcall(rb_cTime, db_timezone, 6, opt_19hdr, opt_one, opt_one, opt_zero, opt_zero, opt_zero);
           unsigned long int seconds_since_1900 = ((long)days_since_1900 * 24 * 3600) + ((long)minutes * 60);
           val = rb_funcall(val, intern_plus, 1, INT2NUM(seconds_since_1900));
           break;
@@ -350,12 +349,13 @@ void init_tinytds_result() {
   rb_global_variable(&opt_decimal_zero);
   opt_float_zero = rb_float_new((double)0);
   rb_global_variable(&opt_float_zero);
-  opt_time_year = INT2NUM(2000);
-  opt_time_month = INT2NUM(1);
-  opt_utc_offset = INT2NUM(0);
-  /* Hard-Coded VALUEs */
-  hc_tensix_power = INT2NUM(1000000);
-  rb_global_variable(&hc_tensix_power);
+  opt_one = INT2NUM(1);
+  opt_zero = INT2NUM(0);
+  opt_four = INT2NUM(4);
+  opt_19hdr = INT2NUM(1900);
+  opt_tenk = INT2NUM(10000);
+  opt_onemil = INT2NUM(1000000);
+  /* Encoding */
   #ifdef HAVE_RUBY_ENCODING_H
     binaryEncoding = rb_enc_find("binary");
   #endif

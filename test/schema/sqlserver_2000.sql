@@ -43,7 +43,6 @@ CREATE TABLE [datatypes] (
 	[smalldatetime] [smalldatetime] NULL,
 	[smallint] [smallint] NULL,
 	[smallmoney] [smallmoney] NULL,
-	-- [sql_variant] [sql_variant] NULL,
 	[text] [text] NULL,
   -- [time_2] [time](2) NULL,
   -- [time_7] [time](7) NULL,
@@ -120,9 +119,6 @@ INSERT INTO [datatypes] ([id], [smallint])          VALUES ( 242, 32766 )
 INSERT INTO [datatypes] ([id], [smallmoney])        VALUES ( 251, 4.20 )
 INSERT INTO [datatypes] ([id], [smallmoney])        VALUES ( 252, -214748.3647 )
 INSERT INTO [datatypes] ([id], [smallmoney])        VALUES ( 253, 214748.3646 )
--- INSERT INTO [datatypes] ([id], [sql_variant])       VALUES ( 261, 261 )
--- INSERT INTO [datatypes] ([id], [sql_variant])       VALUES ( 262, 'test sql_variant')
--- INSERT INTO [datatypes] ([id], [sql_variant])       VALUES ( 263, N'test sql_variant åå')
 INSERT INTO [datatypes] ([id], [text])              VALUES ( 271, 'test text' )
 -- INSERT INTO [datatypes] ([id], [time_2])            VALUES ( 281, '1901-01-01T15:45:00.0100001Z' )      -- 15:45:00.01
 -- INSERT INTO [datatypes] ([id], [time_2])            VALUES ( 282, '1984-01-24T04:20:00.0000001-08:00' ) -- 04:20:00.00

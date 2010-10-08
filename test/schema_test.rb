@@ -155,31 +155,60 @@ class SchemaTest < TinyTds::TestCase
       
     end
     
+    
     context 'for 2005 and up' do
       
       should 'cast nvarchar(max)' do
         assert_equal 'test nvarchar_max', find_value(211, :nvarchar_max)
         assert_equal 'test nvarchar_max åå', find_value(212, :nvarchar_max)
+        assert_utf8_encoding find_value(212, :nvarchar_max)
+      end
+      
+      should 'cast varbinary(max)' do
+        
+      end
+      
+      should 'cast varchar(max)' do
+        
+      end
+      
+      should 'cast xml' do
+        
       end
       
     end if sqlserver_2005? || sqlserver_2008?
     
+    
     context 'for 2008 and up' do
       
       should 'cast date' do
-        # Date datatype comes in as SYBCHAR
+        # TODO: Make these objects, if not, make sure the encoding is correct
         assert_equal '0001-01-01', find_value(51, :date)
         assert_equal '9999-12-31', find_value(52, :date)
       end
       
+      should 'cast datetime2' do
+        
+      end
+      
       should 'cast datetimeoffset' do
-        # SYBCHAR
-        # assert_equal nil, find_value(81,:datetimeoffset_2)
-        # assert_equal nil, find_value(82,:datetimeoffset_2)
-        # assert_equal nil, find_value(83,:datetimeoffset_2)
-        # assert_equal nil, find_value(84,:datetimeoffset_7)
-        # assert_equal nil, find_value(85,:datetimeoffset_7)
-        # assert_equal nil, find_value(86,:datetimeoffset_7)
+        
+      end
+      
+      should 'cast geography' do
+        
+      end
+      
+      should 'cast geometry' do
+        
+      end
+      
+      should 'cast hierarchyid' do
+        
+      end
+      
+      should 'cast time' do
+        
       end
       
     end if sqlserver_2008?

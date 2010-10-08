@@ -1,11 +1,12 @@
 Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
-  s.require_paths = ['lib']
+  s.require_paths = ['lib', 'ext']
   s.rubygems_version = '1.3.7'
   s.name = 'tiny_tds'
-  s.summary = 'Tiny Ruby Wrapper For FreeTDS'
-  s.description = 'Tiny ruby wrapper for FreeTDS to use with the ActiveRecord SQLServerAdapter'
+  s.summary = 'Tiny Ruby Wrapper For FreeTDS Using DB-Library'
+  s.description = 'Tiny ruby wrapper for FreeTDS developed for the ActiveRecord SQLServerAdapter'
   s.homepage = 'http://github.com/rails-sqlserver/tiny_tds'
+  s.rdoc_options = ['--charset=UTF-8']
   s.version = '0.0.1'
   s.authors = ['Ken Collins', 'Erik Bryn']
   s.email = 'ken@metaskills.net'

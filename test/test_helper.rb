@@ -89,6 +89,34 @@ module TinyTds
       RUBY_VERSION >= '1.9'
     end
     
+    def load_current_schema
+      @@current_schema_loaded ||= begin
+        loader = TinyTds::Client.new(connection_options)
+        schema_file = File.expand_path File.join(File.dirname(__FILE__), 'schema', "#{current_schema}.sql")
+        schema_sql = File.read(schema_file)
+        loader.execute(drop_sql).each
+        loader.execute(schema_sql).cancel
+        loader.close
+        true
+      end
+    end
+
+    def drop_sql
+      %|IF  EXISTS (
+        SELECT TABLE_NAME
+        FROM INFORMATION_SCHEMA.TABLES 
+        WHERE TABLE_CATALOG = 'tinytds_test' 
+        AND TABLE_TYPE = 'BASE TABLE' 
+        AND TABLE_NAME = 'datatypes'
+      ) 
+      DROP TABLE [datatypes]|
+    end
+
+    def find_value(id, column)
+      sql = "SELECT [#{column}] FROM [datatypes] WHERE [id] = #{id}"
+      @client.execute(sql).each.first[column.to_s]
+    end
+    
     
   end
 end

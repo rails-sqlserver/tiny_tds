@@ -33,6 +33,7 @@ class SchemaTest < TinyTds::TestCase
       should 'cast char' do
         assert_equal '1234567890', find_value(41, :char_10)
         assert_equal '12345678', find_value(42, :char_10)
+        assert_equal Encoding.find('UTF-8'), find_value(42, :char_10).encoding if ruby19?
       end
       
       should 'cast datetime' do

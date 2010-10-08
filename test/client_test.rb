@@ -23,14 +23,16 @@ class ClientTest < TinyTds::TestCase
       assert_equal 'DBTDS_8_0 - Microsoft SQL Server 2000', @client.tds_version_info
     end
     
-    should 'use UTF-8 client char set by default' do
+    should 'use UTF-8 client charset/encoding by default' do
       assert_equal 'UTF-8', @client.charset
+      assert_equal Encoding.find('UTF-8'), @client.encoding if ruby19?
     end
     
     should 'allow valid iconv character set' do
       ['CP1251', 'ISO-8859-1'].each do |encoding|
         client = TinyTds::Client.new(connection_options.merge(:encoding => encoding))
         assert_equal encoding, client.charset
+        assert_equal Encoding.find(encoding), client.encoding if ruby19?
       end
     end
   

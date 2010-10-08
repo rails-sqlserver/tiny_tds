@@ -9,7 +9,10 @@ typedef struct {
   RETCODE return_code;
   DBPROCESS *client;
   short int closed;
-  VALUE encoding;
+  VALUE charset;
+  #ifdef HAVE_RUBY_ENCODING_H
+    rb_encoding *encoding;
+  #endif
 } tinytds_client_wrapper;
 
 

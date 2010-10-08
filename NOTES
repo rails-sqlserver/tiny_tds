@@ -91,10 +91,6 @@ Encoding Notes
     - FreeTDS determines the server's encoding from the TDS protocol and information 
       reported by the server (generally per connection, but in the case of TDS 8.0, 
       per result set column)
-    - <tds.h>
-      • _tds_compiletime_settings - Check for libiconv, msdblib
-      • _tds_encoding - Check for ???
-      • TDS8_COLLATION - Check for ???
 
   * Notes From FreeTDS Mailing List
     ----------------------------------------------------------------------------------------------------------

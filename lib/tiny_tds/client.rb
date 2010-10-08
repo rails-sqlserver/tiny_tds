@@ -34,9 +34,15 @@ module TinyTds
     
     attr_reader :query_options
     
-    
     def self.default_query_options
       @@default_query_options
+    end
+    
+    # Most, if not all, iconv encoding names can be found by ruby. Just in case, you can 
+    # overide this method to return a string name that Encoding.find would work with. Default 
+    # is to return the passed encoding.
+    def self.transpose_iconv_encoding(encoding)
+      encoding
     end
 
 
@@ -50,7 +56,7 @@ module TinyTds
       version  = TDS_VERSIONS_SETTERS[opts[:tds_version].to_s] || TDS_VERSIONS_SETTERS['80']
       ltimeout = opts[:login_timeout] || 60
       timeout  = opts[:timeout]
-      encoding = (opts[:encoding].nil? || opts[:encoding].downcase == 'utf8') ? 'UTF-8' : opts[:encoding]
+      encoding = (opts[:encoding].nil? || opts[:encoding].downcase == 'utf8') ? 'UTF-8' : opts[:encoding].upcase
       raise ArgumentError, 'missing :username option' if user.nil? || user.empty?
       connect(user, pass, host, database, appname, version, ltimeout, timeout, encoding)
     end

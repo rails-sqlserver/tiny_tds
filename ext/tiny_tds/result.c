@@ -5,7 +5,7 @@ VALUE cTinyTdsResult;
 extern VALUE mTinyTds, cTinyTdsClient, cTinyTdsError;
 VALUE cBigDecimal, cDate, cDateTime, cRational;
 VALUE opt_decimal_zero, opt_float_zero, opt_one, opt_zero, opt_four, opt_19hdr, opt_tenk, opt_onemil;
-static ID intern_new, intern_utc, intern_local, intern_encoding_from_charset_code, intern_localtime, intern_merge, 
+static ID intern_new, intern_utc, intern_local, intern_localtime, intern_merge, 
           intern_local_offset, intern_civil, intern_new_offset, intern_plus, intern_divide;
 static ID sym_symbolize_keys, sym_as, sym_array, sym_database_timezone, sym_application_timezone, sym_local, sym_utc;
 
@@ -21,7 +21,6 @@ static void rb_tinytds_result_mark(void *ptr) {
   if (rwrap) {
     rb_gc_mark(rwrap->fields);
     rb_gc_mark(rwrap->rows);
-    rb_gc_mark(rwrap->encoding);
   }
 }
 
@@ -38,7 +37,6 @@ VALUE rb_tinytds_new_result_obj(DBPROCESS *c) {
   rwrap->return_code = 0;
   rwrap->fields = Qnil;
   rwrap->rows = Qnil;
-  rwrap->encoding = Qnil;
   rwrap->number_of_fields = 0;
   rwrap->number_of_rows = 0;
   rb_obj_call_init(obj, 0, NULL);
@@ -325,7 +323,6 @@ void init_tinytds_result() {
   rb_define_method(cTinyTdsResult, "fields", rb_tinytds_result_fields, 0);
   rb_define_method(cTinyTdsResult, "cancel", rb_tinytds_result_cancel, 0);
   /* Intern String Helpers */
-  intern_encoding_from_charset_code = rb_intern("encoding_from_charset_code");
   intern_new = rb_intern("new");
   intern_utc = rb_intern("utc");
   intern_local = rb_intern("local");

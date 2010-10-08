@@ -10,7 +10,9 @@ typedef struct {
   RETCODE return_code;
   VALUE fields;
   VALUE rows;
-  VALUE encoding;
+  #ifdef HAVE_RUBY_ENCODING_H
+    rb_encoding *encoding;
+  #endif
   long number_of_fields;
   unsigned long number_of_rows;
 } tinytds_result_wrapper;

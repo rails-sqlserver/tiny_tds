@@ -6,7 +6,7 @@
 VALUE cTinyTdsClient;
 extern VALUE mTinyTds, cTinyTdsError;
 static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, intern_os_error_number_eql;
-static ID intern_dup;
+static ID intern_dup, intern_transpose_iconv_encoding;
 
 
 // Lib Macros
@@ -59,7 +59,7 @@ int tinytds_msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severi
 static void rb_tinytds_client_mark(void *ptr) {
   tinytds_client_wrapper *cwrap = (tinytds_client_wrapper *)ptr;
   if (cwrap) {
-    rb_gc_mark(cwrap->encoding);
+    rb_gc_mark(cwrap->charset);
   }
 }
 
@@ -79,7 +79,7 @@ static VALUE allocate(VALUE klass) {
   tinytds_client_wrapper *cwrap;
   obj = Data_Make_Struct(klass, tinytds_client_wrapper, rb_tinytds_client_mark, rb_tinytds_client_free, cwrap);
   cwrap->closed = 1;
-  cwrap->encoding = Qnil;
+  cwrap->charset = Qnil;
   return obj;
 }
 
@@ -125,14 +125,22 @@ static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
 
 static VALUE rb_tinytds_charset(VALUE self) {
   GET_CLIENT_WRAPPER(self);
-  REQUIRE_OPEN_CLIENT(cwrap);
-  return cwrap->encoding;
+  return cwrap->charset;
+}
+
+static VALUE rb_tinytds_encoding(VALUE self) {
+  GET_CLIENT_WRAPPER(self);
+  #ifdef HAVE_RUBY_ENCODING_H
+    return rb_enc_from_encoding(cwrap->encoding);
+  #else
+    return Qnil;
+  #endif
 }
 
 
 // TinyTds::Client (protected) 
 
-static VALUE rb_tinytds_connect(VALUE self, VALUE user, VALUE pass, VALUE host, VALUE database, VALUE app, VALUE version, VALUE ltimeout, VALUE timeout, VALUE encoding) {
+static VALUE rb_tinytds_connect(VALUE self, VALUE user, VALUE pass, VALUE host, VALUE database, VALUE app, VALUE version, VALUE ltimeout, VALUE timeout, VALUE charset) {
   if (dbinit() == FAIL) {
     rb_raise(cTinyTdsError, "failed dbinit() function");
     return self;
@@ -153,12 +161,16 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE user, VALUE pass, VALUE host, 
     dbsetlogintime(NUM2INT(ltimeout));
   if (!NIL_P(timeout))
     dbsettime(NUM2INT(timeout));
-  if (!NIL_P(encoding))
-    DBSETLCHARSET(cwrap->login, StringValuePtr(encoding));
+  if (!NIL_P(charset))
+    DBSETLCHARSET(cwrap->login, StringValuePtr(charset));
   cwrap->client = dbopen(cwrap->login, StringValuePtr(host));
   if (cwrap->client) {
     cwrap->closed = 0;
-    cwrap->encoding = encoding;
+    cwrap->charset = charset;
+    #ifdef HAVE_RUBY_ENCODING_H
+      VALUE transposed_encoding = rb_funcall(cTinyTdsClient, intern_transpose_iconv_encoding, 1, charset);
+      cwrap->encoding = rb_enc_find(StringValuePtr(transposed_encoding));
+    #endif
   }
   return self;
 }
@@ -175,6 +187,7 @@ void init_tinytds_client() {
   rb_define_method(cTinyTdsClient, "closed?", rb_tinytds_closed, 0);
   rb_define_method(cTinyTdsClient, "execute", rb_tinytds_execute, 1);
   rb_define_method(cTinyTdsClient, "charset", rb_tinytds_charset, 0);
+  rb_define_method(cTinyTdsClient, "encoding", rb_tinytds_encoding, 0);
   /* Define TinyTds::Client Protected Methods */
   rb_define_protected_method(cTinyTdsClient, "connect", rb_tinytds_connect, 9);
   /* Intern TinyTds::Error Accessors */
@@ -184,6 +197,7 @@ void init_tinytds_client() {
   intern_os_error_number_eql = rb_intern("os_error_number=");
   /* Intern Misc */
   intern_dup = rb_intern("dup");
+  intern_transpose_iconv_encoding = rb_intern("transpose_iconv_encoding");
 }
 
 

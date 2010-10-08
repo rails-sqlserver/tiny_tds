@@ -3,7 +3,7 @@ require 'test_helper'
 
 class SchemaTest < TinyTds::TestCase
   
-  context 'With SQL Server schema' do
+  context 'Casting SQL Server schema' do
   
     setup do
       load_current_schema

@@ -124,7 +124,6 @@ INSERT INTO [datatypes] ([id], [text])              VALUES ( 271, 'test text' )
 -- INSERT INTO [datatypes] ([id], [time_2])            VALUES ( 282, '1984-01-24T04:20:00.0000001-08:00' ) -- 04:20:00.00
 -- INSERT INTO [datatypes] ([id], [time_7])            VALUES ( 283, '1901-01-01T15:45:00.0100001Z' )      -- 15:45:00.0100001
 -- INSERT INTO [datatypes] ([id], [time_7])            VALUES ( 284, '1984-01-24T04:20:00.0000001-08:00' ) -- 04:20:00.0000001
--- INSERT INTO [datatypes] ([id], [timestamp])         VALUES ( 291, NOT ALLOWED ) -- 0x000000000000113F
 INSERT INTO [datatypes] ([id], [tinyint])           VALUES ( 301, 0 )
 INSERT INTO [datatypes] ([id], [tinyint])           VALUES ( 302, 255 )
 INSERT INTO [datatypes] ([id], [uniqueidentifier])  VALUES ( 311, NEWID() )

@@ -10,7 +10,22 @@ static ID intern_new, intern_utc, intern_local, intern_localtime, intern_merge,
 static ID sym_symbolize_keys, sym_as, sym_array, sym_database_timezone, sym_application_timezone, sym_local, sym_utc;
 
 #ifdef HAVE_RUBY_ENCODING_H
-rb_encoding *binaryEncoding;
+  rb_encoding *binaryEncoding;
+  #define ENCODED_STR_NEW(_data, _len) ({ \
+    VALUE _val = rb_str_new((char *)_data, (long)_len); \
+    rb_enc_associate(_val, rwrap->encoding); \
+    _val; \
+  })
+  #define ENCODED_STR_NEW2(_data2) ({ \
+    VALUE _val = rb_str_new2((char *)_data2); \
+    rb_enc_associate(_val, rwrap->encoding); \
+    _val; \
+  })
+#else
+  #define ENCODED_STR_NEW(_data, _len) \
+    rb_str_new((char *)_data, (long)_len);
+  #define ENCODED_STR_NEW2(_data2) \
+    rb_str_new2((char *)_data2);
 #endif
 
 
@@ -137,7 +152,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
         case 36: { // SYBUNIQUE
           char converted_unique[32];
           dbconvert(rwrap->client, coltype, data, 32, SYBVARCHAR, (BYTE *)converted_unique, -1);
-          val = rb_str_new2((char *)converted_unique);
+          val = ENCODED_STR_NEW2(converted_unique);
           break;
         } 
         case SYBDATETIME: {
@@ -202,10 +217,10 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
         }
         case SYBCHAR:
         case SYBTEXT:
-          val = rb_str_new((char *)data, (long)data_len);
+          val = ENCODED_STR_NEW(data, data_len);
           break;
         default:
-          val = rb_str_new((char *)data, (long)data_len);
+          val = ENCODED_STR_NEW(data, data_len);
           break;
       }
     }

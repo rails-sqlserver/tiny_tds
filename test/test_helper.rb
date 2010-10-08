@@ -73,6 +73,14 @@ module TinyTds
       end
     end
     
+    def assert_binary_encoding(value)
+      assert_equal Encoding.find('BINARY'), value.encoding if ruby19?
+    end
+    
+    def assert_utf8_encoding(value)
+      assert_equal Encoding.find('UTF-8'), value.encoding if ruby19?
+    end
+    
     def ruby18?
       RUBY_VERSION < '1.9'
     end

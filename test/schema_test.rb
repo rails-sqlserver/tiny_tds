@@ -21,7 +21,7 @@ class SchemaTest < TinyTds::TestCase
       should 'cast binary' do
         value = find_value(21, :binary_50)
         assert_equal @gif1px, value
-        assert_equal Encoding.find('BINARY'), value.encoding if ruby19?
+        assert_binary_encoding(value)
       end
       
       should 'cast bit' do
@@ -33,7 +33,7 @@ class SchemaTest < TinyTds::TestCase
       should 'cast char' do
         assert_equal '1234567890', find_value(41, :char_10)
         assert_equal '12345678', find_value(42, :char_10)
-        assert_equal Encoding.find('UTF-8'), find_value(42, :char_10).encoding if ruby19?
+        assert_utf8_encoding find_value(42, :char_10)
       end
       
       should 'cast datetime' do
@@ -62,7 +62,7 @@ class SchemaTest < TinyTds::TestCase
       should 'cast image' do
         value = find_value(141,:image)
         assert_equal @gif1px, value
-        assert_equal Encoding.find('BINARY'), value.encoding if ruby19?
+        assert_binary_encoding(value)
       end
       
       should 'cast int' do
@@ -86,6 +86,7 @@ class SchemaTest < TinyTds::TestCase
       should 'cast ntext' do
         assert_equal 'test ntext', find_value(181, :ntext)
         assert_equal 'test ntext åå', find_value(182, :ntext)
+        assert_utf8_encoding find_value(182, :ntext)
       end
       
       should 'cast numeric' do
@@ -99,6 +100,7 @@ class SchemaTest < TinyTds::TestCase
       should 'cast nvarchar' do
         assert_equal 'test nvarchar_50', find_value(201, :nvarchar_50)
         assert_equal 'test nvarchar_50 åå', find_value(202, :nvarchar_50)
+        assert_utf8_encoding find_value(202, :nvarchar_50)
       end
       
       should 'cast real' do
@@ -127,6 +129,7 @@ class SchemaTest < TinyTds::TestCase
       
       should 'cast text' do
         assert_equal 'test text', find_value(271, :text)
+        assert_utf8_encoding find_value(271, :text)
       end
       
       should 'cast tinyint' do
@@ -136,16 +139,18 @@ class SchemaTest < TinyTds::TestCase
       
       should 'cast uniqueidentifier' do
         assert_match %r|\w{8}-\w{4}-\w{4}-\w{4}-\w{12}|, find_value(311, :uniqueidentifier)
+        assert_utf8_encoding find_value(311, :uniqueidentifier)
       end
       
       should 'cast varbinary' do
         value = find_value(321, :varbinary_50)
         assert_equal @gif1px, value
-        assert_equal Encoding.find('BINARY'), value.encoding if ruby19?
+        assert_binary_encoding(value)
       end
       
       should 'cast varchar' do
         assert_equal 'test varchar_50', find_value(341, :varchar_50)
+        assert_utf8_encoding find_value(341, :varchar_50)
       end
       
     end

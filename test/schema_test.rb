@@ -165,15 +165,21 @@ class SchemaTest < TinyTds::TestCase
       end
       
       should 'cast varbinary(max)' do
-        
+        value = find_value(331, :varbinary_max)
+        assert_equal @gif1px, value
+        assert_binary_encoding(value)
       end
       
       should 'cast varchar(max)' do
-        
+        value = find_value(351, :varchar_max)
+        assert_equal 'test varchar_max', value
+        assert_utf8_encoding(value)
       end
       
       should 'cast xml' do
-        
+        value = find_value(361, :xml)
+        assert_equal '<foo><bar>batz</bar></foo>', value
+        assert_utf8_encoding(value)
       end
       
     end if sqlserver_2005? || sqlserver_2008?

@@ -131,7 +131,7 @@ INSERT INTO [datatypes] ([id], [varbinary_50])      VALUES ( 321, 0x474946383961
 INSERT INTO [datatypes] ([id], [varbinary_max])     VALUES ( 331, 0x47494638396101000100910000fffffffffffffe010200000021f904041400ff002c00000000010001000002024401003b )
 INSERT INTO [datatypes] ([id], [varchar_50])        VALUES ( 341, 'test varchar_50' )
 INSERT INTO [datatypes] ([id], [varchar_max])       VALUES ( 351, 'test varchar_max' )
-INSERT INTO [datatypes] ([id], [xml])               VALUES ( 361, '<html><head></head></html>' )
+INSERT INTO [datatypes] ([id], [xml])               VALUES ( 361, '<foo><bar>batz</bar></foo>' )
 
 SET IDENTITY_INSERT [datatypes] OFF
 

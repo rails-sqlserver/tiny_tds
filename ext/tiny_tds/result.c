@@ -102,7 +102,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
           val = INT2NUM(*(DBINT *)data);
           break;
         case SYBINT8:
-          val = INT2NUM(*(long *)data);
+          val = LONG2NUM(*(long *)data);
           break;
         case SYBBIT:
           val = *(int *)data ? Qtrue : Qfalse;

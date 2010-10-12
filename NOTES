@@ -4,7 +4,6 @@ TODO
   * Client & Connection with TONS OF TESTING.
     - Error & Message Handling
       * Test inserting invalid xml in xml data type, timed our for me.
-      * Test structs are not hanging oddly around on login failures.
       * Misc code to implement in error handler maybe?
         // - Abort the program, or
         // - Return an error code and mark the DBPROCESS as “dead” (making it unusable), or
@@ -20,14 +19,10 @@ TODO
         as to suppress the printing of any SYBESMSG error, to avoid notifying the user about the same error twice.
 
   * Result Set with TONS OF TESTING.
-    - Date and time checklist.
-      • Make tests pass for everyone (see below maybe)
-      • Makes sure raise'ing "Invalid date" is right, deos this happen? If so, we need to cancel all results!
-        Maybe use just rb_warn.
-      • Do we need to add tests for usec support?
-      • Is intern local right? I thought DB time was the winner? Not local app client?
-    - Looking into using DBCOUNT to return affected rows.
-    - Make sure empty string returns the expected query value, array, etc. Maybe nil?
+    - Test a unicode insert and find.
+    - Looking into using DBCOUNT to return affected rows. Do an insert and test @@rowcount from adapter
+    - Maybe enable a #run or #do command that just executes and ignores dbcanquery() the results.
+    - Test transaction start end.
     - Error & Message Handling
       • Look Into Timeouts
         - dbsettime - Set the number of seconds that DB-Library will wait for a server response to a SQL 
@@ -38,8 +33,6 @@ TODO
       Maybe use DBNOAUTOFREE with this.
     - Test large data set in wchars
     - See if wchar max is only supported in newer FreeTDS
-    - Test different database/client encodings. Might need to make a map of database.yml possibilities
-      that correlate to SQL Server. Might just need to handle this at Ruby's libiconv level (yes).
   
   * Make an escape method. Like Mysql2 gem.
 

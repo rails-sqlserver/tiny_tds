@@ -9,7 +9,11 @@ require 'tiny_tds'
 
 class DateTime
   def usec
-    (sec_fraction * 60 * 60 * 24 * (10**6)).to_i
+    if RUBY_VERSION >= '1.9'
+      (sec_fraction * 1_000_000).to_i
+    else
+      (sec_fraction * 60 * 60 * 24 * (10**6)).to_i
+    end
   end
 end
 

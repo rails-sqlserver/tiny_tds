@@ -74,7 +74,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
     rwrap->fields = rb_ary_new2(rwrap->number_of_fields);
     for (i = 0; i < rwrap->number_of_fields; i++) {
       char *colname = dbcolname(rwrap->client, i+1);
-      VALUE field = symbolize_keys ? ID2SYM(rb_intern(colname)) : rb_str_new2(colname);
+      VALUE field = symbolize_keys ? ID2SYM(rb_intern(colname)) : rb_obj_freeze(rb_str_new2(colname));
       rb_ary_store(rwrap->fields, i, field);
     }
   }

@@ -6,7 +6,7 @@
 VALUE cTinyTdsClient;
 extern VALUE mTinyTds, cTinyTdsError;
 static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, intern_os_error_number_eql;
-static ID intern_dup, intern_transpose_iconv_encoding;
+static ID intern_dup, intern_transpose_iconv_encoding, intern_local_offset;
 
 
 // Lib Macros
@@ -116,8 +116,9 @@ static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
   }
   VALUE result = rb_tinytds_new_result_obj(cwrap->client);
   rb_iv_set(result, "@query_options", rb_funcall(rb_iv_get(self, "@query_options"), intern_dup, 0));
+  GET_RESULT_WRAPPER(result);
+  rwrap->local_offset = rb_funcall(cTinyTdsClient, intern_local_offset, 0);
   #ifdef HAVE_RUBY_ENCODING_H
-    GET_RESULT_WRAPPER(result);
     rwrap->encoding = cwrap->encoding;
   #endif
   return result;  
@@ -198,6 +199,7 @@ void init_tinytds_client() {
   /* Intern Misc */
   intern_dup = rb_intern("dup");
   intern_transpose_iconv_encoding = rb_intern("transpose_iconv_encoding");
+  intern_local_offset = rb_intern("local_offset");
 }
 
 

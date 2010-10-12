@@ -6,7 +6,7 @@ extern VALUE mTinyTds, cTinyTdsClient, cTinyTdsError;
 VALUE cBigDecimal, cDate, cDateTime, cRational;
 VALUE opt_decimal_zero, opt_float_zero, opt_one, opt_zero, opt_four, opt_19hdr, opt_tenk, opt_onemil;
 static ID intern_new, intern_utc, intern_local, intern_localtime, intern_merge, 
-          intern_local_offset, intern_civil, intern_new_offset, intern_plus, intern_divide;
+          intern_civil, intern_new_offset, intern_plus, intern_divide;
 static ID sym_symbolize_keys, sym_as, sym_array, sym_timezone, sym_local, sym_utc;
 
 #ifdef HAVE_RUBY_ENCODING_H
@@ -34,6 +34,7 @@ static ID sym_symbolize_keys, sym_as, sym_array, sym_timezone, sym_local, sym_ut
 static void rb_tinytds_result_mark(void *ptr) {
   tinytds_result_wrapper *rwrap = (tinytds_result_wrapper *)ptr;
   if (rwrap) {
+    rb_gc_mark(rwrap->local_offset);
     rb_gc_mark(rwrap->fields);
     rb_gc_mark(rwrap->rows);
   }
@@ -50,6 +51,7 @@ VALUE rb_tinytds_new_result_obj(DBPROCESS *c) {
   obj = Data_Make_Struct(cTinyTdsResult, tinytds_result_wrapper, rb_tinytds_result_mark, rb_tinytds_result_free, rwrap);
   rwrap->client = c;
   rwrap->return_code = 0;
+  rwrap->local_offset = Qnil;
   rwrap->fields = Qnil;
   rwrap->rows = Qnil;
   rwrap->number_of_fields = 0;
@@ -166,7 +168,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
               sec   = date_rec.second,
               msec  = date_rec.millisecond;
           if (year+month+day+hour+min+sec+msec != 0) {
-            VALUE offset = (timezone == intern_local) ? rb_funcall(cTinyTdsClient, intern_local_offset, 0) : opt_zero;
+            VALUE offset = (timezone == intern_local) ? rwrap->local_offset : opt_zero;
             /* Use DateTime */
             if (year < 1902 || year+month+day > 2058) {
               VALUE datetime_sec = INT2NUM(sec);
@@ -311,7 +313,6 @@ void init_tinytds_result() {
   intern_local = rb_intern("local");
   intern_merge = rb_intern("merge");
   intern_localtime = rb_intern("localtime");
-  intern_local_offset = rb_intern("local_offset");
   intern_civil = rb_intern("civil");
   intern_new_offset = rb_intern("new_offset");
   intern_plus = rb_intern("+");

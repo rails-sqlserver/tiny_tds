@@ -93,6 +93,11 @@ class ResultTest < TinyTds::TestCase
       assert one.size == 1
     end
     
+    should 'cope with no results when using first option' do
+      data = @client.execute("SELECT [id] FROM [datatypes] WHERE [id] = -1").each(:first => true)
+      assert_equal [], data
+    end
+    
     should 'have a #fields accessor with logic default and valid outcome' do
       result = @client.execute(@query1)
       assert_nil result.fields

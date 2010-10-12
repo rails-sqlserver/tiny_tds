@@ -40,9 +40,6 @@ TODO
     - See if wchar max is only supported in newer FreeTDS
     - Test different database/client encodings. Might need to make a map of database.yml possibilities
       that correlate to SQL Server. Might just need to handle this at Ruby's libiconv level (yes).
-    - Review Mysql2 gem for how it might handle #each_with_index (does it load all) or something like a
-      :first option. Need to make sure we have a way to SELECT *, then only load the first row, and canel
-      the remaining rows.
   
   * Make an escape method. Like Mysql2 gem.
 

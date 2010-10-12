@@ -2,6 +2,7 @@
 TODO
 
   * Client & Connection with TONS OF TESTING.
+    * Memoize Client.local_offset or static result accessor.
     * Test empty command buffer execute and good fail.
     - Error & Message Handling
       * Test inserting invalid xml in xml data type, timed our for me.

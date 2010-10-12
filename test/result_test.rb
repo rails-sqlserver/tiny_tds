@@ -86,7 +86,10 @@ class ResultTest < TinyTds::TestCase
       assert_nothing_raised() { @client.execute(@query1).each }
     end
     
-    should_eventually 'use same string object for hash keys'
+    should 'use same string object for hash keys' do
+      data = @client.execute("SELECT [id], [bigint] FROM [datatypes]").each
+      assert_equal data.first.keys.map{ |r| r.object_id }, data.last.keys.map{ |r| r.object_id }
+    end
     
     context 'when casting to native ruby values' do
     

@@ -7,7 +7,7 @@ VALUE cBigDecimal, cDate, cDateTime, cRational;
 VALUE opt_decimal_zero, opt_float_zero, opt_one, opt_zero, opt_four, opt_19hdr, opt_tenk, opt_onemil;
 static ID intern_new, intern_utc, intern_local, intern_localtime, intern_merge, 
           intern_civil, intern_new_offset, intern_plus, intern_divide;
-static ID sym_symbolize_keys, sym_as, sym_array, sym_cache_rows, sym_timezone, sym_local, sym_utc;
+static ID sym_symbolize_keys, sym_as, sym_array, sym_cache_rows, sym_first, sym_timezone, sym_local, sym_utc;
 
 #ifdef HAVE_RUBY_ENCODING_H
   rb_encoding *binaryEncoding;
@@ -223,7 +223,7 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
   /* Local Vars */
   VALUE defaults, opts, block;
   ID timezone;
-  int symbolize_keys = 0, as_array = 0, cache_rows = 0;
+  int symbolize_keys = 0, as_array = 0, cache_rows = 0, first = 0;
   /* Merge Options Hash, Populate Opts & Block Var */
   defaults = rb_iv_get(self, "@query_options");
   if (rb_scan_args(argc, argv, "01&", &opts, &block) == 1) {
@@ -232,6 +232,8 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
     opts = defaults;
   }
   /* Locals From Options */
+  if (rb_hash_aref(opts, sym_first) == Qtrue)
+    first = 1;
   if (rb_hash_aref(opts, sym_symbolize_keys) == Qtrue)
     symbolize_keys = 1;
   if (rb_hash_aref(opts, sym_as) == sym_array)
@@ -262,6 +264,8 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
             rb_ary_store(rwrap->rows, rowi, row);
           if (!NIL_P(block))
             rb_yield(row);
+          if (first)
+            dbcanquery(rwrap->client);
           rowi++;
         }
         rwrap->number_of_rows = rowi;
@@ -325,6 +329,7 @@ void init_tinytds_result() {
   sym_as = ID2SYM(rb_intern("as"));
   sym_array = ID2SYM(rb_intern("array"));
   sym_cache_rows = ID2SYM(rb_intern("cache_rows"));
+  sym_first = ID2SYM(rb_intern("first"));
   sym_local = ID2SYM(intern_local);
   sym_utc = ID2SYM(intern_utc);
   sym_timezone = ID2SYM(rb_intern("timezone"));

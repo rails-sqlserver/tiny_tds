@@ -7,6 +7,7 @@ class ResultTest < TinyTds::TestCase
     setup do
       @client = TinyTds::Client.new(connection_options)
       @query1 = 'SELECT 1 AS [one]'
+      load_current_schema
     end
     
     should 'have included Enumerable' do
@@ -82,6 +83,14 @@ class ResultTest < TinyTds::TestCase
       assert local.first, 'should have iterated over each row'
       assert_equal [], result.each, 'should not have been cached'
       assert_equal ['one'], result.fields, 'should still cache field names'
+    end
+    
+    should 'be able to get the first result row only' do
+      big_query = "SELECT [id] FROM [datatypes]"
+      one = @client.execute(big_query).each(:first => true)
+      many = @client.execute(big_query).each
+      assert many.size > 1
+      assert one.size == 1
     end
     
     should 'have a #fields accessor with logic default and valid outcome' do

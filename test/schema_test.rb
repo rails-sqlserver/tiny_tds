@@ -37,11 +37,36 @@ class SchemaTest < TinyTds::TestCase
       end
       
       should 'cast datetime' do
-        assert_instance_of DateTime, find_value(61, :datetime), 'We use DateTime for edge-case dates, but they are really slow.'
-        assert_equal DateTime.parse('1753-01-01T00:00:00.000-08:00'), find_value(61, :datetime)
-        assert_equal DateTime.parse('9999-12-31T23:59:59.997-08:00'), find_value(62, :datetime)
-        assert_instance_of Time, find_value(63, :datetime), 'We use Time for normal dates since they are faster.'
-        assert_equal Time.parse("2010-01-01T12:34:56.123"), find_value(63, :datetime)
+        # 1753-01-01T00:00:00.000
+        v = find_value 61, :datetime
+        assert_instance_of DateTime, v, 'not in range of Time class'
+        assert_equal 1753, v.year
+        assert_equal 01, v.month
+        assert_equal 01, v.day
+        assert_equal 0, v.hour
+        assert_equal 0, v.min
+        assert_equal 0, v.sec
+        assert_equal 0, v.usec
+        # 9999-12-31T23:59:59.997
+        v = find_value 62, :datetime
+        assert_instance_of DateTime, v, 'not in range of Time class'
+        assert_equal 9999, v.year
+        assert_equal 12, v.month
+        assert_equal 31, v.day
+        assert_equal 23, v.hour
+        assert_equal 59, v.min
+        assert_equal 59, v.sec
+        assert_equal 997000, v.usec
+        # 2010-01-01T12:34:56.123
+        v = find_value 63, :datetime
+        assert_instance_of Time, v, 'in range of Time class'
+        assert_equal 2010, v.year
+        assert_equal 01, v.month
+        assert_equal 01, v.day
+        assert_equal 12, v.hour
+        assert_equal 34, v.min
+        assert_equal 56, v.sec
+        assert_equal 123000, v.usec
       end
       
       should 'cast decimal' do
@@ -111,8 +136,22 @@ class SchemaTest < TinyTds::TestCase
       end
       
       should 'cast smalldatetime' do
-        assert_equal Time.parse('1901-01-01T15:45:00.000'), find_value(231, :smalldatetime)
-        assert_equal Time.parse('2078-06-05T04:20:00.000').to_s, find_value(232, :smalldatetime).to_s
+        # 1901-01-01 15:45:00
+        v = find_value 231, :smalldatetime
+        assert_equal 1901, v.year
+        assert_equal 01, v.month
+        assert_equal 01, v.day
+        assert_equal 15, v.hour
+        assert_equal 45, v.min
+        assert_equal 00, v.sec
+        # 2078-06-05 04:20:00
+        v = find_value 232, :smalldatetime
+        assert_equal 2078, v.year
+        assert_equal 06, v.month
+        assert_equal 05, v.day
+        assert_equal 04, v.hour
+        assert_equal 20, v.min
+        assert_equal 00, v.sec
       end
       
       should 'cast smallint' do

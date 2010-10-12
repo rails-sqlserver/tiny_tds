@@ -7,6 +7,12 @@ require 'shoulda'
 require 'mocha'
 require 'tiny_tds'
 
+class DateTime
+  def usec
+    (sec_fraction * 60 * 60 * 24 * (10**6)).to_i
+  end
+end
+
 TINYTDS_SCHEMAS = ['sqlserver_2000', 'sqlserver_2005', 'sqlserver_2008'].freeze
 
 module TinyTds
@@ -112,9 +118,10 @@ module TinyTds
       DROP TABLE [datatypes]|
     end
 
-    def find_value(id, column)
+    def find_value(id, column, query_options={})
+      query_options[:database_timezone] ||= :utc
       sql = "SELECT [#{column}] FROM [datatypes] WHERE [id] = #{id}"
-      @client.execute(sql).each.first[column.to_s]
+      @client.execute(sql).each().first[column.to_s]
     end
     
     

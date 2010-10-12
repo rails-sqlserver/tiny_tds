@@ -194,7 +194,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
           DBUSMALLINT days_since_1900 = date->days, minutes = date->minutes;
           val = rb_funcall(rb_cTime, timezone, 6, opt_19hdr, opt_one, opt_one, opt_zero, opt_zero, opt_zero);
           unsigned long int seconds_since_1900 = ((long)days_since_1900 * 24 * 3600) + ((long)minutes * 60);
-          val = rb_funcall(val, intern_plus, 1, INT2NUM(seconds_since_1900));
+          val = rb_funcall(val, intern_plus, 1, ULONG2NUM(seconds_since_1900));
           break;
         }
         case SYBCHAR:

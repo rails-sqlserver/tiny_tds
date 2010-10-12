@@ -95,6 +95,10 @@ module TinyTds
       RUBY_VERSION >= '1.9'
     end
     
+    def ruby192?
+      RUBY_VERSION == '1.9.2'
+    end
+    
     def load_current_schema
       @@current_schema_loaded ||= begin
         loader = TinyTds::Client.new(connection_options)

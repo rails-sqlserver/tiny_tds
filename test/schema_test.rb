@@ -160,7 +160,9 @@ class SchemaTest < TinyTds::TestCase
         assert_equal 04, v.hour
         assert_equal 20, v.min
         assert_equal 00, v.sec
-        assert_equal utc_offset, find_value(232, :smalldatetime, :timezone => :local).utc_offset
+        unless ruby192? # Ruby 1.9.2-p0 bug: http://redmine.ruby-lang.org/issues/show/3931
+          assert_equal utc_offset, find_value(232, :smalldatetime, :timezone => :local).utc_offset
+        end
         assert_equal 0, find_value(232, :smalldatetime, :timezone => :utc).utc_offset
       end
       

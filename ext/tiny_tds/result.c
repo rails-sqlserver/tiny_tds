@@ -7,7 +7,7 @@ VALUE cBigDecimal, cDate, cDateTime, cRational;
 VALUE opt_decimal_zero, opt_float_zero, opt_one, opt_zero, opt_four, opt_19hdr, opt_tenk, opt_onemil;
 static ID intern_new, intern_utc, intern_local, intern_localtime, intern_merge, 
           intern_local_offset, intern_civil, intern_new_offset, intern_plus, intern_divide;
-static ID sym_symbolize_keys, sym_as, sym_array, sym_database_timezone, sym_application_timezone, sym_local, sym_utc;
+static ID sym_symbolize_keys, sym_as, sym_array, sym_timezone, sym_local, sym_utc;
 
 #ifdef HAVE_RUBY_ENCODING_H
   rb_encoding *binaryEncoding;
@@ -61,7 +61,7 @@ VALUE rb_tinytds_new_result_obj(DBPROCESS *c) {
 
 // Lib Backend (Helpers)
 
-static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_timezone, int symbolize_keys, int as_array) {
+static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_keys, int as_array) {
   /* Wrapper And Local Vars */
   GET_RESULT_WRAPPER(self);
   VALUE row;
@@ -166,12 +166,9 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
               sec   = date_rec.second,
               msec  = date_rec.millisecond;
           if (year+month+day+hour+min+sec+msec != 0) {
+            VALUE offset = (timezone == intern_local) ? rb_funcall(cTinyTdsClient, intern_local_offset, 0) : opt_zero;
             /* Use DateTime */
             if (year < 1902 || year+month+day > 2058) {
-              VALUE offset = opt_zero;
-              if (db_timezone == intern_local) {
-                offset = rb_funcall(cTinyTdsClient, intern_local_offset, 0);
-              }
               VALUE datetime_sec = INT2NUM(sec);
               if (msec != 0) {
                 #ifdef HAVE_RUBY_ENCODING_H
@@ -182,24 +179,10 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
                 datetime_sec = rb_funcall(datetime_sec, intern_plus, 1, rational_msec);
               }
               val = rb_funcall(cDateTime, intern_civil, 7, INT2NUM(year), INT2NUM(month), INT2NUM(day), INT2NUM(hour), INT2NUM(min), datetime_sec, offset);
-              if (!NIL_P(app_timezone)) {
-                if (app_timezone == intern_local) {
-                  offset = rb_funcall(cTinyTdsClient, intern_local_offset, 0);
-                  val = rb_funcall(val, intern_new_offset, 1, offset);
-                } else { // utc
-                  val = rb_funcall(val, intern_new_offset, 1, opt_zero);
-                }
-              }
+              val = rb_funcall(val, intern_new_offset, 1, offset);
             /* Use Time */
             } else {
-              val = rb_funcall(rb_cTime, db_timezone, 7, INT2NUM(year), INT2NUM(month), INT2NUM(day), INT2NUM(hour), INT2NUM(min), INT2NUM(sec), INT2NUM(msec*1000));
-              if (!NIL_P(app_timezone)) {
-                if (app_timezone == intern_local) {
-                  val = rb_funcall(val, intern_localtime, 0);
-                } else { // utc
-                  val = rb_funcall(val, intern_utc, 0);
-                }
-              }
+              val = rb_funcall(rb_cTime, timezone, 7, INT2NUM(year), INT2NUM(month), INT2NUM(day), INT2NUM(hour), INT2NUM(min), INT2NUM(sec), INT2NUM(msec*1000));
             }
           }
           break;
@@ -207,7 +190,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID db_timezone, ID app_time
         case SYBDATETIME4: {
           DBDATETIME4 *date = (DBDATETIME4 *)data;
           DBUSMALLINT days_since_1900 = date->days, minutes = date->minutes;
-          val = rb_funcall(rb_cTime, db_timezone, 6, opt_19hdr, opt_one, opt_one, opt_zero, opt_zero, opt_zero);
+          val = rb_funcall(rb_cTime, timezone, 6, opt_19hdr, opt_one, opt_one, opt_zero, opt_zero, opt_zero);
           unsigned long int seconds_since_1900 = ((long)days_since_1900 * 24 * 3600) + ((long)minutes * 60);
           val = rb_funcall(val, intern_plus, 1, INT2NUM(seconds_since_1900));
           break;
@@ -237,8 +220,8 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
   GET_RESULT_WRAPPER(self);
   /* Local Vars */
   VALUE defaults, opts, block;
-  ID opt_db_tz, opt_app_tz, db_timezone, app_timezone;
-  int symbolize_keys = 0, as_array = 0, cache_rows = 1;
+  ID timezone;
+  int symbolize_keys = 0, as_array = 0;
   /* Merge Options Hash, Populate Opts & Block Var */
   defaults = rb_iv_get(self, "@query_options");
   if (rb_scan_args(argc, argv, "01&", &opts, &block) == 1) {
@@ -251,25 +234,13 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
     symbolize_keys = 1;
   if (rb_hash_aref(opts, sym_as) == sym_array)
     as_array = 1;
-  /* Locals From Options (:database_timezone) */
-  opt_db_tz = rb_hash_aref(opts, sym_database_timezone);
-  if (opt_db_tz == sym_local) {
-    db_timezone = intern_local;
-  } else if (opt_db_tz == sym_utc) {
-    db_timezone = intern_utc;
+  if (rb_hash_aref(opts, sym_timezone) == sym_local) {
+    timezone = intern_local;
+  } else if (rb_hash_aref(opts, sym_timezone) == sym_utc) {
+    timezone = intern_utc;
   } else {
-    if (!NIL_P(opt_db_tz))
-      rb_warn(":database_timezone option must be :utc or :local - defaulting to :local");
-    db_timezone = intern_local;
-  }
-  /* Locals From Options (:application_timezone) */
-  opt_app_tz = rb_hash_aref(opts, sym_application_timezone);
-  if (opt_app_tz == sym_local) {
-    app_timezone = intern_local;
-  } else if (opt_app_tz == sym_utc) {
-    app_timezone = intern_utc;
-  } else {
-    app_timezone = Qnil;
+    rb_warn(":timezone option must be :utc or :local - defaulting to :local");
+    timezone = intern_local;
   }
   /* Make The Rows Or Yield Existing */
   if (NIL_P(rwrap->rows)) {
@@ -282,7 +253,7 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
           return rwrap->rows;
         unsigned long rowi = 0;
         while (dbnextrow(rwrap->client) != NO_MORE_ROWS) {
-          VALUE row = rb_tinytds_result_fetch_row(self, db_timezone, app_timezone, symbolize_keys, as_array);
+          VALUE row = rb_tinytds_result_fetch_row(self, timezone, symbolize_keys, as_array);
           rb_ary_store(rwrap->rows, rowi, row);
           if (!NIL_P(block))
             rb_yield(row);
@@ -349,10 +320,9 @@ void init_tinytds_result() {
   sym_symbolize_keys = ID2SYM(rb_intern("symbolize_keys"));
   sym_as = ID2SYM(rb_intern("as"));
   sym_array = ID2SYM(rb_intern("array"));
-  sym_local = ID2SYM(rb_intern("local"));
-  sym_utc = ID2SYM(rb_intern("utc"));
-  sym_database_timezone = ID2SYM(rb_intern("database_timezone"));
-  sym_application_timezone = ID2SYM(rb_intern("application_timezone"));
+  sym_local = ID2SYM(intern_local);
+  sym_utc = ID2SYM(intern_utc);
+  sym_timezone = ID2SYM(rb_intern("timezone"));
   /* Data Conversion Options */
   opt_decimal_zero = rb_str_new2("0.0");
   rb_global_variable(&opt_decimal_zero);

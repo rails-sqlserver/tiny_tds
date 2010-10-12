@@ -119,9 +119,17 @@ module TinyTds
     end
 
     def find_value(id, column, query_options={})
-      query_options[:database_timezone] ||= :utc
+      query_options[:timezone] ||= :utc
       sql = "SELECT [#{column}] FROM [datatypes] WHERE [id] = #{id}"
-      @client.execute(sql).each().first[column.to_s]
+      @client.execute(sql).each(query_options).first[column.to_s]
+    end
+    
+    def local_offset
+      TinyTds::Client.local_offset
+    end
+    
+    def utc_offset
+      ::Time.local(2010).utc_offset
     end
     
     

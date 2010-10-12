@@ -57,6 +57,8 @@ class SchemaTest < TinyTds::TestCase
         assert_equal 59, v.min
         assert_equal 59, v.sec
         assert_equal 997000, v.usec
+        assert_equal local_offset, find_value(61, :datetime, :timezone => :local).offset
+        assert_equal 0, find_value(61, :datetime, :timezone => :utc).offset
         # 2010-01-01T12:34:56.123
         v = find_value 63, :datetime
         assert_instance_of Time, v, 'in range of Time class'
@@ -67,6 +69,8 @@ class SchemaTest < TinyTds::TestCase
         assert_equal 34, v.min
         assert_equal 56, v.sec
         assert_equal 123000, v.usec
+        assert_equal utc_offset, find_value(63, :datetime, :timezone => :local).utc_offset
+        assert_equal 0, find_value(63, :datetime, :timezone => :utc).utc_offset
       end
       
       should 'cast decimal' do
@@ -138,20 +142,26 @@ class SchemaTest < TinyTds::TestCase
       should 'cast smalldatetime' do
         # 1901-01-01 15:45:00
         v = find_value 231, :smalldatetime
+        assert_instance_of Time, v
         assert_equal 1901, v.year
         assert_equal 01, v.month
         assert_equal 01, v.day
         assert_equal 15, v.hour
         assert_equal 45, v.min
         assert_equal 00, v.sec
+        assert_equal utc_offset, find_value(231, :smalldatetime, :timezone => :local).utc_offset
+        assert_equal 0, find_value(231, :smalldatetime, :timezone => :utc).utc_offset
         # 2078-06-05 04:20:00
         v = find_value 232, :smalldatetime
+        assert_instance_of Time, v
         assert_equal 2078, v.year
         assert_equal 06, v.month
         assert_equal 05, v.day
         assert_equal 04, v.hour
         assert_equal 20, v.min
         assert_equal 00, v.sec
+        assert_equal utc_offset, find_value(232, :smalldatetime, :timezone => :local).utc_offset
+        assert_equal 0, find_value(232, :smalldatetime, :timezone => :utc).utc_offset
       end
       
       should 'cast smallint' do

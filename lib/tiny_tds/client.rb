@@ -28,8 +28,7 @@ module TinyTds
     @@default_query_options = {
       :as => :hash,
       :symbolize_keys => false,
-      :database_timezone => :local,
-      :application_timezone => nil
+      :timezone => :local
     }
     
     attr_reader :query_options

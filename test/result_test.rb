@@ -73,6 +73,17 @@ class ResultTest < TinyTds::TestCase
       assert_equal [:one], result.fields
     end
     
+    should 'be able to turn :cache_rows option off' do
+      result = @client.execute(@query1)
+      local = []
+      result.each(:cache_rows => false) do |row|
+        local << row
+      end
+      assert local.first, 'should have iterated over each row'
+      assert_equal [], result.each, 'should not have been cached'
+      assert_equal ['one'], result.fields, 'should still cache field names'
+    end
+    
     should 'have a #fields accessor with logic default and valid outcome' do
       result = @client.execute(@query1)
       assert_nil result.fields

@@ -2,7 +2,6 @@
 TODO
 
   * Client & Connection with TONS OF TESTING.
-    * Test empty command buffer execute and good fail.
     - Error & Message Handling
       * Test inserting invalid xml in xml data type, timed our for me.
       * Test structs are not hanging oddly around on login failures.
@@ -21,7 +20,6 @@ TODO
         as to suppress the printing of any SYBESMSG error, to avoid notifying the user about the same error twice.
 
   * Result Set with TONS OF TESTING.
-    - Make :cache_rows option and do not push to the array when used. Test.
     - Date and time checklist.
       • Make tests pass for everyone (see below maybe)
       • Makes sure raise'ing "Invalid date" is right, deos this happen? If so, we need to cancel all results!

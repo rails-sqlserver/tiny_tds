@@ -28,6 +28,7 @@ module TinyTds
     @@default_query_options = {
       :as => :hash,
       :symbolize_keys => false,
+      :cache_rows => true,
       :timezone => :local
     }
     

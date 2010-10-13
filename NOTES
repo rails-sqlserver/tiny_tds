@@ -25,12 +25,8 @@ TODO
           command. (int seconds) Set a connect_timeout= method like Mysql2 gem, hook into initial connect too.
       • TSQL 'print' and 'raiserror' commands generate server messages that dbmsghandle will catch. (test)
       • See the dbsetuserdata reference page for an example of how to handle deadlock in this way.
-    - Looking into use dbfreebuf when the result is built as a way of preemptively clearing the command buffer. 
-      Maybe use DBNOAUTOFREE with this.
     - Test large data set in wchars
     - See if wchar max is only supported in newer FreeTDS
-  
-  * Make an escape method. Like Mysql2 gem.
 
 
 

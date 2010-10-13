@@ -6,8 +6,8 @@
 VALUE cTinyTdsClient;
 extern VALUE mTinyTds, cTinyTdsError;
 static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, intern_os_error_number_eql;
-static ID intern_dup, intern_transpose_iconv_encoding, intern_local_offset;
-
+static ID intern_new, intern_dup, intern_transpose_iconv_encoding, intern_local_offset, intern_gsub;
+VALUE opt_escape_regex, opt_escape_dblquote;
 
 // Lib Macros
 
@@ -138,6 +138,16 @@ static VALUE rb_tinytds_encoding(VALUE self) {
   #endif
 }
 
+static VALUE rb_tinytds_escape(VALUE self, VALUE string) {
+  Check_Type(string, T_STRING);
+  GET_CLIENT_WRAPPER(self);
+  VALUE new_string = rb_funcall(string, intern_gsub, 2, opt_escape_regex, opt_escape_dblquote);
+  #ifdef HAVE_RUBY_ENCODING_H
+    rb_enc_associate(new_string, cwrap->encoding);
+  #endif
+  return new_string;
+}
+
 
 // TinyTds::Client (protected) 
 
@@ -189,6 +199,7 @@ void init_tinytds_client() {
   rb_define_method(cTinyTdsClient, "execute", rb_tinytds_execute, 1);
   rb_define_method(cTinyTdsClient, "charset", rb_tinytds_charset, 0);
   rb_define_method(cTinyTdsClient, "encoding", rb_tinytds_encoding, 0);
+  rb_define_method(cTinyTdsClient, "escape", rb_tinytds_escape, 1);
   /* Define TinyTds::Client Protected Methods */
   rb_define_protected_method(cTinyTdsClient, "connect", rb_tinytds_connect, 9);
   /* Intern TinyTds::Error Accessors */
@@ -197,9 +208,16 @@ void init_tinytds_client() {
   intern_db_error_number_eql = rb_intern("db_error_number=");
   intern_os_error_number_eql = rb_intern("os_error_number=");
   /* Intern Misc */
+  intern_new = rb_intern("new");
   intern_dup = rb_intern("dup");
   intern_transpose_iconv_encoding = rb_intern("transpose_iconv_encoding");
   intern_local_offset = rb_intern("local_offset");
+  intern_gsub = rb_intern("gsub");
+  /* Escape Regexp Global */
+  opt_escape_regex = rb_funcall(rb_cRegexp, intern_new, 1, rb_str_new2("\\\'"));
+  opt_escape_dblquote = rb_str_new2("''");
+  rb_global_variable(&opt_escape_regex);
+  rb_global_variable(&opt_escape_dblquote);
 }
 
 

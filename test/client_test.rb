@@ -28,6 +28,10 @@ class ClientTest < TinyTds::TestCase
       assert_equal Encoding.find('UTF-8'), @client.encoding if ruby19?
     end
     
+    should 'have a #escape method used for quote strings' do
+      assert_equal "''hello''", @client.escape("'hello'")
+    end
+    
     should 'allow valid iconv character set' do
       ['CP1251', 'ISO-8859-1'].each do |encoding|
         client = TinyTds::Client.new(connection_options.merge(:encoding => encoding))

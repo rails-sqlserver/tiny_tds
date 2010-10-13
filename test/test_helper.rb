@@ -4,7 +4,6 @@ require 'rubygems'
 require 'bundler'
 Bundler.setup
 require 'shoulda'
-require 'mocha'
 require 'tiny_tds'
 
 class DateTime

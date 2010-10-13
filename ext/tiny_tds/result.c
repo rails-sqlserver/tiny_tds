@@ -299,6 +299,25 @@ static VALUE rb_tinytds_result_cancel(VALUE self) {
   return Qtrue;
 }
 
+static VALUE rb_tinytds_result_do(VALUE self) {
+  GET_RESULT_WRAPPER(self);
+  if (rwrap->client) {
+    dbcancel(rwrap->client);
+    return LONG2NUM((long)dbcount(rwrap->client));
+  } else {
+    return Qnil;
+  }
+}
+
+static VALUE rb_tinytds_result_affected_rows(VALUE self) {
+  GET_RESULT_WRAPPER(self);
+  if (rwrap->client) {
+    return LONG2NUM((long)dbcount(rwrap->client));
+  } else {
+    return Qnil;
+  }
+}
+
 
 // Lib Init
 
@@ -314,7 +333,8 @@ void init_tinytds_result() {
   rb_define_method(cTinyTdsResult, "each", rb_tinytds_result_each, -1);
   rb_define_method(cTinyTdsResult, "fields", rb_tinytds_result_fields, 0);
   rb_define_method(cTinyTdsResult, "cancel", rb_tinytds_result_cancel, 0);
-  rb_define_alias(cTinyTdsResult, "do", "cancel");
+  rb_define_method(cTinyTdsResult, "do", rb_tinytds_result_do, 0);
+  rb_define_method(cTinyTdsResult, "affected_rows", rb_tinytds_result_affected_rows, 0);
   /* Intern String Helpers */
   intern_new = rb_intern("new");
   intern_utc = rb_intern("utc");

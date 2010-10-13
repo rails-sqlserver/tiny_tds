@@ -87,6 +87,7 @@ class ResultTest < TinyTds::TestCase
     end
     
     should 'be able to get the first result row only' do
+      load_current_schema
       big_query = "SELECT [id] FROM [datatypes]"
       one = @client.execute(big_query).each(:first => true)
       many = @client.execute(big_query).each
@@ -114,6 +115,53 @@ class ResultTest < TinyTds::TestCase
       @client.execute("INSERT INTO [datatypes] ([nvarchar_50]) VALUES (N'#{text}')").do
       row = @client.execute("SELECT [nvarchar_50] FROM [datatypes] WHERE [nvarchar_50] IS NOT NULL").each.first
       assert_equal text, row['nvarchar_50']
+    end
+    
+    should 'delete and update with affected rows support and insert with identity support in native sql' do
+      load_current_schema
+      text = 'test affected rows sql'
+      @client.execute("DELETE FROM [datatypes]").do
+      afrows = @client.execute("SELECT @@ROWCOUNT AS AffectedRows").each.first['AffectedRows']
+      assert_instance_of Fixnum, afrows
+      @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
+      pk1 = @client.execute("SELECT SCOPE_IDENTITY() AS Ident").each.first['Ident']
+      assert_instance_of BigDecimal, pk1, 'native is numeric(38,0) for SCOPE_IDENTITY() function'
+      pk2 = @client.execute("SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident").each.first['Ident']
+      assert_instance_of Fixnum, pk2, 'we should be able to CAST to bigint'
+      assert_equal pk2, pk1.to_i, 'just making sure the 2 line up'
+      @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
+      afrows = @client.execute("SELECT @@ROWCOUNT AS AffectedRows").each.first['AffectedRows']
+      assert_equal 1, afrows
+    end
+    
+    should 'have a #do method that cancels result rows and returns affected rows natively' do
+      load_current_schema
+      text = 'test affected rows native'
+      count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").each.first['count']
+      deleted_rows = @client.execute("DELETE FROM [datatypes]").do
+      assert_equal count, deleted_rows, 'should have deleted rows equal to count'
+      inserted_rows = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
+      assert_equal 1, inserted_rows, 'should have inserted row for one above'
+      updated_rows = @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
+      assert_equal 1, updated_rows, 'should have updated row for one above'
+    end
+    
+    should 'be able to begin/commit transactions with raw sql' do
+      load_current_schema
+      @client.execute("BEGIN TRANSACTION").do
+      @client.execute("DELETE FROM [datatypes]").do
+      @client.execute("COMMIT TRANSACTION").do
+      count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").each.first['count']
+      assert_equal 0, count
+    end
+    
+    should 'be able to begin/rollback transactions with raw sql' do
+      load_current_schema
+      @client.execute("BEGIN TRANSACTION").do
+      @client.execute("DELETE FROM [datatypes]").do
+      @client.execute("ROLLBACK TRANSACTION").do
+      count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").each.first['count']
+      assert_not_equal 0, count
     end
     
     should 'have a #fields accessor with logic default and valid outcome' do

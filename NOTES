@@ -19,9 +19,6 @@ TODO
         as to suppress the printing of any SYBESMSG error, to avoid notifying the user about the same error twice.
 
   * Result Set with TONS OF TESTING.
-    - Looking into using DBCOUNT to return affected rows. Do an insert and test @@rowcount from adapter
-    - Maybe enable a #run or #do command that just executes and ignores dbcanquery() the results.
-    - Test transaction start end.
     - Error & Message Handling
       • Look Into Timeouts
         - dbsettime - Set the number of seconds that DB-Library will wait for a server response to a SQL 

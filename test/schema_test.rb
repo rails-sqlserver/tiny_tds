@@ -6,7 +6,7 @@ class SchemaTest < TinyTds::TestCase
   context 'Casting SQL Server schema' do
   
     setup do
-      load_current_schema
+      @@current_schema_loaded ||= load_current_schema
       @client ||= TinyTds::Client.new(connection_options)
       @gif1px = ruby19? ? File.read('test/schema/1px.gif',:mode=>"rb:BINARY") : File.read('test/schema/1px.gif')
     end

@@ -314,6 +314,7 @@ void init_tinytds_result() {
   rb_define_method(cTinyTdsResult, "each", rb_tinytds_result_each, -1);
   rb_define_method(cTinyTdsResult, "fields", rb_tinytds_result_fields, 0);
   rb_define_method(cTinyTdsResult, "cancel", rb_tinytds_result_cancel, 0);
+  rb_define_alias(cTinyTdsResult, "do", "cancel");
   /* Intern String Helpers */
   intern_new = rb_intern("new");
   intern_utc = rb_intern("utc");

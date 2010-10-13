@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'test_helper'
 
 class ResultTest < TinyTds::TestCase
@@ -5,9 +6,9 @@ class ResultTest < TinyTds::TestCase
   context 'Basic query and result' do
 
     setup do
+      @@current_schema_loaded ||= load_current_schema
       @client = TinyTds::Client.new(connection_options)
       @query1 = 'SELECT 1 AS [one]'
-      load_current_schema
     end
     
     should 'have included Enumerable' do
@@ -96,6 +97,23 @@ class ResultTest < TinyTds::TestCase
     should 'cope with no results when using first option' do
       data = @client.execute("SELECT [id] FROM [datatypes] WHERE [id] = -1").each(:first => true)
       assert_equal [], data
+    end
+    
+    should 'delete, insert and find data' do
+      text = 'test insert and delete'
+      @client.execute("DELETE FROM [datatypes] WHERE [varchar_50] IS NOT NULL").do
+      @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
+      row = @client.execute("SELECT [varchar_50] FROM [datatypes] WHERE [varchar_50] IS NOT NULL").each.first
+      assert row
+      assert_equal text, row['varchar_50']
+    end
+    
+    should 'insert and find unicode data' do
+      text = '✓'
+      @client.execute("DELETE FROM [datatypes] WHERE [nvarchar_50] IS NOT NULL").do
+      @client.execute("INSERT INTO [datatypes] ([nvarchar_50]) VALUES (N'#{text}')").do
+      row = @client.execute("SELECT [nvarchar_50] FROM [datatypes] WHERE [nvarchar_50] IS NOT NULL").each.first
+      assert_equal text, row['nvarchar_50']
     end
     
     should 'have a #fields accessor with logic default and valid outcome' do

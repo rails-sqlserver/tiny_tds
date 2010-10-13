@@ -103,15 +103,13 @@ module TinyTds
     end
     
     def load_current_schema
-      @@current_schema_loaded ||= begin
-        loader = TinyTds::Client.new(connection_options)
-        schema_file = File.expand_path File.join(File.dirname(__FILE__), 'schema', "#{current_schema}.sql")
-        schema_sql = File.read(schema_file)
-        loader.execute(drop_sql).each
-        loader.execute(schema_sql).cancel
-        loader.close
-        true
-      end
+      loader = TinyTds::Client.new(connection_options)
+      schema_file = File.expand_path File.join(File.dirname(__FILE__), 'schema', "#{current_schema}.sql")
+      schema_sql = File.read(schema_file)
+      loader.execute(drop_sql).each
+      loader.execute(schema_sql).cancel
+      loader.close
+      true
     end
 
     def drop_sql

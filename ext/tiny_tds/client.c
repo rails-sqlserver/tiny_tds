@@ -151,7 +151,7 @@ static VALUE rb_tinytds_escape(VALUE self, VALUE string) {
 
 // TinyTds::Client (protected) 
 
-static VALUE rb_tinytds_connect(VALUE self, VALUE user, VALUE pass, VALUE host, VALUE database, VALUE app, VALUE version, VALUE ltimeout, VALUE timeout, VALUE charset) {
+static VALUE rb_tinytds_connect(VALUE self, VALUE user, VALUE pass, VALUE dataserver, VALUE database, VALUE app, VALUE version, VALUE ltimeout, VALUE timeout, VALUE charset) {
   if (dbinit() == FAIL) {
     rb_raise(cTinyTdsError, "failed dbinit() function");
     return self;
@@ -174,7 +174,7 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE user, VALUE pass, VALUE host, 
     dbsettime(NUM2INT(timeout));
   if (!NIL_P(charset))
     DBSETLCHARSET(cwrap->login, StringValuePtr(charset));
-  cwrap->client = dbopen(cwrap->login, StringValuePtr(host));
+  cwrap->client = dbopen(cwrap->login, StringValuePtr(dataserver));
   if (cwrap->client) {
     cwrap->closed = 0;
     cwrap->charset = charset;

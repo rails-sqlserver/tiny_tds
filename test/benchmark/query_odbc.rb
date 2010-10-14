@@ -10,7 +10,7 @@ summary 'Benchmarking ODBC Querys'
 
 reps 1_000
 
-@client = ODBC.connect ENV['TINYTDS_UNIT_HOST'], 'tinytds', ''
+@client = ODBC.connect ENV['TINYTDS_UNIT_DATASERVER'], 'tinytds', ''
 @client.use_time = true
 
 @query_nothing  = "SELECT NULL AS [null]"

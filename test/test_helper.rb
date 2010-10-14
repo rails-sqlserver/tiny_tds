@@ -51,7 +51,7 @@ module TinyTds
     end
     
     def connection_options(options={})
-      { :host          => ENV['TINYTDS_UNIT_HOST'] || 'localhost',
+      { :dataserver    => ENV['TINYTDS_UNIT_DATASERVER'],
         :username      => 'tinytds',
         :password      => '',
         :database      => 'tinytds_test',

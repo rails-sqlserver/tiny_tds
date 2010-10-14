@@ -48,17 +48,17 @@ module TinyTds
 
     def initialize(opts={})
       @query_options = @@default_query_options.dup
-      user     = opts[:username]
-      pass     = opts[:password]
-      host     = opts[:host] || 'localhost'
-      database = opts[:database]
-      appname  = opts[:appname] || 'TinyTds'
-      version  = TDS_VERSIONS_SETTERS[opts[:tds_version].to_s] || TDS_VERSIONS_SETTERS['80']
-      ltimeout = opts[:login_timeout] || 60
-      timeout  = opts[:timeout]
-      encoding = (opts[:encoding].nil? || opts[:encoding].downcase == 'utf8') ? 'UTF-8' : opts[:encoding].upcase
+      user       = opts[:username]
+      pass       = opts[:password]
+      dataserver = opts[:dataserver]
+      database   = opts[:database]
+      appname    = opts[:appname] || 'TinyTds'
+      version    = TDS_VERSIONS_SETTERS[opts[:tds_version].to_s] || TDS_VERSIONS_SETTERS['80']
+      ltimeout   = opts[:login_timeout] || 60
+      timeout    = opts[:timeout]
+      encoding   = (opts[:encoding].nil? || opts[:encoding].downcase == 'utf8') ? 'UTF-8' : opts[:encoding].upcase
       raise ArgumentError, 'missing :username option' if user.nil? || user.empty?
-      connect(user, pass, host, database, appname, version, ltimeout, timeout, encoding)
+      connect(user, pass, dataserver, database, appname, version, ltimeout, timeout, encoding)
     end
     
     def tds_version_info

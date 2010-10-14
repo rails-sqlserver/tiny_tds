@@ -54,7 +54,7 @@ SYBDATETIMN - Un-used?
 
 == Testing
 
-  * env TINYTDS_UNIT_HOST=mc2005 TINYTDS_SCHEMA=sqlserver_2005 rake
+  * env TINYTDS_UNIT_DATASERVER=mc2005 TINYTDS_SCHEMA=sqlserver_2005 rake
 
 
 == Author

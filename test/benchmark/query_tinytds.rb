@@ -11,7 +11,7 @@ summary 'Benchmark TinyTds Querys'
 reps 1_000
 
 @client = TinyTds::Client.new({ 
-  :host          => ENV['TINYTDS_UNIT_HOST'],
+  :dataserver    => ENV['TINYTDS_UNIT_DATASERVER'],
   :username      => 'tinytds',
   :password      => '',
   :database      => 'tinytds_test',

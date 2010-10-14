@@ -48,8 +48,8 @@ class ClientTest < TinyTds::TestCase
       assert_raise(ArgumentError) { TinyTds::Client.new :username => nil }
     end
     
-    should 'raise TinyTds exception with unreachable :host' do
-      options = connection_options.merge :login_timeout => 1, :host => '127.0.0.2'
+    should 'raise TinyTds exception with undefined :dataserver' do
+      options = connection_options.merge :login_timeout => 1, :dataserver => '127.0.0.2'
       action = lambda { TinyTds::Client.new(options) }
       assert_raise_tinytds_error(action) do |e|
         assert_match(/unable to (open|connect)/i, e.message)

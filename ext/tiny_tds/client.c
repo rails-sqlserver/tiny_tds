@@ -175,6 +175,8 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE user, VALUE pass, VALUE datase
   if (!NIL_P(charset))
     DBSETLCHARSET(cwrap->login, StringValuePtr(charset));
   cwrap->client = dbopen(cwrap->login, StringValuePtr(dataserver));
+  if (!NIL_P(database))
+    dbuse(cwrap->client, StringValuePtr(database));
   if (cwrap->client) {
     cwrap->closed = 0;
     cwrap->charset = charset;

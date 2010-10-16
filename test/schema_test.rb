@@ -149,8 +149,8 @@ class SchemaTest < TinyTds::TestCase
         assert_equal 15, v.hour
         assert_equal 45, v.min
         assert_equal 00, v.sec
-        # assert_equal utc_offset, find_value(231, :smalldatetime, :timezone => :local).utc_offset
-        # assert_equal 0, find_value(231, :smalldatetime, :timezone => :utc).utc_offset
+        assert_equal local_offset, find_value(231, :smalldatetime, :timezone => :local).offset
+        assert_equal 0, find_value(231, :smalldatetime, :timezone => :utc).offset
         # 2078-06-05 04:20:00
         v = find_value 232, :smalldatetime
         assert_instance_of DateTime, v
@@ -160,8 +160,8 @@ class SchemaTest < TinyTds::TestCase
         assert_equal 04, v.hour
         assert_equal 20, v.min
         assert_equal 00, v.sec
-        # assert_equal utc_offset, find_value(232, :smalldatetime, :timezone => :local).utc_offset
-        # assert_equal 0, find_value(232, :smalldatetime, :timezone => :utc).utc_offset
+        assert_equal local_offset, find_value(232, :smalldatetime, :timezone => :local).offset
+        assert_equal 0, find_value(232, :smalldatetime, :timezone => :utc).offset
       end
       
       should 'cast smallint' do

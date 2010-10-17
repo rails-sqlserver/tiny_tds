@@ -92,20 +92,20 @@ System Information
     Memory:              4 GB
     ruby 1.8.7 (2010-08-16 patchlevel 302) [i686-darwin10.4.0]
 
-"Nothing" is up to 88% faster over 1,000 repetitions
+"Nothing" is up to 89% faster over 1,000 repetitions
 ----------------------------------------------------
 
-    Nothing     0.331537961959839 secs    Fastest
-    Bits        0.452646970748901 secs    26% Slower
-    Guids       0.460901975631714 secs    28% Slower
-    Floats      0.487627029418945 secs    32% Slower
-    Moneys      0.539116859436035 secs    38% Slower
-    Integers    0.587196826934814 secs    43% Slower
-    Binaries    0.606770038604736 secs    45% Slower
-    Decimals    0.620741128921509 secs    46% Slower
-    Chars       0.780858039855957 secs    57% Slower
-    Dates       0.834639072418213 secs    60% Slower
-    All         2.9572811126709   secs    88% Slower
+    Nothing     0.355118036270142 secs    Fastest
+    Guids       0.497560024261475 secs    28% Slower
+    Bits        0.498264074325562 secs    28% Slower
+    Floats      0.530793905258179 secs    33% Slower
+    Moneys      0.598220109939575 secs    40% Slower
+    Integers    0.631186008453369 secs    43% Slower
+    Decimals    0.646770000457764 secs    45% Slower
+    Binaries    0.70035982131958  secs    49% Slower
+    Chars       0.811697006225586 secs    56% Slower
+    Dates       0.982892990112305 secs    63% Slower
+    All         3.34490513801575  secs    89% Slower
 
 =end
 

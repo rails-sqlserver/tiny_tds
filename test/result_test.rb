@@ -147,7 +147,6 @@ class ResultTest < TinyTds::TestCase
     end
     
     should 'have an #insert method that cancels result rows and returns the SCOPE_IDENTITY() natively' do
-      
       text = 'test scope identity rows native'
       @client.execute("DELETE FROM [datatypes] WHERE [varchar_50] = '#{text}'").do
       @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do

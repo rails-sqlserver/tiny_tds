@@ -146,6 +146,16 @@ class ResultTest < TinyTds::TestCase
       assert_equal 1, updated_rows, 'should have updated row for one above'
     end
     
+    should 'have an #insert method that cancels result rows and returns the SCOPE_IDENTITY() natively' do
+      
+      text = 'test scope identity rows native'
+      @client.execute("DELETE FROM [datatypes] WHERE [varchar_50] = '#{text}'").do
+      @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
+      sql_identity = @client.execute("SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident").each.first['Ident']
+      native_identity = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").insert
+      assert_equal sql_identity+1, native_identity
+    end
+    
     should 'be able to begin/commit transactions with raw sql' do
       load_current_schema
       @client.execute("BEGIN TRANSACTION").do

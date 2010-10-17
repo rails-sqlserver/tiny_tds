@@ -246,8 +246,9 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
   if (NIL_P(rwrap->rows)) {
     rwrap->rows = rb_ary_new();
     RETCODE return_code;
-    while ((return_code = dbresults(rwrap->client)) != NO_MORE_RESULTS) { 
-      if (return_code == SUCCEED) {
+    while (return_code != NO_MORE_RESULTS) {
+      return_code = dbresults(rwrap->client);
+      if (return_code != FAIL) {
         /* If no actual rows, return the empty array. */
         if (DBROWS(rwrap->client) != SUCCEED)
           return rwrap->rows;
@@ -312,6 +313,28 @@ static VALUE rb_tinytds_result_affected_rows(VALUE self) {
   }
 }
 
+static VALUE rb_tinytds_result_insert(VALUE self) {
+  GET_RESULT_WRAPPER(self);
+  if (rwrap->client) {
+    dbcancel(rwrap->client);
+    VALUE identity = Qnil;
+    dbcmd(rwrap->client, "SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident");
+    if (dbsqlexec(rwrap->client) != FAIL && dbresults(rwrap->client) != FAIL && DBROWS(rwrap->client) != FAIL) {
+      while (dbnextrow(rwrap->client) != NO_MORE_ROWS) {
+        int col = 1;
+        BYTE *data = dbdata(rwrap->client, col);
+        DBINT data_len = dbdatlen(rwrap->client, col);
+        int null_val = ((data == NULL) && (data_len == 0));
+        if (!null_val)
+          identity = LONG2NUM(*(long *)data);
+      }
+    }
+    return identity;
+  } else {
+    return Qnil;
+  }
+}
+
 
 // Lib Init
 
@@ -329,6 +352,7 @@ void init_tinytds_result() {
   rb_define_method(cTinyTdsResult, "cancel", rb_tinytds_result_cancel, 0);
   rb_define_method(cTinyTdsResult, "do", rb_tinytds_result_do, 0);
   rb_define_method(cTinyTdsResult, "affected_rows", rb_tinytds_result_affected_rows, 0);
+  rb_define_method(cTinyTdsResult, "insert", rb_tinytds_result_insert, 0);
   /* Intern String Helpers */
   intern_new = rb_intern("new");
   intern_utc = rb_intern("utc");

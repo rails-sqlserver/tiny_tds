@@ -46,7 +46,7 @@ Below is a list of the data types we plan to support using future versions of Fr
 
 Connect to a database.
 
-  client = TinyTds::Client.new(:user => 'sa', :password => 'secret', :dataserver => 'mytds_box')
+  client = TinyTds::Client.new(:username => 'sa', :password => 'secret', :dataserver => 'mytds_box')
 
 Creating a new client takes a hash of options. For valid iconv encoding options, see the output of "iconv -l". Only a few have been tested and highly recommended to leave blank for the UTF-8 default.
 
@@ -175,7 +175,7 @@ Current to do list.
 
 == About Me
 
-My name is Ken Collins and I have no love for Microsoft nor do I work on Windows or have I ever owned a PC. I currently maintain the SQL Server adapter for ActiveRecord and wrote this library as my first cut into learning ruby C extensions. Hopefully it will help promote the power of ruby and the rails framework to those that have not yet discovered it. My blog is http://metaskills.net and I can be found on twitter as @metaskills. Enjoy!
+My name is Ken Collins and to avoid confusion – I have no love for Microsoft nor do I work on Windows or have I ever owned a PC. Ah, better. I currently maintain the SQL Server adapter for ActiveRecord and wrote this library as my first cut into learning ruby C extensions. Hopefully it will help promote the power of ruby and the rails framework to those that have not yet discovered it. My blog is http://metaskills.net and I can be found on twitter as @metaskills. Enjoy!
 
 
 

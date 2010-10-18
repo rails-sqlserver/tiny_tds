@@ -15,7 +15,7 @@ The API is simple and consists of these classes:
 
 == Install
 
-Installing with rubygems should just work. 
+Installing with rubygems should just work. TinyTds is tested on ruby version 1.8.6, 1.8.7, 1.9.1, 1.9.2 as well as REE.
 
     $ gem install tiny_tds
 
@@ -168,7 +168,7 @@ Current to do list.
 
 == About Me
 
-My name is Ken Collins and I have no love for Microsoft nor do I work on Windows or have I ever owned a PC. I currently maintain the SQL Server adapter for ActiveRecord and wrote this library as my first cut into learning ruby C extensions. Hopefully it will help promote the power of ruby and the rails framework to those that have not yet discovered it. My blog is http://metaskills.net/ and I can be found on twitter as @metaskills. Enjoy!
+My name is Ken Collins and I have no love for Microsoft nor do I work on Windows or have I ever owned a PC. I currently maintain the SQL Server adapter for ActiveRecord and wrote this library as my first cut into learning ruby C extensions. Hopefully it will help promote the power of ruby and the rails framework to those that have not yet discovered it. My blog is http://metaskills.net and I can be found on twitter as @metaskills. Enjoy!
 
 
 

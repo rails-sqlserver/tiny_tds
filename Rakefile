@@ -12,15 +12,18 @@ def test_files
   Dir.glob("test/**/*_test.rb").sort
 end
 
-
 Rake::TestTask.new do |t|
   t.libs = test_libs
   t.test_files = test_files
   t.verbose = true
 end
 
-Rake::ExtensionTask.new('tiny_tds') do |extension|
-  extension.lib_dir = 'lib/tiny_tds'
+def gemspec
+  @clean_gemspec ||= eval(File.read(File.expand_path('../tiny_tds.gemspec', __FILE__)))
+end
+
+Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
+  ext.lib_dir = 'lib/tiny_tds'
 end
 
 task :build => [:clean, :compile]

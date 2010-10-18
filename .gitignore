@@ -13,3 +13,4 @@ lib/tiny_tds/tiny_tds.rb
 .rvmrc
 Gemfile.lock
 misc
+*.gem

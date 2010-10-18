@@ -15,5 +15,5 @@ require 'tiny_tds/tiny_tds'
 #
 # Tiny Ruby Wrapper For FreeTDS Using DB-Library
 module TinyTds
-  VERSION = '0.0.1'
+  VERSION = '0.1.0'
 end

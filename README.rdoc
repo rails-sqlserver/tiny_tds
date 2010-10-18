@@ -1,9 +1,9 @@
 
 = TinyTds - A modern, simple and fast FreeTDS library for Ruby using DB-Library.
 
-The TinyTds gem is meant to serve the extremely common use-case of connecting, querying and iterating over results to Microsoft SQL Server databases from ruby. Even though it uses FreeTDS's DB-Library, it is NOT meant to serve as direct 1:1 mappings of that complex C API.
+The TinyTds gem is meant to serve the extremely common use-case of connecting, querying and iterating over results to Microsoft SQL Server databases from ruby. Even though it uses FreeTDS's DB-Library, it is NOT meant to serve as direct 1:1 mapping of that complex C API.
 
-The benefits are speed, automatic casting to ruby objects, and proper encoding support. It converts all SQL Server datatypes to native ruby objects supporting :utc/:local time zones for time-like. To date it is the only ruby client library that allows client encoding options, defaulting to UTF-8 and properly encodes all string and binary data correctly. The motivation for TinyTds is to become the de-facto low level connection mode for the SQL Server adapter for ActiveRecord.
+The benefits are speed, automatic casting to ruby primitives, and proper encoding support. It converts all SQL Server datatypes to native ruby objects supporting :utc or :local time zones for time-like types. To date it is the only ruby client library that allows client encoding options, defaulting to UTF-8, while connecting to SQL Server. It also  properly encodes all string and binary data. The motivation for TinyTds is to become the de-facto low level connection mode for the SQL Server adapter for ActiveRecord. For further details see the special thanks section at the bottom
 
 The API is simple and consists of these classes:
 
@@ -25,7 +25,7 @@ Although we search for FreeTDS's libraries and headers, you may have to specify 
 
 == FreeTDS Compatibility
 
-TinyTds is developed primarily for FreeTDS 0.82 and tested with SQL Server 2000, 2005, and 2008 using TDS Version 8.0. We utilize FreeTDS's db-lib client library. We compile against sybdb.h and define MSDBLIB which means that our client enables Microsoft behavior in the db-lib API where it diverges from Sybase's. You do NOT need to compile FreeTDS with the "--enable-msdblib" option for our client to work properly. Please make sure to compile FreeTDS with libiconv support. Run "tsql -C" in your console and check for "iconv library: yes".
+TinyTds is developed primarily for FreeTDS 0.82 and tested with SQL Server 2000, 2005, and 2008 using TDS Version 8.0. We utilize FreeTDS's db-lib client library. We compile against sybdb.h and define MSDBLIB which means that our client enables Microsoft behavior in the db-lib API where it diverges from Sybase's. You do NOT need to compile FreeTDS with the "--enable-msdblib" option for our client to work properly. However, please make sure to compile FreeTDS with libiconv support for encodings to work at their best. Run "tsql -C" in your console and check for "iconv library: yes".
 
 
 
@@ -88,9 +88,9 @@ Calling #each on the result will lazily load each row from the database.
     # Here's an leemer: http://is.gd/g61xo
   end
 
-Once a result returns it's rows, you can access the fields. Returns nil if the data has not yet been loaded or there are no rows returned.
+Once a result returns its rows, you can access the fields. Returns nil if the data has not yet been loaded or there are no rows returned.
 
-  resultsfields
+  result.fields # => [ ... ]
 
 You can cancel a result object's data from being loading by the server.
 
@@ -116,7 +116,7 @@ Likewise for INSERT statements, the #insert method cancels any need for loading 
 
 == Query Options
 
-Every TinyTds::Result object can pass query options to the #each method. The defaults are defined and configurable in by setting options in the TinyTds::Client.default_query_options hash. The default values are.
+Every TinyTds::Result object can pass query options to the #each method. The defaults are defined and configurable by setting options in the TinyTds::Client.default_query_options hash. The default values are:
 
 * :as => :hash - Object for each row yielded. Can be set to :array.
 * :symbolize_keys => false - Row hash keys. Defaults to shared/frozen string keys.
@@ -168,7 +168,7 @@ Current to do list.
 
 == About Me
 
-My name is Ken Collins and I have no love for Microsoft nor do I work on Windows or have I ever owned a PC. I currently maintain the SQL Server adapter for ActiveRecord and wrote this library as my first cut into learning ruby C extensions. Hopefully it will help those who have not already discover the power of ruby and the rails framework. My blog is metaskills.net and I can be found on twitter as @metaskills. Enjoy!
+My name is Ken Collins and I have no love for Microsoft nor do I work on Windows or have I ever owned a PC. I currently maintain the SQL Server adapter for ActiveRecord and wrote this library as my first cut into learning ruby C extensions. Hopefully it will help promote the power of ruby and the rails framework to those that have not yet discovered it. My blog is http://metaskills.net/ and I can be found on twitter as @metaskills. Enjoy!
 
 
 

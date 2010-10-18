@@ -237,9 +237,7 @@ class SchemaTest < TinyTds::TestCase
     context 'for 2008 and up' do
       
       should 'cast date' do
-        # TODO: Make these objects, if not, make sure the encoding is correct
-        assert_equal '0001-01-01', find_value(51, :date)
-        assert_equal '9999-12-31', find_value(52, :date)
+        
       end
       
       should 'cast datetime2' do

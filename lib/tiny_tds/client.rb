@@ -55,7 +55,7 @@ module TinyTds
       appname    = opts[:appname] || 'TinyTds'
       version    = TDS_VERSIONS_SETTERS[opts[:tds_version].to_s] || TDS_VERSIONS_SETTERS['80']
       ltimeout   = opts[:login_timeout] || 60
-      timeout    = opts[:timeout]
+      timeout    = opts[:timeout] || 5
       encoding   = (opts[:encoding].nil? || opts[:encoding].downcase == 'utf8') ? 'UTF-8' : opts[:encoding].upcase
       raise ArgumentError, 'missing :username option' if user.nil? || user.empty?
       connect(user, pass, dataserver, database, appname, version, ltimeout, timeout, encoding)

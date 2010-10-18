@@ -1,62 +1,181 @@
-= TinyTds
 
-Tiny Ruby Wrapper For FreeTDS Using DB-Library.
+= TinyTds - A modern, simple and fast FreeTDS library for Ruby using DB-Library.
 
-  * Inspired by the Mysql2 gem.
-    http://github.com/brianmario/mysql2
+The TinyTds gem is meant to serve the extremely common use-case of connecting, querying and iterating over results to Microsoft SQL Server databases from ruby. Even though it uses FreeTDS's DB-Library, it is NOT meant to serve as direct 1:1 mappings of that complex C API.
+
+The benefits are speed, automatic casting to ruby objects, and proper encoding support. It converts all SQL Server datatypes to native ruby objects supporting :utc/:local time zones for time-like. To date it is the only ruby client library that allows client encoding options, defaulting to UTF-8 and properly encodes all string and binary data correctly. The motivation for TinyTds is to become the de-facto low level connection mode for the SQL Server adapter for ActiveRecord.
+
+The API is simple and consists of these classes:
+
+* TinyTds::Client - Your connection to the database.
+* TinyTds::Result - Returned from issuing an #execute on the connection. It includes Enumerable.
+* TinyTds::Error - A wrapper for all exceptions.
+
 
 
 == Install
 
-Install with Rubygems:
+Installing with rubygems should just work. 
 
-    gem install tiny_tds
+    $ gem install tiny_tds
 
-From Source:
+Although we search for FreeTDS's libraries and headers, you may have to specify include and lib directories using "--with-freetds-include=/some/local/include/freetds" and "--with-freetds-lib=/some/local/lib"
 
-  * Maybe use ruby extconf.rb --with-freetds-include=/opt/local/include/freetds
-                              --with-freetds-lib=/opt/local/lib
+
+
+== FreeTDS Compatibility
+
+TinyTds is developed primarily for FreeTDS 0.82 and tested with SQL Server 2000, 2005, and 2008 using TDS Version 8.0. We utilize FreeTDS's db-lib client library. We compile against sybdb.h and define MSDBLIB which means that our client enables Microsoft behavior in the db-lib API where it diverges from Sybase's. You do NOT need to compile FreeTDS with the "--enable-msdblib" option for our client to work properly. Please make sure to compile FreeTDS with libiconv support. Run "tsql -C" in your console and check for "iconv library: yes".
+
 
 
 == Data Types
 
-For future notes.
+Our goal is to support every SQL Server data type and covert it to a logical ruby object. When dates or times are returned, they are instantiated to either :utc or :local time depending on the query options. Under ruby 1.9, all strings are encoded to the connection's encoding and all binary data types are associated to ruby's ASCII-8BIT/BINARY encoding.
 
-[datetime] => SYBDATETIME
-  61    1753-01-01T00:00:00.000             y:1753, m:1,  d:1  h:0,   m:0,  s:0  MS:0     tz:1550134876
-  62    9999-12-31T23:59:59.997             y:9999, m:12, d:31 h:23,  m:59, s:59 MS:997   tz:1550134876
-  63    2010-01-01T12:34:56.123             y:2010, m:1,  d:1  h:12,  m:34, s:56 MS:123   tz:1744847616
-[smalldatetime] => SYBDATETIME4 
-  231   1901-01-01T15:45:00.000Z            days:365    minutes:945   (since 1/1/1900, since midnight)
-  232   2078-06-05T04:20:00.000Z            days:65169  minutes:260                   "
+Below is a list of the data types we plan to support using future versions of FreeTDS. They are associated with SQL Server 2008. All unsupported data types are returned as properly encoded strings.
 
-[datetime2_7] => SYBCHAR
-  71    0001-01-01T00:00:00.0000000Z        0001-01-01 00:00:00.0000000
-  72    1984-01-24T04:20:00.0000000-08:00   1984-01-24 04:20:00.0000000
-  73    9999-12-31T23:59:59.9999999Z        9999-12-31 23:59:59.9999999
-[datetimeoffset_2] => SYBCHAR
-  81    1984-01-24T04:20:00.0000000-08:00   1984-01-24 04:20:00.00 -08:00
-  82    1984-01-24T04:20:00.0000000Z        1984-01-24 04:20:00.00 +00:00
-  83    9999-12-31T23:59:59.9999999Z        9999-12-31 23:59:59.99 +00:00
-[datetimeoffset_7] => SYBCHAR
-  84    1984-01-24T04:20:00.0000000-08:00   1984-01-24 04:20:00.0000000 -08:00
-  85    1984-01-24T04:20:00.0000000Z        1984-01-24 04:20:00.0000000 +00:00
-  86    9999-12-31T23:59:59.9999999Z        9999-12-31 23:59:59.9999999 +00:00
-[time_2] => SYBCHAR
-  281   1901-01-01T15:45:00.0100001Z        15:45:00.01
-  282   1984-01-24T04:20:00.0000001-08:00   04:20:00.00
-[time_7] => SYBCHAR
-  283   1901-01-01T15:45:00.0100001Z        15:45:00.0100001
-  284   1984-01-24T04:20:00.0000001-08:00   04:20:00.0000001
-
-SYBDATETIMN - Un-used?
+* [date]
+* [datetime2]
+* [datetimeoffset]
+* [time]
 
 
-== Testing
 
-  * env TINYTDS_UNIT_DATASERVER=mc2005 TINYTDS_SCHEMA=sqlserver_2005 rake
+== TinyTds::Client Usage
+
+Connect to a database.
+
+  client = TinyTds::Client.new(:user => 'sa', :password => 'secret', :dataserver => 'mytds_box')
+
+Creating a new client takes a hash of options. For valid iconv encoding options, see the output of "iconv -l". Only a few have been tested and highly recommended to leave blank for the UTF-8 default.
+
+* :username - The database server user.
+* :password - The user password.
+* :dataserver - The name for your server as defined in freetds.conf.
+* :database - The default database to use.
+* :appname - Short string seen in SQL Servers process/activity window.
+* :tds_version - TDS version. Defaults to 80, not recommended to change.
+* :login_timeout - Seconds to wait for login. Default to 60 seconds.
+* :timeout - Seconds to wait for a response to a SQL command. Default 5 seconds.
+* :encoding - Any valid iconv value like CP1251 or ISO-8859-1. Default UTF-8.
+
+Close and free a clients connection.
+
+  client.close
+  client.closed? # => true
+
+Escape strings.
+
+  client.escape("How's It Going'") # => "How''s It Going''"
+
+Send a SQL string to the database and return a TinyTds::Result object.
+
+  result = client.execute("SELECT * FROM [datatypes]")
 
 
-== Author
 
-Written by Ken Collins and Erik Bryn
+== TinyTds::Result Usage
+
+A result object is returned by the client's execute command. It is important that you either return the data from the query, most likely with the #each method, or that you cancel the results before asking the client to execute another SQL batch. Failing to do so will yield an error.
+
+Calling #each on the result will lazily load each row from the database.
+
+  result.each do |row|
+    # By default each row is a hash.
+    # The keys are the fields, as you'd expect.
+    # The values are pre-built ruby primitives mapped from their corresponding types.
+    # Here's an leemer: http://is.gd/g61xo
+  end
+
+Once a result returns it's rows, you can access the fields. Returns nil if the data has not yet been loaded or there are no rows returned.
+
+  resultsfields
+
+You can cancel a result object's data from being loading by the server.
+
+  result = client.execute("SELECT * FROM [super_big_table]")
+  result.cancel
+
+If the SQL executed by the client returns affected rows, you can easily find out how many.
+
+  result.each
+  result.affected_rows # => 24
+
+This pattern is so common for UPDATE and DELETE statements that the #do method cancels any need for loading the result data and returns the #affected_rows.
+
+  result = client.execute("DELETE FROM [datatypes]")
+  result.do # => 72
+
+Likewise for INSERT statements, the #insert method cancels any need for loading the result data and executes a SCOPE_IDENTITY() for the primary key.
+
+  result = client.execute("INSERT INTO [datatypes] ([xml]) VALUES ('<html><br/></html>')")
+  result.insert # => 420
+
+
+
+== Query Options
+
+Every TinyTds::Result object can pass query options to the #each method. The defaults are defined and configurable in by setting options in the TinyTds::Client.default_query_options hash. The default values are.
+
+* :as => :hash - Object for each row yielded. Can be set to :array.
+* :symbolize_keys => false - Row hash keys. Defaults to shared/frozen string keys.
+* :cache_rows => true - Successive calls to #each returns the cached rows.
+* :timezone => :local - Local to the ruby client or :utc for UTC.
+
+Each result gets a copy of the default options you specify at the client level and can be overridden by passing an options hash to the #each method. For example
+  
+  result.each(:as => :array, :cache_rows => false) do |row|
+    # Each row is now an array of values ordered by #fields.
+    # Rows are yielded and forgotten about, freeing memory.
+  end
+
+Besides the standard query options, the result object can take one additional option. Using :first => true will only load the first row of data and cancel all remaining results.
+
+  result = client.execute("SELECT * FROM [super_big_table]")
+  result.each(:first => true) # => [{'id' => 24}]
+
+
+
+== Row Caching
+
+By default row caching is turned on because the SQL Server adapter for ActiveRecord would not work without it. I hope to find some time to create some performance patches for ActiveRecord that would allow it to take advantages of lazily created yielded rows from result objects. Currently only TinyTds and the Mysql2 gem allow such a performance gain.
+
+
+
+== Development & Testing
+
+We use bundler for development. Simply run "bundle install" then "rake" to build the gem and run the unit tests. The tests assume you have created a database named "tinytds_test" accessible by a database owner named "tinytds". Before running the test rake task, you may need to define a pair of environment variables that help the client connect to your specific FreeTDS database server name and which schema (2000, 2005 or 2008) to use. For example:
+
+  $ env TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2008 rake
+
+For help and support.
+
+* Github Source: http://github.com/rails-sqlserver/tiny_tds
+* Github Issues: http://github.com/rails-sqlserver/tiny_tds/issues
+* IRC Room: #rails-sqlserver on irc.freenode.net
+
+Current to do list.
+
+* Test 0.83 development of FreeTDS.
+* Handle multiple result sets.
+* Find someone brave enough to compile/test for Windows.
+* Install an interrupt handler.
+* Allow #escape to accept all ruby primitives.
+* Get bug reports!
+
+
+
+== About Me
+
+My name is Ken Collins and I have no love for Microsoft nor do I work on Windows or have I ever owned a PC. I currently maintain the SQL Server adapter for ActiveRecord and wrote this library as my first cut into learning ruby C extensions. Hopefully it will help those who have not already discover the power of ruby and the rails framework. My blog is metaskills.net and I can be found on twitter as @metaskills. Enjoy!
+
+
+
+== Special Thanks
+
+* Erik Bryn for joining the project and helping me thru a few tight spots. - http://github.com/ebryn
+* To the authors and contributors of the Mysql2 gem for inspiration. - http://github.com/brianmario/mysql2
+* Yehuda Katz for articulating ruby's need for proper encoding support. Especially in database drivers - http://yehudakatz.com/2010/05/05/ruby-1-9-encodings-a-primer-and-the-solution-for-rails/
+* Josh Clayton of Thoughtbot for writing about ruby C extensions. - http://robots.thoughtbot.com/post/1037240922/get-your-c-on
+

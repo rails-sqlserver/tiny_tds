@@ -175,7 +175,7 @@ Current to do list.
 
 == About Me
 
-My name is Ken Collins and to avoid confusion – I have no love for Microsoft nor do I work on Windows or have I ever owned a PC. Ah, better. I currently maintain the SQL Server adapter for ActiveRecord and wrote this library as my first cut into learning ruby C extensions. Hopefully it will help promote the power of ruby and the rails framework to those that have not yet discovered it. My blog is http://metaskills.net and I can be found on twitter as @metaskills. Enjoy!
+My name is Ken Collins and to avoid confusion – I have no love for Microsoft nor do I work on Windows or have I ever owned a PC, just so we know :) – I currently maintain the SQL Server adapter for ActiveRecord and wrote this library as my first cut into learning ruby C extensions. Hopefully it will help promote the power of ruby and the rails framework to those that have not yet discovered it. My blog is http://metaskills.net and I can be found on twitter as @metaskills. Enjoy!
 
 
 

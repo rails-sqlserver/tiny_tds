@@ -249,7 +249,7 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
   /* Make The Rows Or Yield Existing */
   if (NIL_P(rwrap->rows)) {
     rwrap->rows = rb_ary_new();
-    RETCODE return_code;
+    RETCODE return_code = 0;
     while (return_code != NO_MORE_RESULTS) {
       return_code = dbresults(rwrap->client);
       if (return_code != FAIL) {

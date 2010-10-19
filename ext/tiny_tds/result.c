@@ -159,8 +159,8 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
         }
         case SYBDATETIME4: {
           DBDATETIME new_data;
-          dbconvert(rwrap->client, coltype, data, data_len, SYBDATETIME, &new_data, sizeof(new_data));
-          data = &new_data;
+          dbconvert(rwrap->client, coltype, data, data_len, SYBDATETIME, (BYTE *)&new_data, sizeof(new_data));
+          data = (BYTE *)&new_data;
           data_len = sizeof(new_data);
         }
         case SYBDATETIME: {

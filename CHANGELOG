@@ -1,3 +1,11 @@
+* master *
+
+* Fixed some compiler warnings. [Erik Bryn]
+
+* Avoid segfault related to smalldatetime conversion. [Erik Bryn]
+
+* Properly encode column names in 1.9. [Erik Bryn]
+
 
 * 0.1.0 Initial release!
 

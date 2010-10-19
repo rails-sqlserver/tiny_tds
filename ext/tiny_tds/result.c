@@ -157,8 +157,12 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
           val = ENCODED_STR_NEW2(converted_unique);
           break;
         }
-        case SYBDATETIME4:
-          dbconvert(rwrap->client, coltype, data, data_len, SYBDATETIME, data, data_len);
+        case SYBDATETIME4: {
+          DBDATETIME new_data;
+          dbconvert(rwrap->client, coltype, data, data_len, SYBDATETIME, &new_data, sizeof(new_data));
+          data = &new_data;
+          data_len = sizeof(new_data);
+        }
         case SYBDATETIME: {
           DBDATEREC date_rec;
           dbdatecrack(rwrap->client, &date_rec, (DBDATETIME *)data);

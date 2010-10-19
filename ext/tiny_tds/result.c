@@ -23,9 +23,9 @@ static ID sym_symbolize_keys, sym_as, sym_array, sym_cache_rows, sym_first, sym_
   })
 #else
   #define ENCODED_STR_NEW(_data, _len) \
-    rb_str_new((char *)_data, (long)_len);
+    rb_str_new((char *)_data, (long)_len)
   #define ENCODED_STR_NEW2(_data2) \
-    rb_str_new2((char *)_data2);
+    rb_str_new2((char *)_data2)
 #endif
 
 

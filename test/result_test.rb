@@ -191,6 +191,14 @@ class ResultTest < TinyTds::TestCase
       assert_equal data.first.keys.map{ |r| r.object_id }, data.last.keys.map{ |r| r.object_id }
     end
     
+    should 'have properly encoded column names' do
+      @client.execute("DROP TABLE [test_encoding]").do rescue nil
+      @client.execute("CREATE TABLE [test_encoding] ( [öäüß] [nvarchar](10) NOT NULL )").do
+      @client.execute("INSERT INTO [test_encoding] ([öäüß]) VALUES (N'öäüß')").do
+      row = @client.execute("SELECT [öäüß] FROM [test_encoding]").each.first
+      assert_utf8_encoding row.keys.first
+    end
+    
     context 'when casting to native ruby values' do
     
       should 'return fixnum for 1' do

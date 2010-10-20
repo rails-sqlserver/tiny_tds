@@ -203,6 +203,49 @@ class ResultTest < TinyTds::TestCase
       assert_utf8_encoding result.fields.first
       assert_utf8_encoding row.keys.first
     end
+        
+    context 'with multiple result sets' do
+      
+      setup do
+        @double_select = "SELECT 1 AS [rs1]\nSELECT 2 AS [rs2]" 
+      end
+      
+      should 'handle a command buffer with double selects' do
+        result = @client.execute(@double_select)
+        result_sets = result.each
+        assert_equal 2, result_sets.size
+        assert_equal [{'rs1' => 1}], result_sets.first
+        assert_equal [{'rs2' => 2}], result_sets.last
+        assert_equal [['rs1'],['rs2']], result.fields
+        assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
+        # As array
+        result = @client.execute(@double_select)
+        result_sets = result.each(:as => :array)
+        assert_equal 2, result_sets.size
+        assert_equal [[1]], result_sets.first
+        assert_equal [[2]], result_sets.last
+        assert_equal [['rs1'],['rs2']], result.fields
+        assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
+      end
+      
+      should 'yield each row for each result set' do
+        data = []
+        result = 
+        result_sets = @client.execute(@double_select).each { |row| data << row }
+        assert_equal data.first, result_sets.first[0]
+        assert_equal data.last, result_sets.last[0]
+      end
+      
+      should 'from a stored procedure' do
+        results1, results2 = @client.execute("EXEC sp_helpconstraint '[datatypes]'").each
+        assert_equal [{"Object Name"=>"[datatypes]"}], results1
+        constraint_info = results2.first
+        assert constraint_info.key?("constraint_keys")
+        assert constraint_info.key?("constraint_type")
+        assert constraint_info.key?("constraint_name")
+      end
+
+    end
     
     context 'when casting to native ruby values' do
     

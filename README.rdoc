@@ -165,7 +165,6 @@ For help and support.
 Current to do list.
 
 * Test 0.83 development of FreeTDS.
-* Handle multiple result sets.
 * Find someone brave enough to compile/test for Windows.
 * Install an interrupt handler.
 * Allow #escape to accept all ruby primitives.

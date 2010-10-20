@@ -36,7 +36,7 @@ static void rb_tinytds_result_mark(void *ptr) {
   if (rwrap) {
     rb_gc_mark(rwrap->local_offset);
     rb_gc_mark(rwrap->fields);
-    rb_gc_mark(rwrap->rows);
+    rb_gc_mark(rwrap->results);
   }
 }
 
@@ -53,7 +53,8 @@ VALUE rb_tinytds_new_result_obj(DBPROCESS *c) {
   rwrap->return_code = 0;
   rwrap->local_offset = Qnil;
   rwrap->fields = Qnil;
-  rwrap->rows = Qnil;
+  rwrap->results = Qnil;
+  rwrap->number_of_results = 0;
   rwrap->number_of_fields = 0;
   rwrap->number_of_rows = 0;
   rb_obj_call_init(obj, 0, NULL);
@@ -66,25 +67,10 @@ VALUE rb_tinytds_new_result_obj(DBPROCESS *c) {
 static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_keys, int as_array) {
   /* Wrapper And Local Vars */
   GET_RESULT_WRAPPER(self);
-  VALUE row;
-  unsigned int i = 0;
-  /* One-Time Fields Info & Container */
-  if (NIL_P(rwrap->fields)) {
-    rwrap->number_of_fields = dbnumcols(rwrap->client);
-    rwrap->fields = rb_ary_new2(rwrap->number_of_fields);
-    for (i = 0; i < rwrap->number_of_fields; i++) {
-      char *colname = dbcolname(rwrap->client, i+1);
-      VALUE field = symbolize_keys ? ID2SYM(rb_intern(colname)) : rb_obj_freeze(ENCODED_STR_NEW2(colname));
-      rb_ary_store(rwrap->fields, i, field);
-    }
-  }
   /* Create Empty Row */
-  if (as_array) {
-    row = rb_ary_new2(rwrap->number_of_fields);
-  } else {
-    row = rb_hash_new();
-  }
+  VALUE row = as_array ? rb_ary_new2(rwrap->number_of_fields) : rb_hash_new();
   /* Storing Values */
+  unsigned int i = 0;
   for (i = 0; i < rwrap->number_of_fields; i++) {
     VALUE val = Qnil;
     int col = i+1;
@@ -207,7 +193,13 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
     if (as_array) {
       rb_ary_store(row, i, val);
     } else {
-      rb_hash_aset(row, rb_ary_entry(rwrap->fields, i), val);
+      VALUE key;
+      if (rwrap->number_of_results == 0) {
+        key = rb_ary_entry(rwrap->fields, i);
+      } else {
+        key = rb_ary_entry(rb_ary_entry(rwrap->fields, rwrap->number_of_results), i);
+      }
+      rb_hash_aset(row, key, val);
     }
   }
   return row;
@@ -246,32 +238,67 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
     rb_warn(":timezone option must be :utc or :local - defaulting to :local");
     timezone = intern_local;
   }
-  /* Make The Rows Or Yield Existing */
-  if (NIL_P(rwrap->rows)) {
-    rwrap->rows = rb_ary_new();
+  /* Make The Results Or Yield Existing */
+  if (NIL_P(rwrap->results)) {
+    rwrap->results = rb_ary_new();
     RETCODE return_code = 0;
-    while (return_code != NO_MORE_RESULTS) {
-      return_code = dbresults(rwrap->client);
+    return_code = dbresults(rwrap->client);
+    while (return_code == SUCCEED) {
       if (return_code != FAIL) {
-        /* If no actual rows, return the empty array. */
-        if (DBROWS(rwrap->client) != SUCCEED)
-          return rwrap->rows;
-        unsigned long rowi = 0;
-        while (dbnextrow(rwrap->client) != NO_MORE_ROWS) {
-          VALUE row = rb_tinytds_result_fetch_row(self, timezone, symbolize_keys, as_array);
-          if (cache_rows)
-            rb_ary_store(rwrap->rows, rowi, row);
-          if (!NIL_P(block))
-            rb_yield(row);
-          if (first)
-            dbcanquery(rwrap->client);
-          rowi++;
+        /* Only do field and row work if there are rows in this result set. */
+        if (DBROWS(rwrap->client) == SUCCEED) {
+          /* Create fields for this result set. */
+          unsigned int fldi = 0;
+          rwrap->number_of_fields = dbnumcols(rwrap->client);
+          VALUE fields = rb_ary_new2(rwrap->number_of_fields);
+          for (fldi = 0; fldi < rwrap->number_of_fields; fldi++) {
+            char *colname = dbcolname(rwrap->client, fldi+1);
+            VALUE field = symbolize_keys ? ID2SYM(rb_intern(colname)) : rb_obj_freeze(ENCODED_STR_NEW2(colname));
+            rb_ary_store(fields, fldi, field);
+          }
+          /* Store the fields. */
+          if (rwrap->number_of_results == 0) {
+            rwrap->fields = fields;
+          } else if (rwrap->number_of_results == 1) {
+            VALUE multi_rs_fields = rb_ary_new();
+            rb_ary_store(multi_rs_fields, 0, rwrap->fields);
+            rb_ary_store(multi_rs_fields, 1, fields);
+            rwrap->fields = multi_rs_fields;
+          } else {
+            rb_ary_store(rwrap->fields, rwrap->number_of_results, fields);
+          }
+          /* Create rows for this result set. */
+          unsigned long rowi = 0;
+          VALUE result = rb_ary_new();
+          while (dbnextrow(rwrap->client) != NO_MORE_ROWS) {
+            VALUE row = rb_tinytds_result_fetch_row(self, timezone, symbolize_keys, as_array);
+            if (cache_rows)
+              rb_ary_store(result, rowi, row);
+            if (!NIL_P(block))
+              rb_yield(row);
+            if (first)
+              dbcanquery(rwrap->client);
+            rowi++;
+          }
+          rwrap->number_of_rows = rowi;
+          /* Store the result. */
+          if (rwrap->number_of_results == 0) {
+            rwrap->results = result;
+          } else if (rwrap->number_of_results == 1) {
+            VALUE multi_resultsets = rb_ary_new();
+            rb_ary_store(multi_resultsets, 0, rwrap->results);
+            rb_ary_store(multi_resultsets, 1, result);
+            rwrap->results = multi_resultsets;
+          } else {
+            rb_ary_store(rwrap->results, rwrap->number_of_results, result);
+          }
         }
-        rwrap->number_of_rows = rowi;
       } else {
         // TODO: Account for failed dbresults() must have returned FAIL.
         rb_warn("TinyTds: dbresults() must have returned FAIL.\n");
       }
+      rwrap->number_of_results = rwrap->number_of_results + 1;
+      return_code = dbresults(rwrap->client);
     }
     if (return_code == FAIL) {
       // TODO: Account for something in the dbresults() while loop set the return code to FAIL.
@@ -280,10 +307,10 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
   } else if (!NIL_P(block)) {
     unsigned long i;
     for (i = 0; i < rwrap->number_of_rows; i++) {
-      rb_yield(rb_ary_entry(rwrap->rows, i));
+      rb_yield(rb_ary_entry(rwrap->results, i));
     }
   }
-  return rwrap->rows;
+  return rwrap->results;
 }
 
 static VALUE rb_tinytds_result_fields(VALUE self) {

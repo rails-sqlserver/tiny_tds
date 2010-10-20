@@ -13,7 +13,6 @@ TODO
         as to suppress the printing of any SYBESMSG error, to avoid notifying the user about the same error twice.
 
   * Result Set
-    - Check to see if #fields are unicode safe and encoded properly too.
     - Multiple Result Sets
     - Error & Message Handling
       • Look Into Timeouts

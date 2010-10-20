@@ -13,6 +13,7 @@ TODO
         as to suppress the printing of any SYBESMSG error, to avoid notifying the user about the same error twice.
 
   * Result Set
+    - See if we can make a binary string of [timestamp] type.
     - Multiple Result Sets
     - Error & Message Handling
       • Look Into Timeouts

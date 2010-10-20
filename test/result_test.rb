@@ -192,10 +192,15 @@ class ResultTest < TinyTds::TestCase
     end
     
     should 'have properly encoded column names' do
+      col_name = "öäüß"
       @client.execute("DROP TABLE [test_encoding]").do rescue nil
-      @client.execute("CREATE TABLE [test_encoding] ( [öäüß] [nvarchar](10) NOT NULL )").do
-      @client.execute("INSERT INTO [test_encoding] ([öäüß]) VALUES (N'öäüß')").do
-      row = @client.execute("SELECT [öäüß] FROM [test_encoding]").each.first
+      @client.execute("CREATE TABLE [test_encoding] ( [#{col_name}] [nvarchar](10) NOT NULL )").do
+      @client.execute("INSERT INTO [test_encoding] ([#{col_name}]) VALUES (N'#{col_name}')").do
+      result = @client.execute("SELECT [#{col_name}] FROM [test_encoding]")
+      row = result.each.first
+      assert_equal col_name, result.fields.first
+      assert_equal col_name, row.keys.first
+      assert_utf8_encoding result.fields.first
       assert_utf8_encoding row.keys.first
     end
     

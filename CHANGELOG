@@ -1,5 +1,7 @@
 * master *
 
+* Handle multiple result sets in command buffer or stored procs. [Ken Collins]
+
 * Fixed some compiler warnings. [Erik Bryn]
 
 * Avoid segfault related to smalldatetime conversion. [Erik Bryn]

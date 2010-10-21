@@ -95,17 +95,17 @@ System Information
 "Nothing" is up to 89% faster over 1,000 repetitions
 ----------------------------------------------------
 
-    Nothing     0.355118036270142 secs    Fastest
-    Guids       0.497560024261475 secs    28% Slower
-    Bits        0.498264074325562 secs    28% Slower
-    Floats      0.530793905258179 secs    33% Slower
-    Moneys      0.598220109939575 secs    40% Slower
-    Integers    0.631186008453369 secs    43% Slower
-    Decimals    0.646770000457764 secs    45% Slower
-    Binaries    0.70035982131958  secs    49% Slower
-    Chars       0.811697006225586 secs    56% Slower
-    Dates       0.982892990112305 secs    63% Slower
-    All         3.34490513801575  secs    89% Slower
+    Nothing     0.357741832733154 secs    Fastest
+    Guids       0.460683107376099 secs    22% Slower
+    Bits        0.483309984207153 secs    25% Slower
+    Floats      0.505340099334717 secs    29% Slower
+    Moneys      0.523844003677368 secs    31% Slower
+    Integers    0.616975069046021 secs    42% Slower
+    Binaries    0.639773845672607 secs    44% Slower
+    Decimals    0.670897960662842 secs    46% Slower
+    Chars       0.800287008285522 secs    55% Slower
+    Dates       0.950634956359863 secs    62% Slower
+    All         2.91044211387634  secs    87% Slower
 
 =end
 

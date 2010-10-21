@@ -3,6 +3,7 @@
 #define MSDBLIB
 
 #include <ruby.h>
+#include <ruby/version.h>
 #include <sqlfront.h>
 #include <sybdb.h>
 #include <syberror.h>

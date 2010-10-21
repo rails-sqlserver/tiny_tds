@@ -56,7 +56,7 @@ class SchemaTest < TinyTds::TestCase
         assert_equal 23, v.hour
         assert_equal 59, v.min
         assert_equal 59, v.sec
-        assert_equal 997000, v.usec
+        assert_equal 997000, v.usec unless ruby186?
         assert_equal local_offset, find_value(61, :datetime, :timezone => :local).offset
         assert_equal 0, find_value(61, :datetime, :timezone => :utc).offset
         # 2010-01-01T12:34:56.123

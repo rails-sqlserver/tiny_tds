@@ -94,6 +94,10 @@ module TinyTds
       RUBY_VERSION < '1.9'
     end
     
+    def ruby186?
+      RUBY_VERSION == '1.8.6'
+    end
+    
     def ruby19?
       RUBY_VERSION >= '1.9'
     end

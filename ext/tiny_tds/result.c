@@ -3,10 +3,11 @@
 
 VALUE cTinyTdsResult;
 extern VALUE mTinyTds, cTinyTdsClient, cTinyTdsError;
-VALUE cBigDecimal, cDate, cDateTime, cRational;
+VALUE cBigDecimal, cDate, cDateTime;
 VALUE opt_decimal_zero, opt_float_zero, opt_one, opt_zero, opt_four, opt_19hdr, opt_tenk, opt_onemil;
+int   opt_ruby_186;
 static ID intern_new, intern_utc, intern_local, intern_localtime, intern_merge, 
-          intern_civil, intern_new_offset, intern_plus, intern_divide;
+          intern_civil, intern_new_offset, intern_plus, intern_divide, intern_Rational;
 static ID sym_symbolize_keys, sym_as, sym_array, sym_cache_rows, sym_first, sym_timezone, sym_local, sym_utc;
 
 #ifdef HAVE_RUBY_ENCODING_H
@@ -164,12 +165,14 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
             if (year < 1902 || year+month+day > 2058) {
               VALUE datetime_sec = INT2NUM(sec);
               if (msec != 0) {
-                #ifdef HAVE_RUBY_ENCODING_H
-                  VALUE rational_msec = rb_Rational2(INT2NUM(msec*1000), opt_onemil);
-                #else
-                  VALUE rational_msec = rb_funcall(cRational, intern_new, 2, INT2NUM(msec*1000), opt_onemil);
-                #endif
-                datetime_sec = rb_funcall(datetime_sec, intern_plus, 1, rational_msec);
+                if ((opt_ruby_186 == 0 && sec < 59) || (opt_ruby_186 != 0 )) {
+                  #ifdef HAVE_RUBY_ENCODING_H
+                    VALUE rational_msec = rb_Rational2(INT2NUM(msec*1000), opt_onemil);
+                  #else
+                    VALUE rational_msec = rb_funcall(rb_cObject, intern_Rational, 2, INT2NUM(msec*1000), opt_onemil);
+                  #endif
+                  datetime_sec = rb_funcall(datetime_sec, intern_plus, 1, rational_msec);
+                }
               }
               val = rb_funcall(cDateTime, intern_civil, 7, INT2NUM(year), INT2NUM(month), INT2NUM(day), INT2NUM(hour), INT2NUM(min), datetime_sec, offset);
               val = rb_funcall(val, intern_new_offset, 1, offset);
@@ -371,7 +374,6 @@ void init_tinytds_result() {
   cBigDecimal = rb_const_get(rb_cObject, rb_intern("BigDecimal"));
   cDate = rb_const_get(rb_cObject, rb_intern("Date"));
   cDateTime = rb_const_get(rb_cObject, rb_intern("DateTime"));
-  cRational = rb_const_get(rb_cObject, rb_intern("Rational"));
   /* Define TinyTds::Result */
   cTinyTdsResult = rb_define_class_under(mTinyTds, "Result", rb_cObject);
   /* Define TinyTds::Result Public Methods */
@@ -391,6 +393,7 @@ void init_tinytds_result() {
   intern_new_offset = rb_intern("new_offset");
   intern_plus = rb_intern("+");
   intern_divide = rb_intern("/");
+  intern_Rational = rb_intern("Rational");
   /* Symbol Helpers */
   sym_symbolize_keys = ID2SYM(rb_intern("symbolize_keys"));
   sym_as = ID2SYM(rb_intern("as"));
@@ -411,6 +414,8 @@ void init_tinytds_result() {
   opt_19hdr = INT2NUM(1900);
   opt_tenk = INT2NUM(10000);
   opt_onemil = INT2NUM(1000000);
+  /* Ruby version flags */
+  opt_ruby_186 = strcmp(ruby_version, "1.8.6");
   /* Encoding */
   #ifdef HAVE_RUBY_ENCODING_H
     binaryEncoding = rb_enc_find("binary");

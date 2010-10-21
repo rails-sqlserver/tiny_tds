@@ -112,16 +112,29 @@ Likewise for INSERT statements, the #insert method cancels any need for loading 
   result = client.execute("INSERT INTO [datatypes] ([xml]) VALUES ('<html><br/></html>')")
   result.insert # => 420
 
-The result object can handle multiple result sets form batched SQL or stored procedures. It is critical to remember that when calling each for the first time with a block while expecting multiple result sets will return each "row" of each result set. Calling each a second time with a block will yield each "set".
-
-  set1, set2 = client.execute("EXEC sp_helpconstraint '[datatypes]'").each
+The result object can handle multiple result sets form batched SQL or stored procedures. It is critical to remember that when calling each with a block for the first time will return each "row" of each result set. Calling each a second time with a block will yield each "set".
   
-  set1 # => [{"Object Name"=>"[datatypes]"}]
-  set2 # => [{"status_for_replication"=>"(n/a)", "status_enabled"=>"(n/a)", 
-              "delete_action"=>"(n/a)", "constraint_keys"=>"id", "update_action"=>"(n/a)", 
-              "constraint_name"=>"PK__datatype__3213E83F68B35D82", 
-              "constraint_type"=>"PRIMARY KEY (clustered)"}]
-
+  sql = ["SELECT TOP (1) [id] FROM [datatypes]", 
+         "SELECT TOP (2) [bigint] FROM [datatypes] WHERE [bigint] IS NOT NULL"].join(' ')
+  
+  set1, set2 = client.execute(sql).each
+  set1 # => [{"id"=>11}]
+  set2 # => [{"bigint"=>-9223372036854775807}, {"bigint"=>9223372036854775806}]
+  
+  result = client.execute(sql)
+  
+  result.each do |rowset|
+    # First time data loading, yields each row from each set.
+    # 1st: {"id"=>11}
+    # 2nd: {"bigint"=>-9223372036854775807}
+    # 3rd: {"bigint"=>9223372036854775806}
+  end
+  
+  result.each do |rowset|
+    # Second time over (if columns cached), yields each set.
+    # 1st: [{"id"=>11}]
+    # 2nd: [{"bigint"=>-9223372036854775807}, {"bigint"=>9223372036854775806}]
+  end
 
 
 == Query Options

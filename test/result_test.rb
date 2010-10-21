@@ -203,7 +203,7 @@ class ResultTest < TinyTds::TestCase
       assert_utf8_encoding result.fields.first
       assert_utf8_encoding row.keys.first
     end
-        
+    
     context 'with multiple result sets' do
       
       setup do
@@ -243,6 +243,20 @@ class ResultTest < TinyTds::TestCase
         assert constraint_info.key?("constraint_keys")
         assert constraint_info.key?("constraint_type")
         assert constraint_info.key?("constraint_name")
+      end
+      
+      should 'ignore empty result sets' do
+        load_current_schema
+        @client.execute("DELETE FROM [datatypes]").do
+        id = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('test empty result sets')").insert
+        sql = %|
+          SET NOCOUNT ON
+          DECLARE @row_number TABLE (row int identity(1,1), id int) 
+          INSERT INTO @row_number (id) 
+            SELECT [datatypes].[id] FROM [datatypes]
+          SET NOCOUNT OFF 
+          SELECT id FROM @row_number|
+        assert_equal [{"id"=>id}], @client.execute(sql).each
       end
 
     end

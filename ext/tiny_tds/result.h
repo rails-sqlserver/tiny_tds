@@ -7,7 +7,6 @@ VALUE rb_tinytds_new_result_obj(DBPROCESS *c);
 
 typedef struct {
   DBPROCESS *client;
-  RETCODE return_code;
   VALUE local_offset;
   VALUE fields;
   VALUE results;

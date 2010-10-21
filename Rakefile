@@ -32,7 +32,7 @@ end
 
 desc "Try to clean up everything"
 task :distclean  do
-  CLEAN.concat(['pkg', 'tiny_tds-*.gem', 'tmp'])
+  CLEAN.concat(['pkg', 'tiny_tds-*.gem', 'tmp', 'lib/tiny_tds/tiny_tds.bundle'])
   Rake::Task[:clean].invoke
 end
 

@@ -1,4 +1,7 @@
-* master *
+
+* 0.2.0 *
+
+* Convert GUID's in a more compatible way. [Klaus Gundermann]
 
 * Handle multiple result sets in command buffer or stored procs. [Ken Collins]
 

@@ -137,8 +137,8 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
           #endif
           break;
         case 36: { // SYBUNIQUE
-          char converted_unique[32];
-          dbconvert(rwrap->client, coltype, data, 32, SYBVARCHAR, (BYTE *)converted_unique, -1);
+          char converted_unique[36];
+          dbconvert(rwrap->client, coltype, data, data_len, SYBVARCHAR, (BYTE *)converted_unique, sizeof(converted_unique));
           val = ENCODED_STR_NEW2(converted_unique);
           break;
         }

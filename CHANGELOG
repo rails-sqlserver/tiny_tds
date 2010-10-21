@@ -1,4 +1,9 @@
 
+* 0.2.1 *
+
+Compatibility with 32-bit systems. Better cross language testing [Klaus Gundermann]
+
+
 * 0.2.0 *
 
 * Convert GUID's in a more compatible way. [Klaus Gundermann]

@@ -89,7 +89,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
           val = INT2NUM(*(DBINT *)data);
           break;
         case SYBINT8:
-          val = LONG2NUM(*(long *)data);
+          val = LL2NUM(*(DBBIGINT *)data);
           break;
         case SYBBIT:
           val = *(int *)data ? Qtrue : Qfalse;
@@ -116,8 +116,8 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
         case SYBMONEY: {
           DBMONEY *money = (DBMONEY *)data;
           char converted_money[25];
-          long money_value = ((long)money->mnyhigh << 32) | money->mnylow;
-          sprintf(converted_money, "%ld", money_value);
+          long long money_value = ((long long)money->mnyhigh << 32) | money->mnylow;
+          sprintf(converted_money, "%lld", money_value);
           val = rb_funcall(cBigDecimal, intern_new, 2, rb_str_new2(converted_money), opt_four);
           val = rb_funcall(val, intern_divide, 1, opt_tenk);
           break;

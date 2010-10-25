@@ -11,7 +11,8 @@ TODO
         //   return INT_EXIT;
       • If you have installed a server message handler, you may want to write your DB-Library error handler so 
         as to suppress the printing of any SYBESMSG error, to avoid notifying the user about the same error twice.
-
+    - Integrate rb_thread_blocking_region where we can in your extension for proper threading in 1.9.2
+    
   * Result Set
     - See if we can make a binary string of [timestamp] type.
     - Multiple Result Sets

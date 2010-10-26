@@ -165,11 +165,13 @@ Besides the standard query options, the result object can take one additional op
 By default row caching is turned on because the SQL Server adapter for ActiveRecord would not work without it. I hope to find some time to create some performance patches for ActiveRecord that would allow it to take advantages of lazily created yielded rows from result objects. Currently only TinyTds and the Mysql2 gem allow such a performance gain.
 
 
+
 == Using TinyTds With the ActiveRecord SQL Server adapter.
 
-As of version 2.3.11 & 3.0.3 of the adapter, you can specify a :dblib mode in database.yml and use TinyTds as the low level connection mode. Make sure to add a :dataserver option to that matches the name in your freetds.conf file. The SQL Server adapter can be found here.
+As of version 2.3.11 & 3.0.3 of the adapter, you can specify a :dblib mode in database.yml and use TinyTds as the low level connection mode. Make sure to add a :dataserver option to that matches the name in your freetds.conf file. The SQL Server adapter can be found using the link below. Also included is a direct link to the wiki article covering common questions when using TinyTds as the low level connection mode for the adapter.
 
 http://github.com/rails-sqlserver/activerecord-sqlserver-adapter
+http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/wiki/Using-TinyTds
 
 
 
@@ -183,6 +185,7 @@ For help and support.
 
 * Github Source: http://github.com/rails-sqlserver/tiny_tds
 * Github Issues: http://github.com/rails-sqlserver/tiny_tds/issues
+* Google Group: http://groups.google.com/group/rails-sqlserver-adapter
 * IRC Room: #rails-sqlserver on irc.freenode.net
 
 Current to do list.

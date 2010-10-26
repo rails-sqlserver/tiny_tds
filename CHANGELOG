@@ -1,4 +1,5 @@
-* master *
+
+* 0.2.2 *
 
 * Fixed failing test in Ruby 1.8.6. DateTime doesn't support fractional seconds greater than 59. See: http://redmine.ruby-lang.org/issues/show/1490 [Erik Bryn]
 

@@ -58,6 +58,16 @@ class ClientTest < TinyTds::TestCase
       end
     end
     
+    should 'raise TinyTds exception with long query past :timeout option' do
+      client = TinyTds::Client.new(connection_options.merge(:timeout => 1))
+      action = lambda { client.execute("WaitFor Delay '00:00:02'").do }
+      assert_raise_tinytds_error(action) do |e|
+        assert_equal 20003, e.db_error_number
+        assert_equal 6, e.severity
+        assert_match %r{timed out}i, e.message, 'ignore if non-english test run'
+      end
+    end
+    
     should 'raise TinyTds exception with wrong :username' do
       options = connection_options.merge :username => 'willnotwork'
       action = lambda { TinyTds::Client.new(options) }

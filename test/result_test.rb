@@ -153,10 +153,12 @@ class ResultTest < TinyTds::TestCase
       @client.execute("DELETE FROM [datatypes]").do
       inserted_rows = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
       assert_equal 1, inserted_rows, 'should have inserted row for one above'
-      updated_rows = @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
-      assert_equal 1, updated_rows, 'should have updated row for one above'
+      unless sqlserver_2000?
+        updated_rows = @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
+        assert_equal 1, updated_rows, 'should have updated row for one above'
+      end
       @client.execute("COMMIT TRANSACTION").do
-    end unless sqlserver_2000?
+    end
     
     should 'have an #insert method that cancels result rows and returns the SCOPE_IDENTITY() natively' do
       text = 'test scope identity rows native'

@@ -149,15 +149,16 @@ class ResultTest < TinyTds::TestCase
     should 'allow native affected rows using #do to work under transaction' do
       load_current_schema
       text = 'test affected rows native in transaction'
-      @client.execute("BEGIN TRANSACTION").do
-      @client.execute("DELETE FROM [datatypes]").do
-      inserted_rows = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
-      assert_equal 1, inserted_rows, 'should have inserted row for one above'
-      unless sqlserver_2000?
+      begin
+        @client.execute("BEGIN TRANSACTION").do
+        @client.execute("DELETE FROM [datatypes]").do
+        inserted_rows = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
+        assert_equal 1, inserted_rows, 'should have inserted row for one above'
         updated_rows = @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
-        assert_equal 1, updated_rows, 'should have updated row for one above'
+        assert_equal 1, updated_rows, 'should have updated row for one above' unless sqlserver_2000? # Will report -1
+      ensure
+        @client.execute("COMMIT TRANSACTION").do
       end
-      @client.execute("COMMIT TRANSACTION").do
     end
     
     should 'have an #insert method that cancels result rows and returns the SCOPE_IDENTITY() natively' do

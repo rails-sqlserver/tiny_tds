@@ -165,7 +165,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
             if (year < 1902 || year+month+day > 2058) {
               VALUE datetime_sec = INT2NUM(sec);
               if (msec != 0) {
-                if ((opt_ruby_186 == 0 && sec < 59) || (opt_ruby_186 != 0 )) {
+                if ((opt_ruby_186 == 1 && sec < 59) || (opt_ruby_186 != 1)) {
                   #ifdef HAVE_RUBY_ENCODING_H
                     VALUE rational_msec = rb_Rational2(INT2NUM(msec*1000), opt_onemil);
                   #else
@@ -415,7 +415,7 @@ void init_tinytds_result() {
   opt_tenk = INT2NUM(10000);
   opt_onemil = INT2NUM(1000000);
   /* Ruby version flags */
-  opt_ruby_186 = strcmp(ruby_version, "1.8.6");
+  opt_ruby_186 = (rb_eval_string("RUBY_VERSION == '1.8.6'") == Qtrue) ? 1 : 0;
   /* Encoding */
   #ifdef HAVE_RUBY_ENCODING_H
     binaryEncoding = rb_enc_find("binary");

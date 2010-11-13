@@ -1,4 +1,9 @@
 
+* 0.2.3 *
+
+*  Do not use development ruby/version, but simple memoize an eval check on init to find out, for 1.8.6 reflection.
+
+
 * 0.2.2 *
 
 * Fixed failing test in Ruby 1.8.6. DateTime doesn't support fractional seconds greater than 59. See: http://redmine.ruby-lang.org/issues/show/1490 [Erik Bryn]

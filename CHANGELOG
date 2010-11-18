@@ -1,4 +1,9 @@
 
+* master *
+
+* Fix bad client after timeout & read from server errors.
+
+
 * 0.2.3 *
 
 *  Do not use development ruby/version, but simple memoize an eval check on init to find out, for 1.8.6 reflection.

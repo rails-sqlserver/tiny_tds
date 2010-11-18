@@ -43,9 +43,12 @@ static VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, char *error, 
 
 int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr) {  
   static char *source = "error";
+  int cancel = 0;
   if (dberr == SYBESMSG)
     return INT_CONTINUE;
-  rb_tinytds_raise_error(dbproc, 0, dberrstr, source, severity, dberr, oserr);
+  if ((dberr == SYBEFCON) || (dberr == SYBETIME))
+    cancel = 1;
+  rb_tinytds_raise_error(dbproc, cancel, dberrstr, source, severity, dberr, oserr);
   return INT_CONTINUE;
 }
 

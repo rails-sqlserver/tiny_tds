@@ -66,6 +66,7 @@ class ClientTest < TinyTds::TestCase
         assert_equal 6, e.severity
         assert_match %r{timed out}i, e.message, 'ignore if non-english test run'
       end
+      assert_nothing_raised { client.execute('SELECT 1 AS [one]').do }
     end
     
     should 'raise TinyTds exception with wrong :username' do

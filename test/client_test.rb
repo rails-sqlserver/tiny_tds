@@ -69,6 +69,29 @@ class ClientTest < TinyTds::TestCase
       assert_nothing_raised { client.execute('SELECT 1 AS [one]').do }
     end
     
+    should 'not timeout per sql batch when not under transaction' do
+      client = TinyTds::Client.new(connection_options.merge(:timeout => 2))
+      assert_nothing_raised do
+        client.execute("WaitFor Delay '00:00:01'").do
+        client.execute("WaitFor Delay '00:00:01'").do
+        client.execute("WaitFor Delay '00:00:01'").do
+      end
+    end
+    
+    should 'not timeout per sql batch when under transaction' do
+      client = TinyTds::Client.new(connection_options.merge(:timeout => 2))
+      begin
+        client.execute("BEGIN TRANSACTION").do
+        assert_nothing_raised do
+          client.execute("WaitFor Delay '00:00:01'").do
+          client.execute("WaitFor Delay '00:00:01'").do
+          client.execute("WaitFor Delay '00:00:01'").do
+        end
+      ensure
+        client.execute("COMMIT TRANSACTION").do
+      end
+    end
+    
     should 'raise TinyTds exception with wrong :username' do
       options = connection_options.merge :username => 'willnotwork'
       action = lambda { TinyTds::Client.new(options) }

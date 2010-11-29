@@ -116,6 +116,10 @@ class SchemaTest < TinyTds::TestCase
         assert_equal 'test ntext', find_value(181, :ntext)
         assert_equal 'test ntext åå', find_value(182, :ntext)
         assert_utf8_encoding find_value(182, :ntext)
+        # If this test fails, try setting the "text size" in your freetds.conf. See: http://www.freetds.org/faq.html#textdata
+        large_value = "x" * 5000
+        large_value_id = @client.execute("INSERT INTO [datatypes] ([ntext]) VALUES (N'#{large_value}')").insert
+        assert_equal large_value, find_value(large_value_id, :ntext)
       end
       
       should 'cast numeric' do

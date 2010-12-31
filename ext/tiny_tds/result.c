@@ -243,9 +243,11 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
   /* Make The Results Or Yield Existing */
   if (NIL_P(rwrap->results)) {
     rwrap->results = rb_ary_new();
+    RETCODE dbsqlok_rc = 0;
     RETCODE dbresults_rc = 0;
+    dbsqlok_rc = dbsqlok(rwrap->client);
     dbresults_rc = dbresults(rwrap->client);
-    while (dbresults_rc == SUCCEED) {
+    while ((dbsqlok_rc == SUCCEED) && (dbresults_rc == SUCCEED)) {
       /* Only do field and row work if there are rows in this result set. */
       int has_rows = (DBROWS(rwrap->client) == SUCCEED) ? 1 : 0;
       int number_of_fields = has_rows ? dbnumcols(rwrap->client) : 0;
@@ -321,6 +323,7 @@ static VALUE rb_tinytds_result_fields(VALUE self) {
 static VALUE rb_tinytds_result_cancel(VALUE self) {
   GET_RESULT_WRAPPER(self);
   if (rwrap->client)
+    dbsqlok(rwrap->client);
     dbcancel(rwrap->client);
   return Qtrue;
 }
@@ -328,6 +331,7 @@ static VALUE rb_tinytds_result_cancel(VALUE self) {
 static VALUE rb_tinytds_result_do(VALUE self) {
   GET_RESULT_WRAPPER(self);
   if (rwrap->client) {
+    dbsqlok(rwrap->client);
     dbcancel(rwrap->client);
     return LONG2NUM((long)dbcount(rwrap->client));
   } else {
@@ -347,6 +351,7 @@ static VALUE rb_tinytds_result_affected_rows(VALUE self) {
 static VALUE rb_tinytds_result_insert(VALUE self) {
   GET_RESULT_WRAPPER(self);
   if (rwrap->client) {
+    dbsqlok(rwrap->client);
     dbcancel(rwrap->client);
     VALUE identity = Qnil;
     dbcmd(rwrap->client, "SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident");

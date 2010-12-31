@@ -61,6 +61,17 @@ module TinyTds
       }.merge(options)
     end
     
+    def assert_client_works(client)
+      assert_nothing_raised { client.execute("SELECT 'client_works' as [client_works]").each }
+    end
+    
+    def assert_new_connections_work
+      assert_nothing_raised do
+        client = TinyTds::Client.new(connection_options)
+        client.execute("SELECT 'new_connections_work' as [new_connections_work]").each
+      end
+    end
+    
     def assert_raise_tinytds_error(action)
       error_raised = false
       begin

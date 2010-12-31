@@ -1,6 +1,8 @@
 
 * master *
 
+* Make sure dead or not enabled connections are handled.
+
 * Fix bad client after timeout & read from server errors.
 
 

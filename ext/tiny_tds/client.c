@@ -15,8 +15,11 @@ VALUE opt_escape_regex, opt_escape_dblquote;
   tinytds_client_wrapper *cwrap; \
   Data_Get_Struct(self, tinytds_client_wrapper, cwrap)
 
+#define GET_CLIENT_USERDATA(dbproc) \
+  tinytds_client_userdata *userdata = (tinytds_client_userdata *)dbgetuserdata(dbproc);
+
 #define REQUIRE_OPEN_CLIENT(cwrap) \
-  if(cwrap->closed) { \
+  if (cwrap->closed || cwrap->userdata->closed) { \
     rb_raise(cTinyTdsError, "closed connection"); \
     return Qnil; \
   }
@@ -25,7 +28,13 @@ VALUE opt_escape_regex, opt_escape_dblquote;
 // Lib Backend (Helpers)
 
 static VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, char *error, char *source, int severity, int dberr, int oserr) {
-  if (cancel) { dbsqlok(dbproc); dbcancel(dbproc); }
+  GET_CLIENT_USERDATA(dbproc);
+  if (cancel && !dbdead(dbproc) && userdata && !userdata->closed) { 
+    userdata->dbsqlok_sent = 1;
+    dbsqlok(dbproc);
+    userdata->dbcancel_sent = 1;
+    dbcancel(dbproc);
+  }
   VALUE e = rb_exc_new2(cTinyTdsError, error);
   rb_funcall(e, intern_source_eql, 1, rb_str_new2(source));
   if (severity)
@@ -33,7 +42,7 @@ static VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, char *error, 
   if (dberr)
     rb_funcall(e, intern_db_error_number_eql, 1, INT2FIX(dberr));
   if (oserr)
-    rb_funcall(e, intern_os_error_number_eql, 1, INT2FIX(oserr));  
+    rb_funcall(e, intern_os_error_number_eql, 1, INT2FIX(oserr));   
   rb_exc_raise(e);
   return Qnil;
 }
@@ -41,15 +50,40 @@ static VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, char *error, 
 
 // Lib Backend (Memory Management & Handlers)
 
-int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr) {  
-  static char *source = "error";
-  int cancel = 0;
-  if (dberr == SYBESMSG)
-    return INT_CONTINUE;
-  if ((dberr == SYBEFCON) || (dberr == SYBETIME))
-    cancel = 1;
-  rb_tinytds_raise_error(dbproc, cancel, dberrstr, source, severity, dberr, oserr);
-  return INT_CONTINUE;
+int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr) { 
+ static char *source = "error";
+ GET_CLIENT_USERDATA(dbproc);
+ int return_value = INT_CONTINUE;
+ int cancel = 0;
+ switch(dberr) {
+   case SYBESMSG:
+     return return_value;
+   case SYBEFCON:
+   case SYBESOCK:
+   case SYBECONN:
+     return_value = INT_EXIT;
+     break;
+   case SYBESEOF: {
+     if (userdata && userdata->timing_out)
+       return_value = INT_TIMEOUT;
+   }
+   case SYBETIME: {
+     if (userdata) {
+       if (userdata->timing_out) {
+         return INT_CONTINUE;
+       } else {
+         userdata->timing_out = 1;
+       }
+     }
+     cancel = 1;
+     break;
+   }
+   case SYBEREAD:
+     cancel = 1;
+     break;
+ }
+ rb_tinytds_raise_error(dbproc, cancel, dberrstr, source, severity, dberr, oserr);
+ return return_value;
 }
 
 int tinytds_msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line) {
@@ -57,6 +91,12 @@ int tinytds_msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severi
   if (severity)
     rb_tinytds_raise_error(dbproc, 1, msgtext, source, severity, msgno, msgstate);
   return 0;
+}
+
+static void rb_tinytds_client_reset_userdata(tinytds_client_userdata *userdata) {
+  userdata->timing_out = 0;
+  userdata->dbsqlok_sent = 0;
+  userdata->dbcancel_sent = 0;
 }
 
 static void rb_tinytds_client_mark(void *ptr) {
@@ -73,7 +113,9 @@ static void rb_tinytds_client_free(void *ptr) {
   if (cwrap->client && !cwrap->closed) {
     dbclose(cwrap->client);
     cwrap->closed = 1;
+    cwrap->userdata->closed = 1;
   }
+  xfree(cwrap->userdata);
   xfree(ptr);
 }
 
@@ -83,6 +125,9 @@ static VALUE allocate(VALUE klass) {
   obj = Data_Make_Struct(klass, tinytds_client_wrapper, rb_tinytds_client_mark, rb_tinytds_client_free, cwrap);
   cwrap->closed = 1;
   cwrap->charset = Qnil;
+  cwrap->userdata = malloc(sizeof(tinytds_client_userdata));
+  cwrap->userdata->closed = 1;
+  rb_tinytds_client_reset_userdata(cwrap->userdata);  
   return obj;
 }
 
@@ -99,22 +144,23 @@ static VALUE rb_tinytds_close(VALUE self) {
   if (cwrap->client && !cwrap->closed) {
     dbclose(cwrap->client);
     cwrap->closed = 1;
+    cwrap->userdata->closed = 1;
   }
   return Qtrue;
 }
 
 static VALUE rb_tinytds_closed(VALUE self) {
   GET_CLIENT_WRAPPER(self);
-  return cwrap->closed ? Qtrue : Qfalse;
+  return (cwrap->closed || cwrap->userdata->closed) ? Qtrue : Qfalse;
 }
 
 static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
   GET_CLIENT_WRAPPER(self);
+  rb_tinytds_client_reset_userdata(cwrap->userdata);
   REQUIRE_OPEN_CLIENT(cwrap);
   dbcmd(cwrap->client, StringValuePtr(sql));
-  if (dbsqlexec(cwrap->client) == FAIL) {
-    // TODO: Account for dbsqlexec() returned FAIL.
-    rb_warn("TinyTds: dbsqlexec() returned FAIL.\n");
+  if (dbsqlsend(cwrap->client) == FAIL) {
+    rb_warn("TinyTds: dbsqlsend() returned FAIL.\n");
     return Qfalse;
   }
   VALUE result = rb_tinytds_new_result_obj(cwrap->client);
@@ -178,11 +224,13 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE user, VALUE pass, VALUE datase
   if (!NIL_P(charset))
     DBSETLCHARSET(cwrap->login, StringValuePtr(charset));
   cwrap->client = dbopen(cwrap->login, StringValuePtr(dataserver));
-  if (!NIL_P(database))
-    dbuse(cwrap->client, StringValuePtr(database));
   if (cwrap->client) {
     cwrap->closed = 0;
     cwrap->charset = charset;
+    dbsetuserdata(cwrap->client, cwrap->userdata);
+    cwrap->userdata->closed = 0;
+    if (!NIL_P(database))
+      dbuse(cwrap->client, StringValuePtr(database));
     #ifdef HAVE_RUBY_ENCODING_H
       VALUE transposed_encoding = rb_funcall(cTinyTdsClient, intern_transpose_iconv_encoding, 1, charset);
       cwrap->encoding = rb_enc_find(StringValuePtr(transposed_encoding));

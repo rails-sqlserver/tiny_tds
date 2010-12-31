@@ -308,7 +308,8 @@ class ResultTest < TinyTds::TestCase
       end
 
       should 'error gracefully with bad table name' do
-        assert_raise_tinytds_error(lambda{ @client.execute('SELECT * FROM [foobar]') }) do |e|
+        action = lambda { @client.execute('SELECT * FROM [foobar]').each }
+        assert_raise_tinytds_error(action) do |e|
           assert_match %r|invalid object name.*foobar|i, e.message
           assert_equal 16, e.severity
           assert_equal 208, e.db_error_number
@@ -316,8 +317,9 @@ class ResultTest < TinyTds::TestCase
         assert_followup_query
       end
       
-      should 'error gracefully with invalid syntax' do        
-        assert_raise_tinytds_error(lambda{ @client.execute('this will not work') }) do |e|
+      should 'error gracefully with invalid syntax' do
+        action = lambda { @client.execute('this will not work').each }
+        assert_raise_tinytds_error(action) do |e|
           assert_match %r|incorrect syntax|i, e.message
           assert_equal 15, e.severity
           assert_equal 156, e.db_error_number

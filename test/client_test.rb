@@ -2,7 +2,6 @@ require 'test_helper'
 
 class ClientTest < TinyTds::TestCase
   
-  
   context 'With valid credentials' do
     
     setup do
@@ -16,6 +15,10 @@ class ClientTest < TinyTds::TestCase
     should 'allow client connection to be closed' do
       assert @client.close
       assert @client.closed?
+      action = lambda { @client.execute('SELECT 1 as [one]').each }
+      assert_raise_tinytds_error(action) do |e|
+        assert_match %r{closed connection}i, e.message, 'ignore if non-english test run'
+      end
     end
     
     should 'have a getters for the tds version information (brittle since conf takes precedence)' do
@@ -56,6 +59,7 @@ class ClientTest < TinyTds::TestCase
         assert_equal 9, e.severity
         assert_match %r{unable to (open|connect)}i, e.message, 'ignore if non-english test run'
       end
+      assert_new_connections_work
     end
     
     should 'raise TinyTds exception with long query past :timeout option' do
@@ -66,7 +70,8 @@ class ClientTest < TinyTds::TestCase
         assert_equal 6, e.severity
         assert_match %r{timed out}i, e.message, 'ignore if non-english test run'
       end
-      assert_nothing_raised { client.execute('SELECT 1 AS [one]').do }
+      assert_client_works(client)
+      assert_new_connections_work
     end
     
     should 'not timeout per sql batch when not under transaction' do
@@ -92,6 +97,32 @@ class ClientTest < TinyTds::TestCase
       end
     end
     
+    should_eventually 'run this test to prove we account for dropped connections' do
+      begin
+        client = TinyTds::Client.new(connection_options.merge(:login_timeout => 2, :timeout => 2))
+        assert_client_works(client)
+        STDOUT.puts "Disconnect network!"
+        sleep 10
+        STDOUT.puts "This should not get stuck past 6 seconds!"
+        action = lambda { client.execute('SELECT 1 as [one]').each }
+        assert_raise_tinytds_error(action) do |e|
+          assert_equal 20003, e.db_error_number
+          assert_equal 6, e.severity
+          assert_match %r{timed out}i, e.message, 'ignore if non-english test run'
+        end
+      ensure
+        STDOUT.puts "Reconnect network!"
+        sleep 10
+        action = lambda { client.execute('SELECT 1 as [one]').each }
+        assert_raise_tinytds_error(action) do |e|
+          assert_equal 20047, e.db_error_number
+          assert_equal 1, e.severity
+          assert_match %r{dead or not enabled}i, e.message, 'ignore if non-english test run'
+        end
+        assert_new_connections_work
+      end
+    end
+    
     should 'raise TinyTds exception with wrong :username' do
       options = connection_options.merge :username => 'willnotwork'
       action = lambda { TinyTds::Client.new(options) }
@@ -100,6 +131,7 @@ class ClientTest < TinyTds::TestCase
         assert_equal 14, e.severity
         assert_match %r{login failed}i, e.message, 'ignore if non-english test run'
       end
+      assert_new_connections_work
     end
     
     should 'fail miserably with unknown encoding option' do
@@ -110,6 +142,7 @@ class ClientTest < TinyTds::TestCase
         assert_equal 9, e.severity
         assert_match %r{unexpected eof from the server}i, e.message, 'ignore if non-english test run'
       end
+      assert_new_connections_work
     end
   
   end

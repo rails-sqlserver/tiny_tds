@@ -348,6 +348,16 @@ static VALUE rb_tinytds_result_affected_rows(VALUE self) {
   }
 }
 
+/* Duplicated in client.c */
+static VALUE rb_tinytds_result_return_code(VALUE self) {
+  GET_RESULT_WRAPPER(self);
+  if (rwrap->client && dbhasretstat(rwrap->client)) {
+    return LONG2NUM((long)dbretstatus(rwrap->client));
+  } else {
+    return Qnil;
+  }
+}
+
 static VALUE rb_tinytds_result_insert(VALUE self) {
   GET_RESULT_WRAPPER(self);
   if (rwrap->client) {
@@ -387,6 +397,7 @@ void init_tinytds_result() {
   rb_define_method(cTinyTdsResult, "cancel", rb_tinytds_result_cancel, 0);
   rb_define_method(cTinyTdsResult, "do", rb_tinytds_result_do, 0);
   rb_define_method(cTinyTdsResult, "affected_rows", rb_tinytds_result_affected_rows, 0);
+  rb_define_method(cTinyTdsResult, "return_code", rb_tinytds_result_return_code, 0);
   rb_define_method(cTinyTdsResult, "insert", rb_tinytds_result_insert, 0);
   /* Intern String Helpers */
   intern_new = rb_intern("new");

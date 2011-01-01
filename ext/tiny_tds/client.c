@@ -197,6 +197,16 @@ static VALUE rb_tinytds_escape(VALUE self, VALUE string) {
   return new_string;
 }
 
+/* Duplicated in result.c */
+static VALUE rb_tinytds_return_code(VALUE self) {
+  GET_CLIENT_WRAPPER(self);
+  if (cwrap->client && dbhasretstat(cwrap->client)) {
+    return LONG2NUM((long)dbretstatus(cwrap->client));
+  } else {
+    return Qnil;
+  }
+}
+
 
 // TinyTds::Client (protected) 
 
@@ -253,6 +263,7 @@ void init_tinytds_client() {
   rb_define_method(cTinyTdsClient, "charset", rb_tinytds_charset, 0);
   rb_define_method(cTinyTdsClient, "encoding", rb_tinytds_encoding, 0);
   rb_define_method(cTinyTdsClient, "escape", rb_tinytds_escape, 1);
+  rb_define_method(cTinyTdsClient, "return_code", rb_tinytds_return_code, 0);
   /* Define TinyTds::Client Protected Methods */
   rb_define_protected_method(cTinyTdsClient, "connect", rb_tinytds_connect, 9);
   /* Intern TinyTds::Error Accessors */

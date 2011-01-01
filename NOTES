@@ -3,34 +3,10 @@ TODO
 
   * Client & Connection
     - Interrupt handler to cancel a bad SELECT * or long SQL. Maybe use dbsetinterrupt
-    - Error & Message Handling
-      • Test inserting invalid xml in xml data type, timed our for me.
-      • Misc code to implement in error handler maybe?
-      • Look Into: dbdead
-        // if ((dbproc == NULL) || (dbdead(dbproc)))
-        //   return INT_EXIT;
-      • If you have installed a server message handler, you may want to write your DB-Library error handler so 
-        as to suppress the printing of any SYBESMSG error, to avoid notifying the user about the same error twice.
     - Integrate rb_thread_blocking_region where we can in your extension for proper threading in 1.9.2
     
   * Result Set
-    - Use dbretstatus to get back execute procedure return code.
     - See if we can make a binary string of [timestamp] type.
-    - Multiple Result Sets
-    - Error & Message Handling
-      • Look Into Timeouts
-        - dbsettime - Set the number of seconds that DB-Library will wait for a server response to a SQL 
-          command. (int seconds) Set a connect_timeout= method like Mysql2 gem, hook into initial connect too.
-      • TSQL 'print' and 'raiserror' commands generate server messages that dbmsghandle will catch. (test)
-      • See the dbsetuserdata reference page for an example of how to handle deadlock in this way.
     - Test large data set in wchars
     - See if wchar max is only supported in newer FreeTDS
 
-
-NOTES:
-
-* We keep tinytds_client_userdata->closed and tinytds_client_wrapper->closed in sync so we 
-  can examine this in message and error handling where the client wrapper is not available 
-  and only user data is.
-
-* 

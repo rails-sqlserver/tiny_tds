@@ -219,6 +219,18 @@ class ResultTest < TinyTds::TestCase
       assert_utf8_encoding row.keys.first
     end
     
+    should 'allow #return_code to work with stored procedures and reset per sql batch' do
+      assert_nil @client.return_code
+      result = @client.execute("EXEC tinytds_TestReturnCodes")
+      assert_equal [{"one"=>1}], result.each
+      assert_equal 420, @client.return_code
+      assert_equal 420, result.return_code
+      result = @client.execute('SELECT 1 as [one]')
+      result.each
+      assert_nil @client.return_code
+      assert_nil result.return_code
+    end
+    
     context 'with multiple result sets' do
       
       setup do

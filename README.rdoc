@@ -136,6 +136,14 @@ The result object can handle multiple result sets form batched SQL or stored pro
     # 2nd: [{"bigint"=>-9223372036854775807}, {"bigint"=>9223372036854775806}]
   end
 
+It is possible to get the return code after executing a stored procedure from either the result or client object.
+
+  client.return       # => nil
+  
+  result = client.execute("EXEC tinytds_TestReturnCodes")
+  result.return_code  # => 420
+  client.return_code  # => 420
+
 
 == Query Options
 

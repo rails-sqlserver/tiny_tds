@@ -123,19 +123,30 @@ module TinyTds
       schema_sql = File.read(schema_file)
       loader.execute(drop_sql).each
       loader.execute(schema_sql).cancel
+      loader.execute(sp_sql).cancel
       loader.close
       true
     end
 
     def drop_sql
-      %|IF  EXISTS (
-        SELECT TABLE_NAME
-        FROM INFORMATION_SCHEMA.TABLES 
-        WHERE TABLE_CATALOG = 'tinytds_test' 
-        AND TABLE_TYPE = 'BASE TABLE' 
-        AND TABLE_NAME = 'datatypes'
-      ) 
-      DROP TABLE [datatypes]|
+      %|IF EXISTS (
+          SELECT TABLE_NAME
+          FROM INFORMATION_SCHEMA.TABLES 
+          WHERE TABLE_CATALOG = 'tinytds_test' 
+          AND TABLE_TYPE = 'BASE TABLE' 
+          AND TABLE_NAME = 'datatypes'
+        ) DROP TABLE [datatypes]
+        IF EXISTS (
+          SELECT name FROM sysobjects 
+          WHERE name = 'tinytds_TestReturnCodes' AND type = 'P'
+        ) DROP PROCEDURE tinytds_TestReturnCodes|
+    end
+    
+    def sp_sql
+      %|CREATE PROCEDURE tinytds_TestReturnCodes
+        AS
+        SELECT 1 as [one]
+        RETURN(420) |
     end
 
     def find_value(id, column, query_options={})

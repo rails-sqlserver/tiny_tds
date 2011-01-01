@@ -138,7 +138,7 @@ The result object can handle multiple result sets form batched SQL or stored pro
 
 It is possible to get the return code after executing a stored procedure from either the result or client object.
 
-  client.return       # => nil
+  client.return_code  # => nil
   
   result = client.execute("EXEC tinytds_TestReturnCodes")
   result.return_code  # => 420

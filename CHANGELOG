@@ -1,4 +1,9 @@
 
+* 0.3.1 *
+
+* Fix bad gem build.
+
+
 * 0.3.0 *
 
 * Access stored procedure return codes.

@@ -1,5 +1,8 @@
 
 TODO
+  
+  * Test JRuby
+    - http://www.jruby.org/2011/01/10/jruby-1-6-0-rc1
 
   * Client & Connection
     - Interrupt handler to cancel a bad SELECT * or long SQL. Maybe use dbsetinterrupt

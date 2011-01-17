@@ -48,7 +48,7 @@ task :default => [:build, :test]
 
 namespace :rvm do
   
-  RVM_RUBIES = ['ruby-1.8.6', 'ruby-1.8.7', 'ruby-1.9.1', 'ruby-1.9.2', 'ree-1.8.7']
+  RVM_RUBIES = ['ruby-1.8.6', 'ruby-1.8.7', 'ruby-1.9.1', 'ruby-1.9.2', 'ree-1.8.7', 'jruby-head']
   RVM_GEMSET_NAME = 'tinytds'
   
   

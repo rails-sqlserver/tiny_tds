@@ -5,6 +5,7 @@
 
 VALUE cTinyTdsClient;
 extern VALUE mTinyTds, cTinyTdsError;
+static ID sym_username, sym_password, sym_dataserver, sym_database, sym_appname, sym_tds_version, sym_login_timeout, sym_timeout, sym_encoding;
 static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, intern_os_error_number_eql;
 static ID intern_new, intern_dup, intern_transpose_iconv_encoding, intern_local_offset, intern_gsub;
 VALUE opt_escape_regex, opt_escape_dblquote;
@@ -210,7 +211,19 @@ static VALUE rb_tinytds_return_code(VALUE self) {
 
 // TinyTds::Client (protected) 
 
-static VALUE rb_tinytds_connect(VALUE self, VALUE user, VALUE pass, VALUE dataserver, VALUE database, VALUE app, VALUE version, VALUE ltimeout, VALUE timeout, VALUE charset) {
+static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
+  /* Parsing options hash to local vars. */
+  VALUE user, pass, dataserver, database, app, version, ltimeout, timeout, charset;
+  user = rb_hash_aref(opts, sym_username);
+  pass = rb_hash_aref(opts, sym_password);
+  dataserver = rb_hash_aref(opts, sym_dataserver);
+  database = rb_hash_aref(opts, sym_database);
+  app = rb_hash_aref(opts, sym_appname);
+  version = rb_hash_aref(opts, sym_tds_version);
+  ltimeout = rb_hash_aref(opts, sym_login_timeout);
+  timeout = rb_hash_aref(opts, sym_timeout);
+  charset = rb_hash_aref(opts, sym_encoding);
+  /* Dealing with options. */
   if (dbinit() == FAIL) {
     rb_raise(cTinyTdsError, "failed dbinit() function");
     return self;
@@ -265,7 +278,17 @@ void init_tinytds_client() {
   rb_define_method(cTinyTdsClient, "escape", rb_tinytds_escape, 1);
   rb_define_method(cTinyTdsClient, "return_code", rb_tinytds_return_code, 0);
   /* Define TinyTds::Client Protected Methods */
-  rb_define_protected_method(cTinyTdsClient, "connect", rb_tinytds_connect, 9);
+  rb_define_protected_method(cTinyTdsClient, "connect", rb_tinytds_connect, 1);
+  /* Symbols For Connect */
+  sym_username = ID2SYM(rb_intern("username"));
+  sym_password = ID2SYM(rb_intern("password"));
+  sym_dataserver = ID2SYM(rb_intern("dataserver"));
+  sym_database = ID2SYM(rb_intern("database"));
+  sym_appname = ID2SYM(rb_intern("appname"));
+  sym_tds_version = ID2SYM(rb_intern("tds_version"));
+  sym_login_timeout = ID2SYM(rb_intern("login_timeout"));
+  sym_timeout = ID2SYM(rb_intern("timeout"));
+  sym_encoding = ID2SYM(rb_intern("encoding"));
   /* Intern TinyTds::Error Accessors */
   intern_source_eql = rb_intern("source=");
   intern_severity_eql = rb_intern("severity=");

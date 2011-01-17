@@ -174,7 +174,7 @@ By default row caching is turned on because the SQL Server adapter for ActiveRec
 
 
 
-== Using TinyTds With the ActiveRecord SQL Server adapter.
+== Using TinyTds With Rails & The ActiveRecord SQL Server adapter.
 
 As of version 2.3.11 & 3.0.3 of the adapter, you can specify a :dblib mode in database.yml and use TinyTds as the low level connection mode. Make sure to add a :dataserver option to that matches the name in your freetds.conf file. The SQL Server adapter can be found using the link below. Also included is a direct link to the wiki article covering common questions when using TinyTds as the low level connection mode for the adapter.
 

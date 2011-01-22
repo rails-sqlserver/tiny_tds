@@ -1,9 +1,9 @@
 
-= TinyTds - A modern, simple and fast FreeTDS library for Ruby using DB-Library.
+= TinyTDS - A modern, simple and fast FreeTDS library for Ruby using DB-Library.
 
-The TinyTds gem is meant to serve the extremely common use-case of connecting, querying and iterating over results to Microsoft SQL Server databases from ruby. Even though it uses FreeTDS's DB-Library, it is NOT meant to serve as direct 1:1 mapping of that complex C API.
+The TinyTDS gem is meant to serve the extremely common use-case of connecting, querying and iterating over results to Microsoft SQL Server databases from ruby. Even though it uses FreeTDS's DB-Library, it is NOT meant to serve as direct 1:1 mapping of that complex C API.
 
-The benefits are speed, automatic casting to ruby primitives, and proper encoding support. It converts all SQL Server datatypes to native ruby objects supporting :utc or :local time zones for time-like types. To date it is the only ruby client library that allows client encoding options, defaulting to UTF-8, while connecting to SQL Server. It also  properly encodes all string and binary data. The motivation for TinyTds is to become the de-facto low level connection mode for the SQL Server adapter for ActiveRecord. For further details see the special thanks section at the bottom
+The benefits are speed, automatic casting to ruby primitives, and proper encoding support. It converts all SQL Server datatypes to native ruby objects supporting :utc or :local time zones for time-like types. To date it is the only ruby client library that allows client encoding options, defaulting to UTF-8, while connecting to SQL Server. It also  properly encodes all string and binary data. The motivation for TinyTDS is to become the de-facto low level connection mode for the SQL Server adapter for ActiveRecord. For further details see the special thanks section at the bottom
 
 The API is simple and consists of these classes:
 
@@ -15,7 +15,7 @@ The API is simple and consists of these classes:
 
 == Install
 
-Installing with rubygems should just work. TinyTds is tested on ruby version 1.8.6, 1.8.7, 1.9.1, 1.9.2 as well as REE & JRuby.
+Installing with rubygems should just work. TinyTDS is tested on ruby version 1.8.6, 1.8.7, 1.9.1, 1.9.2 as well as REE & JRuby.
 
     $ gem install tiny_tds
 
@@ -25,7 +25,7 @@ Although we search for FreeTDS's libraries and headers, you may have to specify 
 
 == FreeTDS Compatibility
 
-TinyTds is developed primarily for FreeTDS 0.82 and tested with SQL Server 2000, 2005, and 2008 using TDS Version 8.0. We utilize FreeTDS's db-lib client library. We compile against sybdb.h and define MSDBLIB which means that our client enables Microsoft behavior in the db-lib API where it diverges from Sybase's. You do NOT need to compile FreeTDS with the "--enable-msdblib" option for our client to work properly. However, please make sure to compile FreeTDS with libiconv support for encodings to work at their best. Run "tsql -C" in your console and check for "iconv library: yes".
+TinyTDS is developed primarily for FreeTDS 0.82 and tested with SQL Server 2000, 2005, and 2008 using TDS Version 8.0. We utilize FreeTDS's db-lib client library. We compile against sybdb.h and define MSDBLIB which means that our client enables Microsoft behavior in the db-lib API where it diverges from Sybase's. You do NOT need to compile FreeTDS with the "--enable-msdblib" option for our client to work properly. However, please make sure to compile FreeTDS with libiconv support for encodings to work at their best. Run "tsql -C" in your console and check for "iconv library: yes".
 
 
 
@@ -170,15 +170,14 @@ Besides the standard query options, the result object can take one additional op
 
 == Row Caching
 
-By default row caching is turned on because the SQL Server adapter for ActiveRecord would not work without it. I hope to find some time to create some performance patches for ActiveRecord that would allow it to take advantages of lazily created yielded rows from result objects. Currently only TinyTds and the Mysql2 gem allow such a performance gain.
+By default row caching is turned on because the SQL Server adapter for ActiveRecord would not work without it. I hope to find some time to create some performance patches for ActiveRecord that would allow it to take advantages of lazily created yielded rows from result objects. Currently only TinyTDS and the Mysql2 gem allow such a performance gain.
 
 
 
-== Using TinyTds With Rails & The ActiveRecord SQL Server adapter.
+== Using TinyTDS With Rails & The ActiveRecord SQL Server adapter.
 
-As of version 2.3.11 & 3.0.3 of the adapter, you can specify a :dblib mode in database.yml and use TinyTds as the low level connection mode. Make sure to add a :dataserver option to that matches the name in your freetds.conf file. The SQL Server adapter can be found using the link below. Also included is a direct link to the wiki article covering common questions when using TinyTds as the low level connection mode for the adapter.
+As of version 2.3.11 & 3.0.3 of the adapter, you can specify a :dblib mode in database.yml and use TinyTDS as the low level connection mode. Make sure to add a :dataserver option to that matches the name in your freetds.conf file. The SQL Server adapter can be found using the link below. Also included is a direct link to the wiki article covering common questions when using TinyTDS as the low level connection mode for the adapter.
 
-http://github.com/rails-sqlserver/activerecord-sqlserver-adapter
 http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/wiki/Using-TinyTds
 
 
@@ -199,7 +198,7 @@ For help and support.
 Current to do list.
 
 * Test 0.83 development of FreeTDS.
-* Find someone brave enough to compile/test for Windows.
+* Working with RailsInstaller.
 * Install an interrupt handler.
 * Allow #escape to accept all ruby primitives.
 * Get bug reports!

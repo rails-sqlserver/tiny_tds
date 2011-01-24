@@ -40,7 +40,7 @@ class ResultTest < TinyTds::TestCase
     should 'allow successive calls to each returning the same data' do
       result = @client.execute(@query1)
       data = result.each
-      assert_nothing_raised() { result.each }
+      result.each
       assert_equal data.object_id, result.each.object_id
       assert_equal data.first.object_id, result.each.first.object_id
     end
@@ -101,82 +101,88 @@ class ResultTest < TinyTds::TestCase
     end
     
     should 'delete, insert and find data' do
-      text = 'test insert and delete'
-      @client.execute("DELETE FROM [datatypes] WHERE [varchar_50] IS NOT NULL").do
-      @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
-      row = @client.execute("SELECT [varchar_50] FROM [datatypes] WHERE [varchar_50] IS NOT NULL").each.first
-      assert row
-      assert_equal text, row['varchar_50']
+      rollback_transaction(@client) do
+        text = 'test insert and delete'
+        @client.execute("DELETE FROM [datatypes] WHERE [varchar_50] IS NOT NULL").do
+        @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
+        row = @client.execute("SELECT [varchar_50] FROM [datatypes] WHERE [varchar_50] IS NOT NULL").each.first
+        assert row
+        assert_equal text, row['varchar_50']
+      end
     end
     
     should 'insert and find unicode data' do
-      text = '✓'
-      @client.execute("DELETE FROM [datatypes] WHERE [nvarchar_50] IS NOT NULL").do
-      @client.execute("INSERT INTO [datatypes] ([nvarchar_50]) VALUES (N'#{text}')").do
-      row = @client.execute("SELECT [nvarchar_50] FROM [datatypes] WHERE [nvarchar_50] IS NOT NULL").each.first
-      assert_equal text, row['nvarchar_50']
+      rollback_transaction(@client) do
+        text = '✓'
+        @client.execute("DELETE FROM [datatypes] WHERE [nvarchar_50] IS NOT NULL").do
+        @client.execute("INSERT INTO [datatypes] ([nvarchar_50]) VALUES (N'#{text}')").do
+        row = @client.execute("SELECT [nvarchar_50] FROM [datatypes] WHERE [nvarchar_50] IS NOT NULL").each.first
+        assert_equal text, row['nvarchar_50']
+      end
     end
     
     should 'delete and update with affected rows support and insert with identity support in native sql' do
-      load_current_schema
-      text = 'test affected rows sql'
-      @client.execute("DELETE FROM [datatypes]").do
-      afrows = @client.execute("SELECT @@ROWCOUNT AS AffectedRows").each.first['AffectedRows']
-      assert_instance_of Fixnum, afrows
-      @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
-      pk1 = @client.execute("SELECT SCOPE_IDENTITY() AS Ident").each.first['Ident']
-      assert_instance_of BigDecimal, pk1, 'native is numeric(38,0) for SCOPE_IDENTITY() function'
-      pk2 = @client.execute("SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident").each.first['Ident']
-      assert_instance_of Fixnum, pk2, 'we should be able to CAST to bigint'
-      assert_equal pk2, pk1.to_i, 'just making sure the 2 line up'
-      @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
-      afrows = @client.execute("SELECT @@ROWCOUNT AS AffectedRows").each.first['AffectedRows']
-      assert_equal 1, afrows
+      rollback_transaction(@client) do
+        text = 'test affected rows sql'
+        @client.execute("DELETE FROM [datatypes]").do
+        afrows = @client.execute("SELECT @@ROWCOUNT AS AffectedRows").each.first['AffectedRows']
+        assert_instance_of Fixnum, afrows
+        @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
+        pk1 = @client.execute("SELECT SCOPE_IDENTITY() AS Ident").each.first['Ident']
+        assert_instance_of BigDecimal, pk1, 'native is numeric(38,0) for SCOPE_IDENTITY() function'
+        pk2 = @client.execute("SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident").each.first['Ident']
+        assert_instance_of Fixnum, pk2, 'we should be able to CAST to bigint'
+        assert_equal pk2, pk1.to_i, 'just making sure the 2 line up'
+        @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
+        afrows = @client.execute("SELECT @@ROWCOUNT AS AffectedRows").each.first['AffectedRows']
+        assert_equal 1, afrows
+      end
     end
     
     should 'have a #do method that cancels result rows and returns affected rows natively' do
-      load_current_schema
-      text = 'test affected rows native'
-      count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").each.first['count']
-      deleted_rows = @client.execute("DELETE FROM [datatypes]").do
-      assert_equal count, deleted_rows, 'should have deleted rows equal to count'
-      inserted_rows = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
-      assert_equal 1, inserted_rows, 'should have inserted row for one above'
-      updated_rows = @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
-      assert_equal 1, updated_rows, 'should have updated row for one above'
+      rollback_transaction(@client) do
+        text = 'test affected rows native'
+        count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").each.first['count']
+        deleted_rows = @client.execute("DELETE FROM [datatypes]").do
+        assert_equal count, deleted_rows, 'should have deleted rows equal to count'
+        inserted_rows = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
+        assert_equal 1, inserted_rows, 'should have inserted row for one above'
+        updated_rows = @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
+        assert_equal 1, updated_rows, 'should have updated row for one above'
+      end
     end
     
     should 'allow native affected rows using #do to work under transaction' do
-      load_current_schema
-      text = 'test affected rows native in transaction'
-      begin
+      rollback_transaction(@client) do
+        text = 'test affected rows native in transaction'
         @client.execute("BEGIN TRANSACTION").do
         @client.execute("DELETE FROM [datatypes]").do
         inserted_rows = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
         assert_equal 1, inserted_rows, 'should have inserted row for one above'
         updated_rows = @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
         assert_equal 1, updated_rows, 'should have updated row for one above' unless sqlserver_2000? # Will report -1
-      ensure
-        @client.execute("COMMIT TRANSACTION").do
       end
     end
     
     should 'have an #insert method that cancels result rows and returns the SCOPE_IDENTITY() natively' do
-      text = 'test scope identity rows native'
-      @client.execute("DELETE FROM [datatypes] WHERE [varchar_50] = '#{text}'").do
-      @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
-      sql_identity = @client.execute("SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident").each.first['Ident']
-      native_identity = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").insert
-      assert_equal sql_identity+1, native_identity
+      rollback_transaction(@client) do
+        text = 'test scope identity rows native'
+        @client.execute("DELETE FROM [datatypes] WHERE [varchar_50] = '#{text}'").do
+        @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
+        sql_identity = @client.execute("SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident").each.first['Ident']
+        native_identity = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").insert
+        assert_equal sql_identity+1, native_identity
+      end
     end
     
     should 'be able to begin/commit transactions with raw sql' do
-      load_current_schema
-      @client.execute("BEGIN TRANSACTION").do
-      @client.execute("DELETE FROM [datatypes]").do
-      @client.execute("COMMIT TRANSACTION").do
-      count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").each.first['count']
-      assert_equal 0, count
+      rollback_transaction(@client) do
+        @client.execute("BEGIN TRANSACTION").do
+        @client.execute("DELETE FROM [datatypes]").do
+        @client.execute("COMMIT TRANSACTION").do
+        count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").each.first['count']
+        assert_equal 0, count
+      end
     end
     
     should 'be able to begin/rollback transactions with raw sql' do
@@ -185,7 +191,7 @@ class ResultTest < TinyTds::TestCase
       @client.execute("DELETE FROM [datatypes]").do
       @client.execute("ROLLBACK TRANSACTION").do
       count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").each.first['count']
-      assert_not_equal 0, count
+      0.wont_equal count
     end
     
     should 'have a #fields accessor with logic default and valid outcome' do
@@ -198,7 +204,7 @@ class ResultTest < TinyTds::TestCase
     should 'allow the result to be canceled before reading' do
       result = @client.execute(@query1)
       result.cancel
-      assert_nothing_raised() { @client.execute(@query1).each }
+      @client.execute(@query1).each
     end
     
     should 'use same string object for hash keys' do
@@ -273,17 +279,18 @@ class ResultTest < TinyTds::TestCase
       end
       
       should 'ignore empty result sets' do
-        load_current_schema
-        @client.execute("DELETE FROM [datatypes]").do
-        id = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('test empty result sets')").insert
-        sql = %|
-          SET NOCOUNT ON
-          DECLARE @row_number TABLE (row int identity(1,1), id int) 
-          INSERT INTO @row_number (id) 
-            SELECT [datatypes].[id] FROM [datatypes]
-          SET NOCOUNT OFF 
-          SELECT id FROM @row_number|
-        assert_equal [{"id"=>id}], @client.execute(sql).each
+        rollback_transaction(@client) do
+          @client.execute("DELETE FROM [datatypes]").do
+          id = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('test empty result sets')").insert
+          sql = %|
+            SET NOCOUNT ON
+            DECLARE @row_number TABLE (row int identity(1,1), id int) 
+            INSERT INTO @row_number (id) 
+              SELECT [datatypes].[id] FROM [datatypes]
+            SET NOCOUNT OFF 
+            SELECT id FROM @row_number|
+          assert_equal [{"id"=>id}], @client.execute(sql).each
+        end
       end
 
     end
@@ -305,7 +312,7 @@ class ResultTest < TinyTds::TestCase
     context 'when shit happens' do
       
       should 'cope with nil or empty buffer' do
-        assert_raise(TypeError) { @client.execute(nil) } 
+        assert_raises(TypeError) { @client.execute(nil) } 
         assert_equal [], @client.execute('').each
       end
       
@@ -347,10 +354,8 @@ class ResultTest < TinyTds::TestCase
   protected
   
   def assert_followup_query
-    assert_nothing_raised do
-      result = @client.execute(@query1)
-      assert_equal 1, result.each.first['one']
-    end
+    result = @client.execute(@query1)
+    assert_equal 1, result.each.first['one']
   end
   
 end

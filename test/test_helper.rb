@@ -1,10 +1,10 @@
 # encoding: UTF-8
-require 'test/unit'
 require 'rubygems'
 require 'bundler'
 Bundler.setup
-require 'shoulda'
 require 'tiny_tds'
+require 'mini_shoulda'
+require 'minitest/autorun'
 
 class DateTime
   def usec
@@ -19,7 +19,7 @@ end
 TINYTDS_SCHEMAS = ['sqlserver_2000', 'sqlserver_2005', 'sqlserver_2008'].freeze
 
 module TinyTds
-  class TestCase < Test::Unit::TestCase
+  class TestCase < MiniTest::Spec
     
     class << self
       
@@ -62,14 +62,12 @@ module TinyTds
     end
     
     def assert_client_works(client)
-      assert_nothing_raised { client.execute("SELECT 'client_works' as [client_works]").each }
+      client.execute("SELECT 'client_works' as [client_works]").each
     end
     
     def assert_new_connections_work
-      assert_nothing_raised do
-        client = TinyTds::Client.new(connection_options)
-        client.execute("SELECT 'new_connections_work' as [new_connections_work]").each
-      end
+      client = TinyTds::Client.new(connection_options)
+      client.execute("SELECT 'new_connections_work' as [new_connections_work]").each
     end
     
     def assert_raise_tinytds_error(action)
@@ -161,6 +159,13 @@ module TinyTds
     
     def utc_offset
       ::Time.local(2010).utc_offset
+    end
+    
+    def rollback_transaction(client)
+      client.execute("BEGIN TRANSACTION").do
+      yield
+    ensure
+      client.execute("ROLLBACK TRANSACTION").do
     end
     
     

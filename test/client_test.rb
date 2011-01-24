@@ -48,7 +48,7 @@ class ClientTest < TinyTds::TestCase
   context 'With in-valid options' do
   
     should 'raise an argument error when no :username is supplied' do
-      assert_raise(ArgumentError) { TinyTds::Client.new :username => nil }
+      assert_raises(ArgumentError) { TinyTds::Client.new :username => nil }
     end
     
     should 'raise TinyTds exception with undefined :dataserver' do
@@ -76,22 +76,18 @@ class ClientTest < TinyTds::TestCase
     
     should 'not timeout per sql batch when not under transaction' do
       client = TinyTds::Client.new(connection_options.merge(:timeout => 2))
-      assert_nothing_raised do
-        client.execute("WaitFor Delay '00:00:01'").do
-        client.execute("WaitFor Delay '00:00:01'").do
-        client.execute("WaitFor Delay '00:00:01'").do
-      end
+      client.execute("WaitFor Delay '00:00:01'").do
+      client.execute("WaitFor Delay '00:00:01'").do
+      client.execute("WaitFor Delay '00:00:01'").do
     end
     
     should 'not timeout per sql batch when under transaction' do
       client = TinyTds::Client.new(connection_options.merge(:timeout => 2))
       begin
         client.execute("BEGIN TRANSACTION").do
-        assert_nothing_raised do
-          client.execute("WaitFor Delay '00:00:01'").do
-          client.execute("WaitFor Delay '00:00:01'").do
-          client.execute("WaitFor Delay '00:00:01'").do
-        end
+        client.execute("WaitFor Delay '00:00:01'").do
+        client.execute("WaitFor Delay '00:00:01'").do
+        client.execute("WaitFor Delay '00:00:01'").do
       ensure
         client.execute("COMMIT TRANSACTION").do
       end

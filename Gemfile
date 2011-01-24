@@ -7,8 +7,7 @@ group :development do
 end
 
 group :test do
-  gem 'shoulda', '2.10.3'
-  gem 'activesupport', '2.3.8'
+  gem 'mini_shoulda'
   gem 'bench_press', '0.3.1'
   platforms :ruby_18 do
     gem 'ruby-prof', '0.9.1'

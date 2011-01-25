@@ -8,6 +8,7 @@ end
 
 group :test do
   gem 'mini_shoulda'
+  gem 'activesupport', '2.3.5'
   gem 'bench_press', '0.3.1'
   platforms :ruby_18 do
     gem 'ruby-prof', '0.9.1'

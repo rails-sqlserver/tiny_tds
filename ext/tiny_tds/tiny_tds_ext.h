@@ -1,11 +1,9 @@
 #ifndef TINYTDS_EXT
 #define TINYTDS_EXT
-#define MSDBLIB
 
 #include <ruby.h>
-#include <sqlfront.h>
+#include <sybfront.h>
 #include <sybdb.h>
-#include <syberror.h>
 
 #ifdef HAVE_RUBY_ENCODING_H
 #include <ruby/encoding.h>

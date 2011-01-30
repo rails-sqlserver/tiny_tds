@@ -115,6 +115,10 @@ module TinyTds
       RUBY_VERSION == '1.9.2'
     end
     
+    def rubyRbx?
+      RUBY_DESCRIPTION =~ /rubinius/i
+    end
+    
     def load_current_schema
       loader = TinyTds::Client.new(connection_options)
       schema_file = File.expand_path File.join(File.dirname(__FILE__), 'schema', "#{current_schema}.sql")

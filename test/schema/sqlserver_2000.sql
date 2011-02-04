@@ -13,7 +13,7 @@
     
 */
 
-CREATE TABLE [datatypes] (
+CREATE TABLE [dbo].[datatypes] (
   [id] [int] NOT NULL IDENTITY(1,1) PRIMARY KEY,
 	[bigint] [bigint] NULL,
 	[binary_50] [binary](50) NULL,

@@ -7,7 +7,7 @@ class SchemaTest < TinyTds::TestCase
   
     setup do
       @@current_schema_loaded ||= load_current_schema
-      @client ||= TinyTds::Client.new(connection_options)
+      @client ||= new_connection
       @gif1px = ruby19? ? File.read('test/schema/1px.gif',:mode=>"rb:BINARY") : File.read('test/schema/1px.gif')
     end
   
@@ -20,7 +20,7 @@ class SchemaTest < TinyTds::TestCase
       
       should 'cast binary' do
         value = find_value(21, :binary_50)
-        assert_equal @gif1px, value
+        assert_equal @gif1px+"\000", value
         assert_binary_encoding(value)
       end
       
@@ -32,7 +32,7 @@ class SchemaTest < TinyTds::TestCase
       
       should 'cast char' do
         assert_equal '1234567890', find_value(41, :char_10)
-        assert_equal '12345678', find_value(42, :char_10)
+        assert_equal '12345678  ', find_value(42, :char_10)
         assert_utf8_encoding find_value(42, :char_10)
       end
       

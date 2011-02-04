@@ -7,7 +7,7 @@ class ResultTest < TinyTds::TestCase
 
     setup do
       @@current_schema_loaded ||= load_current_schema
-      @client = TinyTds::Client.new(connection_options)
+      @client = new_connection
       @query1 = 'SELECT 1 AS [one]'
     end
     
@@ -215,7 +215,7 @@ class ResultTest < TinyTds::TestCase
     should 'have properly encoded column names' do
       col_name = "öäüß"
       @client.execute("DROP TABLE [test_encoding]").do rescue nil
-      @client.execute("CREATE TABLE [test_encoding] ( [#{col_name}] [nvarchar](10) NOT NULL )").do
+      @client.execute("CREATE TABLE [dbo].[test_encoding] ( [#{col_name}] [nvarchar](10) NOT NULL )").do
       @client.execute("INSERT INTO [test_encoding] ([#{col_name}]) VALUES (N'#{col_name}')").do
       result = @client.execute("SELECT [#{col_name}] FROM [test_encoding]")
       row = result.each.first

@@ -50,6 +50,14 @@ module TinyTds
       self.class.current_schema
     end
     
+    def new_connection(options={})
+      client = TinyTds::Client.new(connection_options(options))
+      client.execute("SET ANSI_DEFAULTS ON").do
+      client.execute("SET IMPLICIT_TRANSACTIONS OFF").do
+      client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
+      client
+    end
+    
     def connection_options(options={})
       { :dataserver    => ENV['TINYTDS_UNIT_DATASERVER'],
         :username      => 'tinytds',
@@ -66,7 +74,7 @@ module TinyTds
     end
     
     def assert_new_connections_work
-      client = TinyTds::Client.new(connection_options)
+      client = new_connection
       client.execute("SELECT 'new_connections_work' as [new_connections_work]").each
     end
     
@@ -120,9 +128,9 @@ module TinyTds
     end
     
     def load_current_schema
-      loader = TinyTds::Client.new(connection_options)
+      loader = new_connection
       schema_file = File.expand_path File.join(File.dirname(__FILE__), 'schema', "#{current_schema}.sql")
-      schema_sql = File.read(schema_file)
+      schema_sql = ruby19? ? File.read(schema_file,"r:UTF-8") : File.read(schema_file)
       loader.execute(drop_sql).each
       loader.execute(schema_sql).cancel
       loader.execute(sp_sql).cancel

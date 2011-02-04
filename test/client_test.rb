@@ -5,7 +5,7 @@ class ClientTest < TinyTds::TestCase
   context 'With valid credentials' do
     
     setup do
-      @client = TinyTds::Client.new(connection_options)
+      @client = new_connection
     end
     
     should 'not be closed' do
@@ -37,7 +37,7 @@ class ClientTest < TinyTds::TestCase
     
     should 'allow valid iconv character set' do
       ['CP850', 'CP1252', 'ISO-8859-1'].each do |encoding|
-        client = TinyTds::Client.new(connection_options.merge(:encoding => encoding))
+        client = new_connection(:encoding => encoding)
         assert_equal encoding, client.charset
         assert_equal Encoding.find(encoding), client.encoding if ruby19?
       end
@@ -52,8 +52,8 @@ class ClientTest < TinyTds::TestCase
     end
     
     should 'raise TinyTds exception with undefined :dataserver' do
-      options = connection_options.merge :login_timeout => 1, :dataserver => '127.0.0.2'
-      action = lambda { TinyTds::Client.new(options) }
+      options = connection_options :login_timeout => 1, :dataserver => '127.0.0.2'
+      action = lambda { new_connection(options) }
       assert_raise_tinytds_error(action) do |e|
         assert [20008,20009].include?(e.db_error_number)
         assert_equal 9, e.severity
@@ -63,7 +63,7 @@ class ClientTest < TinyTds::TestCase
     end
     
     should 'raise TinyTds exception with long query past :timeout option' do
-      client = TinyTds::Client.new(connection_options.merge(:timeout => 1))
+      client = new_connection :timeout => 1
       action = lambda { client.execute("WaitFor Delay '00:00:02'").do }
       assert_raise_tinytds_error(action) do |e|
         assert_equal 20003, e.db_error_number
@@ -75,14 +75,14 @@ class ClientTest < TinyTds::TestCase
     end
     
     should 'not timeout per sql batch when not under transaction' do
-      client = TinyTds::Client.new(connection_options.merge(:timeout => 2))
+      client = new_connection :timeout => 2
       client.execute("WaitFor Delay '00:00:01'").do
       client.execute("WaitFor Delay '00:00:01'").do
       client.execute("WaitFor Delay '00:00:01'").do
     end
     
     should 'not timeout per sql batch when under transaction' do
-      client = TinyTds::Client.new(connection_options.merge(:timeout => 2))
+      client = new_connection :timeout => 2
       begin
         client.execute("BEGIN TRANSACTION").do
         client.execute("WaitFor Delay '00:00:01'").do
@@ -95,7 +95,7 @@ class ClientTest < TinyTds::TestCase
     
     should_eventually 'run this test to prove we account for dropped connections' do
       begin
-        client = TinyTds::Client.new(connection_options.merge(:login_timeout => 2, :timeout => 2))
+        client = new_connection :login_timeout => 2, :timeout => 2
         assert_client_works(client)
         STDOUT.puts "Disconnect network!"
         sleep 10
@@ -120,8 +120,8 @@ class ClientTest < TinyTds::TestCase
     end
     
     should 'raise TinyTds exception with wrong :username' do
-      options = connection_options.merge :username => 'willnotwork'
-      action = lambda { TinyTds::Client.new(options) }
+      options = connection_options :username => 'willnotwork'
+      action = lambda { new_connection(options) }
       assert_raise_tinytds_error(action) do |e|
         assert_equal 18456, e.db_error_number
         assert_equal 14, e.severity
@@ -131,8 +131,8 @@ class ClientTest < TinyTds::TestCase
     end
     
     should 'fail miserably with unknown encoding option' do
-      options = connection_options.merge :encoding => 'ISO-WTF'
-      action = lambda { TinyTds::Client.new(options) }
+      options = connection_options :encoding => 'ISO-WTF'
+      action = lambda { new_connection(options) }
       assert_raise_tinytds_error(action) do |e|
         assert_equal 20017, e.db_error_number
         assert_equal 9, e.severity

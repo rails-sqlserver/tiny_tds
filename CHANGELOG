@@ -1,4 +1,9 @@
 
+* master *
+
+* Look for the syb headers only.
+
+
 * 0.3.2 *
 
 * Small changes while testing JRuby. Using options hash for connect vs many args.

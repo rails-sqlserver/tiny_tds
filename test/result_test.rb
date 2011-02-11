@@ -259,7 +259,6 @@ class ResultTest < TinyTds::TestCase
       @client.execute("SELECT [id] FROM [datatypes]").each(:first => true)
       @client.sqlsent?.must_equal false
       @client.canceled?.must_equal true
-      
     end
     
     should 'use same string object for hash keys' do

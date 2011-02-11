@@ -1,6 +1,10 @@
 
 * master *
 
+* Two new client helper methods, #sqlsent? and #canceled?. Possible to use these to determine current 
+  state of the client and the need to use Result#cancel to stop processing active results. It is also 
+  safe to call Result#cancel over and over again.
+
 * Look for the syb headers only.
 
 
@@ -30,7 +34,8 @@
 
 * 0.2.2 *
 
-* Fixed failing test in Ruby 1.8.6. DateTime doesn't support fractional seconds greater than 59. See: http://redmine.ruby-lang.org/issues/show/1490 [Erik Bryn]
+* Fixed failing test in Ruby 1.8.6. DateTime doesn't support fractional seconds greater than 59. 
+  See: http://redmine.ruby-lang.org/issues/show/1490 [Erik Bryn]
 
 
 * 0.2.1 *

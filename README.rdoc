@@ -136,6 +136,29 @@ The result object can handle multiple result sets form batched SQL or stored pro
     # 2nd: [{"bigint"=>-9223372036854775807}, {"bigint"=>9223372036854775806}]
   end
 
+Use the #sqlsent? and #canceled? query methods on the client to determine if an active SQL batch still needs to be processed and or if data results were canceled from the last result object. These values reset to true and false respectively for the client at the start of each #execute and new result object. Or if all rows are processed normally, #sqlsent? will return false. To demonstrate, lets assume we have 100 rows in the result object.
+  
+  client.sqlsent?   # = false
+  client.canceled?  # = false
+  
+  result = client.execute("SELECT * FROM [super_big_table]")
+  
+  client.sqlsent?   # = true
+  client.canceled?  # = false
+  
+  result.each do |row|
+    # Assume we break after 20 rows with 80 still pending.
+    break if row["id"] > 20
+  end
+  
+  client.sqlsent?   # = true
+  client.canceled?  # = false
+  
+  result.cancel
+  
+  client.sqlsent?   # = false
+  client.canceled?  # = true
+
 It is possible to get the return code after executing a stored procedure from either the result or client object.
 
   client.return_code  # => nil

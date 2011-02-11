@@ -2,6 +2,7 @@
 #ifndef TINYTDS_RESULT_H
 #define TINYTDS_RESULT_H
 
+// TODO: Is this needed?
 typedef tds_sysdep_int64_type DBBIGINT;  /* Missing in sybdb.h ?!?! */
 
 void init_tinytds_result();
@@ -20,6 +21,8 @@ typedef struct {
   unsigned long number_of_rows;
 } tinytds_result_wrapper;
 
+
+// Lib Macros
 
 #define GET_RESULT_WRAPPER(self) \
   tinytds_result_wrapper *rwrap; \

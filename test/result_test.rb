@@ -207,6 +207,61 @@ class ResultTest < TinyTds::TestCase
       @client.execute(@query1).each
     end
     
+    should 'work in tandem with the client when needing to find out if client has sql sent and result is canceled or not' do
+      # Default state.
+      @client = TinyTds::Client.new(connection_options)
+      @client.sqlsent?.must_equal false
+      @client.canceled?.must_equal false
+      # With active result before and after cancel. 
+      result = @client.execute(@query1)
+      @client.sqlsent?.must_equal true
+      @client.canceled?.must_equal false
+      result.cancel
+      @client.sqlsent?.must_equal false
+      @client.canceled?.must_equal true
+      assert result.cancel, 'must be safe to call again'
+      # With each and no block.
+      @client.execute(@query1).each
+      @client.sqlsent?.must_equal false
+      @client.canceled?.must_equal false
+      # With each and block.
+      @client.execute(@query1).each do |row|
+        @client.sqlsent?.must_equal true, 'when iterating over each row in a block'
+        @client.canceled?.must_equal false
+      end
+      @client.sqlsent?.must_equal false
+      @client.canceled?.must_equal false
+      # With each and block canceled half way thru.
+      count = @client.execute("SELECT COUNT([id]) AS [count] FROM [datatypes]").first['count']
+      assert count > 10, 'since we want to cancel early for test'
+      result = @client.execute("SELECT [id] FROM [datatypes]")
+      index = 0
+      result.each do |row| 
+        break if index > 10
+        index += 1
+      end
+      @client.sqlsent?.must_equal true
+      @client.canceled?.must_equal false
+      result.cancel
+      @client.sqlsent?.must_equal false
+      @client.canceled?.must_equal true
+      # With do method.
+      @client.execute(@query1).do
+      @client.sqlsent?.must_equal false
+      @client.canceled?.must_equal true
+      # With insert method.
+      rollback_transaction(@client) do
+        @client.execute("INSERT INTO [datatypes] ([varchar_max]) VALUES ('test')").insert
+        @client.sqlsent?.must_equal false
+        @client.canceled?.must_equal true
+      end
+      # With first
+      @client.execute("SELECT [id] FROM [datatypes]").each(:first => true)
+      @client.sqlsent?.must_equal false
+      @client.canceled?.must_equal true
+      
+    end
+    
     should 'use same string object for hash keys' do
       data = @client.execute("SELECT [id], [bigint] FROM [datatypes]").each
       assert_equal data.first.keys.map{ |r| r.object_id }, data.last.keys.map{ |r| r.object_id }

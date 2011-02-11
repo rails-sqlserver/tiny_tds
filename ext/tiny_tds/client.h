@@ -7,6 +7,7 @@ void init_tinytds_client();
 typedef struct {
   short int closed;
   short int timing_out;
+  short int dbsql_sent;
   short int dbsqlok_sent;
   short int dbcancel_sent;
 } tinytds_client_userdata;
@@ -22,6 +23,12 @@ typedef struct {
     rb_encoding *encoding;
   #endif
 } tinytds_client_wrapper;
+
+
+// Lib Macros
+
+#define GET_CLIENT_USERDATA(dbproc) \
+  tinytds_client_userdata *userdata = (tinytds_client_userdata *)dbgetuserdata(dbproc);
 
 
 #endif

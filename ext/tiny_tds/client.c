@@ -1,6 +1,5 @@
 
 #include <tiny_tds_ext.h>
-#include <client.h>
 #include <errno.h>
 
 VALUE cTinyTdsClient;
@@ -10,14 +9,12 @@ static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, in
 static ID intern_new, intern_dup, intern_transpose_iconv_encoding, intern_local_offset, intern_gsub;
 VALUE opt_escape_regex, opt_escape_dblquote;
 
+
 // Lib Macros
 
 #define GET_CLIENT_WRAPPER(self) \
   tinytds_client_wrapper *cwrap; \
   Data_Get_Struct(self, tinytds_client_wrapper, cwrap)
-
-#define GET_CLIENT_USERDATA(dbproc) \
-  tinytds_client_userdata *userdata = (tinytds_client_userdata *)dbgetuserdata(dbproc);
 
 #define REQUIRE_OPEN_CLIENT(cwrap) \
   if (cwrap->closed || cwrap->userdata->closed) { \
@@ -96,6 +93,7 @@ int tinytds_msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severi
 
 static void rb_tinytds_client_reset_userdata(tinytds_client_userdata *userdata) {
   userdata->timing_out = 0;
+  userdata->dbsql_sent = 0;
   userdata->dbsqlok_sent = 0;
   userdata->dbcancel_sent = 0;
 }
@@ -155,6 +153,16 @@ static VALUE rb_tinytds_closed(VALUE self) {
   return (cwrap->closed || cwrap->userdata->closed) ? Qtrue : Qfalse;
 }
 
+static VALUE rb_tinytds_canceled(VALUE self) {
+  GET_CLIENT_WRAPPER(self);
+  return cwrap->userdata->dbcancel_sent ? Qtrue : Qfalse;
+}
+
+static VALUE rb_tinytds_sqlsent(VALUE self) {
+  GET_CLIENT_WRAPPER(self);
+  return cwrap->userdata->dbsql_sent ? Qtrue : Qfalse;
+}
+
 static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
   GET_CLIENT_WRAPPER(self);
   rb_tinytds_client_reset_userdata(cwrap->userdata);
@@ -164,6 +172,7 @@ static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
     rb_warn("TinyTds: dbsqlsend() returned FAIL.\n");
     return Qfalse;
   }
+  cwrap->userdata->dbsql_sent = 1;
   VALUE result = rb_tinytds_new_result_obj(cwrap->client);
   rb_iv_set(result, "@query_options", rb_funcall(rb_iv_get(self, "@query_options"), intern_dup, 0));
   GET_RESULT_WRAPPER(result);
@@ -272,6 +281,8 @@ void init_tinytds_client() {
   rb_define_method(cTinyTdsClient, "tds_version", rb_tinytds_tds_version, 0);
   rb_define_method(cTinyTdsClient, "close", rb_tinytds_close, 0);
   rb_define_method(cTinyTdsClient, "closed?", rb_tinytds_closed, 0);
+  rb_define_method(cTinyTdsClient, "canceled?", rb_tinytds_canceled, 0);
+  rb_define_method(cTinyTdsClient, "sqlsent?", rb_tinytds_sqlsent, 0);
   rb_define_method(cTinyTdsClient, "execute", rb_tinytds_execute, 1);
   rb_define_method(cTinyTdsClient, "charset", rb_tinytds_charset, 0);
   rb_define_method(cTinyTdsClient, "encoding", rb_tinytds_encoding, 0);

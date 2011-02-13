@@ -3,7 +3,7 @@ source :rubygems
 
 group :development do
   gem 'rake', '>= 0.8.7'
-  gem 'rake-compiler'
+  gem 'rake-compiler', '0.7.6'
 end
 
 group :test do

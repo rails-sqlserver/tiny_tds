@@ -97,7 +97,6 @@ A result object has a #fields accessor. It can be called before the result rows 
   result = client.execute("SELECT [id] FROM [datatypes]")
   result.fields # => ["id"]
   result.cancel
-  
   result = client.execute("SELECT [id] FROM [datatypes]")
   result.each(:symbolize_keys => true)
   result.fields # => [:id]

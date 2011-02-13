@@ -9,6 +9,7 @@ typedef struct {
   short int timing_out;
   short int dbsql_sent;
   short int dbsqlok_sent;
+  RETCODE dbsqlok_retcode;
   short int dbcancel_sent;
 } tinytds_client_userdata;
 

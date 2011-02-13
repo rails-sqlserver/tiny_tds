@@ -1,6 +1,8 @@
 
 * master *
 
+* Allow Result#fields to be called before iterating over the results.
+
 * Two new client helper methods, #sqlsent? and #canceled?. Possible to use these to determine current 
   state of the client and the need to use Result#cancel to stop processing active results. It is also 
   safe to call Result#cancel over and over again.

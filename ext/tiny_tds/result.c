@@ -55,8 +55,10 @@ VALUE rb_tinytds_new_result_obj(DBPROCESS *c) {
   obj = Data_Make_Struct(cTinyTdsResult, tinytds_result_wrapper, rb_tinytds_result_mark, rb_tinytds_result_free, rwrap);
   rwrap->client = c;
   rwrap->local_offset = Qnil;
-  rwrap->fields = Qnil;
+  rwrap->fields = rb_ary_new();
+  rwrap->fields_processed = rb_ary_new();
   rwrap->results = Qnil;
+  rwrap->dbresults_retcodes = rb_ary_new();
   rwrap->number_of_results = 0;
   rwrap->number_of_fields = 0;
   rwrap->number_of_rows = 0;
@@ -67,10 +69,33 @@ VALUE rb_tinytds_new_result_obj(DBPROCESS *c) {
 
 // Lib Backend (Helpers)
 
+static RETCODE rb_tinytds_result_dbresults_retcode(VALUE self) {
+  GET_RESULT_WRAPPER(self);
+  VALUE ruby_rc;
+  RETCODE db_rc;
+  ruby_rc = rb_ary_entry(rwrap->dbresults_retcodes, rwrap->number_of_results);
+  if (NIL_P(ruby_rc)) {
+    db_rc = dbresults(rwrap->client);
+    ruby_rc = INT2FIX(db_rc);
+    rb_ary_store(rwrap->dbresults_retcodes, rwrap->number_of_results, ruby_rc);
+  } else {
+    db_rc = FIX2INT(ruby_rc);
+  }
+  return db_rc;
+}
+
+static RETCODE rb_tinytds_result_ok_helper(DBPROCESS *client) {
+  GET_CLIENT_USERDATA(client);
+  if (userdata->dbsqlok_sent == 0) {
+    userdata->dbsqlok_retcode = dbsqlok(client);
+    userdata->dbsqlok_sent = 1;
+  }
+  return userdata->dbsqlok_retcode;
+}
+
 static void rb_tinytds_result_cancel_helper(DBPROCESS *client) {
   GET_CLIENT_USERDATA(client);
-  dbsqlok(client);
-  userdata->dbsqlok_sent = 1;
+  rb_tinytds_result_ok_helper(client);
   dbcancel(client);
   userdata->dbcancel_sent = 1;
   userdata->dbsql_sent = 0;
@@ -222,32 +247,67 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
 
 // TinyTds::Client (public)
 
+static VALUE rb_tinytds_result_fields(VALUE self) {
+  GET_RESULT_WRAPPER(self);
+  RETCODE dbsqlok_rc = rb_tinytds_result_ok_helper(rwrap->client);
+  RETCODE dbresults_rc = rb_tinytds_result_dbresults_retcode(self);
+  VALUE fields_processed = rb_ary_entry(rwrap->fields_processed, rwrap->number_of_results);
+  if ((dbsqlok_rc == SUCCEED) && (dbresults_rc == SUCCEED) && (fields_processed == Qnil)) {
+    /* Default query options. */
+    VALUE qopts = rb_iv_get(self, "@query_options");
+    int symbolize_keys = (rb_hash_aref(qopts, sym_symbolize_keys) == Qtrue) ? 1 : 0;
+    /* Set number_of_fields count for this result set. */
+    rwrap->number_of_fields = dbnumcols(rwrap->client);
+    if (rwrap->number_of_fields > 0) {
+      /* Create fields for this result set. */
+      unsigned int fldi = 0;
+      VALUE fields = rb_ary_new2(rwrap->number_of_fields);
+      for (fldi = 0; fldi < rwrap->number_of_fields; fldi++) {
+        char *colname = dbcolname(rwrap->client, fldi+1);
+        VALUE field = symbolize_keys ? ID2SYM(rb_intern(colname)) : rb_obj_freeze(ENCODED_STR_NEW2(colname));
+        rb_ary_store(fields, fldi, field);
+      }
+      /* Store the fields. */
+      if (rwrap->number_of_results == 0) {
+        rwrap->fields = fields;
+      } else if (rwrap->number_of_results == 1) {
+        VALUE multi_rs_fields = rb_ary_new();
+        rb_ary_store(multi_rs_fields, 0, rwrap->fields);
+        rb_ary_store(multi_rs_fields, 1, fields);
+        rwrap->fields = multi_rs_fields;
+      } else {
+        rb_ary_store(rwrap->fields, rwrap->number_of_results, fields);
+      }
+    }
+    rb_ary_store(rwrap->fields_processed, rwrap->number_of_results, Qtrue);
+  }
+  return rwrap->fields;
+}
+
 static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
   GET_RESULT_WRAPPER(self);
   GET_CLIENT_USERDATA(rwrap->client);
   /* Local Vars */
-  VALUE defaults, opts, block;
+  VALUE qopts, opts, block;
   ID timezone;
   int symbolize_keys = 0, as_array = 0, cache_rows = 0, first = 0;
-  /* Merge Options Hash, Populate Opts & Block Var */
-  defaults = rb_iv_get(self, "@query_options");
-  if (rb_scan_args(argc, argv, "01&", &opts, &block) == 1) {
-    opts = rb_funcall(defaults, intern_merge, 1, opts);
-  } else {
-    opts = defaults;
-  }
+  /* Merge Options Hash To Query Options. Populate Opts & Block Var. */
+  qopts = rb_iv_get(self, "@query_options");
+  if (rb_scan_args(argc, argv, "01&", &opts, &block) == 1)
+    qopts = rb_funcall(qopts, intern_merge, 1, opts);
+  rb_iv_set(self, "@query_options", qopts);
   /* Locals From Options */
-  if (rb_hash_aref(opts, sym_first) == Qtrue)
+  if (rb_hash_aref(qopts, sym_first) == Qtrue)
     first = 1;
-  if (rb_hash_aref(opts, sym_symbolize_keys) == Qtrue)
+  if (rb_hash_aref(qopts, sym_symbolize_keys) == Qtrue)
     symbolize_keys = 1;
-  if (rb_hash_aref(opts, sym_as) == sym_array)
+  if (rb_hash_aref(qopts, sym_as) == sym_array)
     as_array = 1;
-  if (rb_hash_aref(opts, sym_cache_rows) == Qtrue)
+  if (rb_hash_aref(qopts, sym_cache_rows) == Qtrue)
     cache_rows = 1;
-  if (rb_hash_aref(opts, sym_timezone) == sym_local) {
+  if (rb_hash_aref(qopts, sym_timezone) == sym_local) {
     timezone = intern_local;
-  } else if (rb_hash_aref(opts, sym_timezone) == sym_utc) {
+  } else if (rb_hash_aref(qopts, sym_timezone) == sym_utc) {
     timezone = intern_utc;
   } else {
     rb_warn(":timezone option must be :utc or :local - defaulting to :local");
@@ -256,35 +316,12 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
   /* Make The Results Or Yield Existing */
   if (NIL_P(rwrap->results)) {
     rwrap->results = rb_ary_new();
-    RETCODE dbsqlok_rc = 0;
-    RETCODE dbresults_rc = 0;
-    dbsqlok_rc = dbsqlok(rwrap->client); // TODO: Record that we sent dbsqlok. userdata->dbsqlok_sent = 1;
-    dbresults_rc = dbresults(rwrap->client);
+    RETCODE dbsqlok_rc = rb_tinytds_result_ok_helper(rwrap->client);
+    RETCODE dbresults_rc = rb_tinytds_result_dbresults_retcode(self);
     while ((dbsqlok_rc == SUCCEED) && (dbresults_rc == SUCCEED)) {
-      /* Only do field and row work if there are rows in this result set. */
       int has_rows = (DBROWS(rwrap->client) == SUCCEED) ? 1 : 0;
-      int number_of_fields = has_rows ? dbnumcols(rwrap->client) : 0;
-      if (has_rows && (number_of_fields > 0)) {
-        /* Create fields for this result set. */
-        unsigned int fldi = 0;
-        rwrap->number_of_fields = number_of_fields;
-        VALUE fields = rb_ary_new2(rwrap->number_of_fields);
-        for (fldi = 0; fldi < rwrap->number_of_fields; fldi++) {
-          char *colname = dbcolname(rwrap->client, fldi+1);
-          VALUE field = symbolize_keys ? ID2SYM(rb_intern(colname)) : rb_obj_freeze(ENCODED_STR_NEW2(colname));
-          rb_ary_store(fields, fldi, field);
-        }
-        /* Store the fields. */
-        if (rwrap->number_of_results == 0) {
-          rwrap->fields = fields;
-        } else if (rwrap->number_of_results == 1) {
-          VALUE multi_rs_fields = rb_ary_new();
-          rb_ary_store(multi_rs_fields, 0, rwrap->fields);
-          rb_ary_store(multi_rs_fields, 1, fields);
-          rwrap->fields = multi_rs_fields;
-        } else {
-          rb_ary_store(rwrap->fields, rwrap->number_of_results, fields);
-        }
+      rb_tinytds_result_fields(self);
+      if (has_rows && rwrap->number_of_fields > 0) {
         /* Create rows for this result set. */
         unsigned long rowi = 0;
         VALUE result = rb_ary_new();
@@ -312,15 +349,19 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
         } else {
           rb_ary_store(rwrap->results, rwrap->number_of_results, result);
         }
-        /* Record the result set */
+        // If we find results increment the counter that helpers use and setup the next loop.
         rwrap->number_of_results = rwrap->number_of_results + 1;
+        dbresults_rc = rb_tinytds_result_dbresults_retcode(self);
+      } else {
+        // If we do not find results, side step the rb_tinytds_result_dbresults_retcode helper and 
+        // manually populate its memoized array while nullifing any memoized fields too before loop.
+        dbresults_rc = dbresults(rwrap->client);
+        rb_ary_store(rwrap->dbresults_retcodes, rwrap->number_of_results, INT2FIX(dbresults_rc));
+        rb_ary_store(rwrap->fields_processed, rwrap->number_of_results, Qnil);
       }
-      dbresults_rc = dbresults(rwrap->client);
     }
-    if (dbresults_rc == FAIL) {
-      // TODO: Account for something in the dbresults() while loop set the return code to FAIL.
-      rb_warn("TinyTds: Something in the dbresults() while loop set the return code to FAIL.\n");
-    }
+    if (dbresults_rc == FAIL)
+      rb_warn("TinyTDS: Something in the dbresults() while loop set the return code to FAIL.\n");
     userdata->dbsql_sent = 0;
   } else if (!NIL_P(block)) {
     unsigned long i;
@@ -329,11 +370,6 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
     }
   }
   return rwrap->results;
-}
-
-static VALUE rb_tinytds_result_fields(VALUE self) {
-  GET_RESULT_WRAPPER(self);
-  return rwrap->fields;
 }
 
 static VALUE rb_tinytds_result_cancel(VALUE self) {
@@ -406,8 +442,8 @@ void init_tinytds_result() {
   /* Define TinyTds::Result */
   cTinyTdsResult = rb_define_class_under(mTinyTds, "Result", rb_cObject);
   /* Define TinyTds::Result Public Methods */
-  rb_define_method(cTinyTdsResult, "each", rb_tinytds_result_each, -1);
   rb_define_method(cTinyTdsResult, "fields", rb_tinytds_result_fields, 0);
+  rb_define_method(cTinyTdsResult, "each", rb_tinytds_result_each, -1);
   rb_define_method(cTinyTdsResult, "cancel", rb_tinytds_result_cancel, 0);
   rb_define_method(cTinyTdsResult, "do", rb_tinytds_result_do, 0);
   rb_define_method(cTinyTdsResult, "affected_rows", rb_tinytds_result_affected_rows, 0);

@@ -88,9 +88,19 @@ Calling #each on the result will lazily load each row from the database.
     # Here's an leemer: http://is.gd/g61xo
   end
 
-Once a result returns its rows, you can access the fields. Returns nil if the data has not yet been loaded or there are no rows returned.
+A result object has a #fields accessor. It can be called before the result rows are iterated over. Even if no rows are returned, #fields will still return the column names you expected. Any SQL that does not return columned data will always return an empty array for #fields. It is important to remember that if you access the #fields before iterating over the results, the columns will always follow the default query option's :symbolize_keys setting at the client's level and will ignore the query options passed to each.
 
-  result.fields # => [ ... ]
+  result = client.execute("USE [tinytds_test]")
+  result.fields # => []
+  result.do
+  
+  result = client.execute("SELECT [id] FROM [datatypes]")
+  result.fields # => ["id"]
+  result.cancel
+  
+  result = client.execute("SELECT [id] FROM [datatypes]")
+  result.each(:symbolize_keys => true)
+  result.fields # => [:id]
 
 You can cancel a result object's data from being loading by the server.
 

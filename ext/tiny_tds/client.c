@@ -259,7 +259,7 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   if (cwrap->client) {
     cwrap->closed = 0;
     cwrap->charset = charset;
-    dbsetuserdata(cwrap->client, cwrap->userdata);
+    dbsetuserdata(cwrap->client, (BYTE*)cwrap->userdata);
     cwrap->userdata->closed = 0;
     if (!NIL_P(database))
       dbuse(cwrap->client, StringValuePtr(database));

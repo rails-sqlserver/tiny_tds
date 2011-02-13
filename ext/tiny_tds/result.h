@@ -12,10 +12,12 @@ typedef struct {
   DBPROCESS *client;
   VALUE local_offset;
   VALUE fields;
+  VALUE fields_processed;
   VALUE results;
   #ifdef HAVE_RUBY_ENCODING_H
     rb_encoding *encoding;
   #endif
+  VALUE dbresults_retcodes;
   unsigned int number_of_results;
   unsigned int number_of_fields;
   unsigned long number_of_rows;

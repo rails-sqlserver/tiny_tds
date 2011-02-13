@@ -196,9 +196,29 @@ class ResultTest < TinyTds::TestCase
     
     should 'have a #fields accessor with logic default and valid outcome' do
       result = @client.execute(@query1)
-      assert_nil result.fields
+      result.fields.must_equal ['one']
       result.each
-      assert_instance_of Array, result.fields
+      result.fields.must_equal ['one']
+    end
+    
+    should 'always return an array for fields for all sql' do
+      result = @client.execute("USE [tinytds_test]")
+      result.fields.must_equal []
+      result.do
+      result.fields.must_equal []
+    end
+    
+    should 'return fields even when no results are found' do
+      no_results_query = "SELECT [id], [varchar_max] FROM [datatypes] WHERE [varchar_max] = 'NOTFOUND'"
+      # Fields before each.
+      result = @client.execute(no_results_query)
+      result.fields.must_equal ['id','varchar_max']
+      result.each
+      result.fields.must_equal ['id','varchar_max']
+      # Each then fields
+      result = @client.execute(no_results_query)
+      result.each
+      result.fields.must_equal ['id','varchar_max']
     end
     
     should 'allow the result to be canceled before reading' do
@@ -317,7 +337,6 @@ class ResultTest < TinyTds::TestCase
       
       should 'yield each row for each result set' do
         data = []
-        result = 
         result_sets = @client.execute(@double_select).each { |row| data << row }
         assert_equal data.first, result_sets.first[0]
         assert_equal data.last, result_sets.last[0]
@@ -343,7 +362,9 @@ class ResultTest < TinyTds::TestCase
               SELECT [datatypes].[id] FROM [datatypes]
             SET NOCOUNT OFF 
             SELECT id FROM @row_number|
-          assert_equal [{"id"=>id}], @client.execute(sql).each
+          result = @client.execute(sql)
+          result.each.must_equal [{"id"=>id}]
+          result.fields.must_equal ['id']
         end
       end
 
@@ -379,7 +400,7 @@ class ResultTest < TinyTds::TestCase
           assert_equal 20019, e.db_error_number
         end
       end
-
+    
       should 'error gracefully with bad table name' do
         action = lambda { @client.execute('SELECT * FROM [foobar]').each }
         assert_raise_tinytds_error(action) do |e|
@@ -399,7 +420,7 @@ class ResultTest < TinyTds::TestCase
         end
         assert_followup_query
       end
-
+    
     end
 
   end

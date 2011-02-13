@@ -339,15 +339,17 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
         }
         rwrap->number_of_rows = rowi;
         /* Store the result. */
-        if (rwrap->number_of_results == 0) {
-          rwrap->results = result;
-        } else if (rwrap->number_of_results == 1) {
-          VALUE multi_resultsets = rb_ary_new();
-          rb_ary_store(multi_resultsets, 0, rwrap->results);
-          rb_ary_store(multi_resultsets, 1, result);
-          rwrap->results = multi_resultsets;
-        } else {
-          rb_ary_store(rwrap->results, rwrap->number_of_results, result);
+        if (cache_rows) {
+          if (rwrap->number_of_results == 0) {
+            rwrap->results = result;
+          } else if (rwrap->number_of_results == 1) {
+            VALUE multi_resultsets = rb_ary_new();
+            rb_ary_store(multi_resultsets, 0, rwrap->results);
+            rb_ary_store(multi_resultsets, 1, result);
+            rwrap->results = multi_resultsets;
+          } else {
+            rb_ary_store(rwrap->results, rwrap->number_of_results, result);
+          }
         }
         // If we find results increment the counter that helpers use and setup the next loop.
         rwrap->number_of_results = rwrap->number_of_results + 1;

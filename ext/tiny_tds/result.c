@@ -40,7 +40,9 @@ static void rb_tinytds_result_mark(void *ptr) {
   if (rwrap) {
     rb_gc_mark(rwrap->local_offset);
     rb_gc_mark(rwrap->fields);
+    rb_gc_mark(rwrap->fields_processed);
     rb_gc_mark(rwrap->results);
+    rb_gc_mark(rwrap->dbresults_retcodes);
   }
 }
 

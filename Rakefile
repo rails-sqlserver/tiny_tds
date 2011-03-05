@@ -5,7 +5,7 @@ require 'rbconfig'
 require 'rake/testtask'
 require 'rake/extensiontask'
 
-
+Dir["tasks/*.rake"].sort.each { |f| load f }
 
 def test_libs
   ['lib','test']

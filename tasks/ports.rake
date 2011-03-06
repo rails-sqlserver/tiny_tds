@@ -26,6 +26,7 @@ namespace :ports do
     touch f.name
   end
 
+  desc "Compile freetds library"
   task :freetds => ["ports/.freetds.timestamp"] do
     recipe = MiniPortile.new("freetds", "0.83.dev")
     recipe.activate

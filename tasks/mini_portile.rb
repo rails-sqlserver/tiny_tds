@@ -5,14 +5,14 @@ require 'tempfile'
 
 class MiniPortile
   attr_reader :name, :version, :target
-  attr_accessor :host, :files, :log
+  attr_accessor :host, :files, :logger
 
   def initialize(name, version)
     @name = name
     @version = version
     @target = 'ports'
     @files = []
-    @log = STDOUT
+    @logger = STDOUT
 
     @host = RbConfig::CONFIG['arch']
   end
@@ -94,7 +94,7 @@ class MiniPortile
       'LIBRARY_PATH'  => File.join(port_path, 'lib')
     }.reject { |env, path| !File.directory?(path) }
 
-    @log.puts "Activating #{@name} #{@version} (from #{port_path})..."
+    output "Activating #{@name} #{@version} (from #{port_path})..."
     vars.each do |var, path|
       full_path = File.expand_path(path)
 
@@ -138,13 +138,13 @@ private
     filename = File.basename(file)
     FileUtils.mkdir_p target
 
-    @log.write "Extracting #{filename} into #{target}... "
-    output = `tar xf #{file} -C #{target}`
+    message "Extracting #{filename} into #{target}... "
+    result = `tar xf #{file} -C #{target}`
     if $?.success?
-      @log.puts "OK"
+      output "OK"
     else
-      @log.puts "ERROR"
-      @log.puts output
+      output "ERROR"
+      output result
       raise "Failed to complete extract task"
     end
   end
@@ -155,13 +155,13 @@ private
     redirected = command << " >#{log_out} 2>&1"
 
     Dir.chdir work_path do
-      @log.print "Running '#{action}' for #{@name} #{@version}... "
+      message "Running '#{action}' for #{@name} #{@version}... "
       system redirected
       if $?.success?
-        @log.puts "OK"
+        output "OK"
         return true
       else
-        @log.puts "ERROR, review '#{log}' to see what happened."
+        output "ERROR, review '#{log}' to see what happened."
         raise "Failed to complete #{action} task"
       end
     end
@@ -173,6 +173,18 @@ private
     else
       false
     end
+  end
+
+  # print out a message with the logger
+  def message(text)
+    @logger.print text
+    @logger.flush
+  end
+
+  # print out a message using the logger but return to a new line
+  def output(text = "")
+    @logger.puts text
+    @logger.flush
   end
 
   # Slighly modified from RubyInstaller uri_ext, Rubinius configure
@@ -191,15 +203,15 @@ private
         http = Net::HTTP
       end
 
-      @log.write "Downloading #{filename}"
+      message "Downloading #{filename} "
       http.get_response(URI.parse(url)) do |response|
         case response
         when Net::HTTPNotFound
-          @log.puts "404 - Not Found"
+          output "404 - Not Found"
           return false
 
         when Net::HTTPClientError
-          @log.puts "Error: Client Error: #{response.inspect}"
+          output "Error: Client Error: #{response.inspect}"
           return false
 
         when Net::HTTPRedirection
@@ -220,12 +232,12 @@ private
             size += chunk.size
             new_progress = (size * 100) / total
             unless new_progress == progress
-              @log.print "\rDownloading %s (%3d%%) " % [filename, new_progress]
+              message "\rDownloading %s (%3d%%) " % [filename, new_progress]
             end
             progress = new_progress
           end
 
-          @log.puts
+          output
 
           temp_file.close
           File.unlink full_path if File.exists?(full_path)
@@ -236,8 +248,8 @@ private
 
     rescue Exception => e
       File.unlink full_path if File.exists?(full_path)
-      @log.puts "ERROR: #{e.message}"
-      return false
+      output "ERROR: #{e.message}"
+      raise "Failed to complete download task"
     end
   end
 end

@@ -7,10 +7,10 @@ class MiniPortile
   attr_reader :name, :version, :target
   attr_accessor :host, :files, :log
 
-  def initialize(name, version, target)
+  def initialize(name, version)
     @name = name
     @version = version
-    @target = target
+    @target = 'ports'
     @files = []
     @log = STDOUT
 

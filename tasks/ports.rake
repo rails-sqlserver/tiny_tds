@@ -3,7 +3,7 @@ require File.expand_path("mini_portile", File.dirname(__FILE__))
 namespace :ports do
   directory "ports"
   file "ports/.libiconv.timestamp" => ["ports"] do |f|
-    recipe = MiniPortile.new("libiconv", "1.13.1", "ports")
+    recipe = MiniPortile.new("libiconv", "1.13.1")
     recipe.files = ["http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.13.1.tar.gz"]
 
     # download, extract, configure, compile and install, puf!
@@ -15,7 +15,7 @@ namespace :ports do
 
   desc "Compile libiconv support library"
   task :libiconv => ["ports/.libiconv.timestamp"] do
-    recipe = MiniPortile.new("libiconv", "1.13.1", "ports")
+    recipe = MiniPortile.new("libiconv", "1.13.1")
     recipe.activate
   end
 end

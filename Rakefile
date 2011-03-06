@@ -36,8 +36,12 @@ task :distclean  do
   Rake::Task[:clean].invoke
 end
 
+# to compile you need FreeTDS (first than anything)
+task :compile => ["ports:freetds"]
+
 Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
   ext.lib_dir = 'lib/tiny_tds'
+  ext.config_options << "--enable-iconv"
 end
 
 task :build => [:clean, :compile]

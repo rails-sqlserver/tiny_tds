@@ -36,8 +36,7 @@ task :distclean  do
   Rake::Task[:clean].invoke
 end
 
-# to compile you need FreeTDS (first than anything)
-task :compile => ["ports:freetds"]
+task :compile => ["ports:freetds"] unless ENV['TINYTDS_SKIP_PORTS']
 
 Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
   ext.lib_dir = 'lib/tiny_tds'

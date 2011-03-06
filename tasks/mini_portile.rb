@@ -152,7 +152,7 @@ private
   def execute(action, command)
     log        = log_file(action)
     log_out    = File.expand_path(log)
-    redirected = command << " 2>&1 >#{log_out}"
+    redirected = command << " >#{log_out} 2>&1"
 
     Dir.chdir work_path do
       @log.print "Running '#{action}' for #{@name} #{@version}... "

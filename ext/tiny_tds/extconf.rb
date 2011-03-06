@@ -3,6 +3,8 @@ require 'mkmf'
 FREETDS_LIBRARIES = ['sybdb']
 FREETDS_HEADERS = ['sybfront.h', 'sybdb.h']
 
+FREETDS_LIBRARIES.unshift 'iconv' if enable_config('iconv')
+
 dir_config('freetds')
 
 def root_paths

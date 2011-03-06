@@ -14,3 +14,4 @@ lib/tiny_tds/tiny_tds.rb
 Gemfile.lock
 misc
 *.gem
+ports

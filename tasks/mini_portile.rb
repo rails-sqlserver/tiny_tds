@@ -38,6 +38,7 @@ class MiniPortile
     options = [
       "--disable-shared",   # disable generation of shared object
       "--enable-static",    # build static library
+      "--host=#{@host}",    # build for specific target (host)
       "--prefix=#{prefix}"  # installation target
     ].join(' ')
 

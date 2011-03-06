@@ -148,7 +148,7 @@ class ResultTest < TinyTds::TestCase
         inserted_rows = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
         assert_equal 1, inserted_rows, 'should have inserted row for one above'
         updated_rows = @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
-        assert_equal 1, updated_rows, 'should have updated row for one above'
+        assert_equal 1, updated_rows, 'should have updated row for one above' unless sqlserver_2000? # Will report -1
       end
     end
     
@@ -209,16 +209,16 @@ class ResultTest < TinyTds::TestCase
     end
     
     should 'return fields even when no results are found' do
-      no_results_query = "SELECT [id], [varchar_max] FROM [datatypes] WHERE [varchar_max] = 'NOTFOUND'"
+      no_results_query = "SELECT [id], [varchar_50] FROM [datatypes] WHERE [varchar_50] = 'NOTFOUND'"
       # Fields before each.
       result = @client.execute(no_results_query)
-      result.fields.must_equal ['id','varchar_max']
+      result.fields.must_equal ['id','varchar_50']
       result.each
-      result.fields.must_equal ['id','varchar_max']
+      result.fields.must_equal ['id','varchar_50']
       # Each then fields
       result = @client.execute(no_results_query)
       result.each
-      result.fields.must_equal ['id','varchar_max']
+      result.fields.must_equal ['id','varchar_50']
     end
     
     should 'allow the result to be canceled before reading' do
@@ -271,7 +271,7 @@ class ResultTest < TinyTds::TestCase
       @client.canceled?.must_equal true
       # With insert method.
       rollback_transaction(@client) do
-        @client.execute("INSERT INTO [datatypes] ([varchar_max]) VALUES ('test')").insert
+        @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('test')").insert
         @client.sqlsent?.must_equal false
         @client.canceled?.must_equal true
       end

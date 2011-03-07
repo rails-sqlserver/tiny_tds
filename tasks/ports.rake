@@ -19,7 +19,7 @@ namespace :ports do
   end
 
   desc "Compile libiconv support library"
-  task :libiconv => ["ports/.libiconv.timestamp"] do
+  task :libiconv => ["ports/.libiconv.#{ICONV_VERSION}.timestamp"] do
     recipe = MiniPortile.new "libiconv", ICONV_VERSION
     recipe.activate
   end

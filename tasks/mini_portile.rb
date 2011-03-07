@@ -5,7 +5,7 @@ require 'tempfile'
 
 class MiniPortile
   attr_reader :name, :version, :target
-  attr_accessor :host, :files, :logger
+  attr_accessor :host, :files, :logger, :config_options
 
   def initialize(name, version)
     @name = name
@@ -13,6 +13,7 @@ class MiniPortile
     @target = 'ports'
     @files = []
     @logger = STDOUT
+    @config_options = []
 
     @host = RbConfig::CONFIG['arch']
   end
@@ -40,7 +41,7 @@ class MiniPortile
       "--enable-static",    # build static library
       "--host=#{@host}",    # build for specific target (host)
       "--prefix=#{prefix}"  # installation target
-    ].join(' ')
+    ].concat(@config_options).join(' ')
 
     execute('configure', %Q(sh configure #{options}))
   end

@@ -11,7 +11,7 @@ namespace :ports do
 
   directory "ports"
 
-  file "ports/.libiconv.timestamp" => ["ports"] do |f|
+  file "ports/.libiconv.#{ICONV_VERSION}.timestamp" => ["ports"] do |f|
     recipe = MiniPortile.new "libiconv", ICONV_VERSION
     recipe.files = ["http://ftp.gnu.org/pub/gnu/libiconv/libiconv-#{ICONV_VERSION}.tar.gz"]
     recipe.cook

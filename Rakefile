@@ -40,7 +40,10 @@ task :compile => ["ports:freetds"] unless ENV['TINYTDS_SKIP_PORTS']
 
 Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
   ext.lib_dir = 'lib/tiny_tds'
-  ext.config_options << "--enable-iconv"
+  unless ENV['TINYTDS_SKIP_PORTS']
+    ext.config_options << "--enable-iconv"
+    # ext.config_options << "--enable-openssl" if ENV['TINYTDS_ENABLE_OPENSSL']
+  end
 end
 
 task :build => [:clean, :compile]

@@ -1,9 +1,9 @@
 require 'mkmf'
 
 FREETDS_LIBRARIES = ['sybdb']
-FREETDS_HEADERS = ['sybfront.h', 'sybdb.h']
-
 FREETDS_LIBRARIES.unshift 'iconv' if enable_config('iconv')
+# FREETDS_LIBRARIES.unshift 'openssl' if enable_config('openssl')
+FREETDS_HEADERS = ['sybfront.h', 'sybdb.h']
 
 dir_config('freetds')
 
@@ -26,7 +26,7 @@ def find_freetds_libraries_path
       if File.directory?(dir)
         puts "#{message} yes"
         if with_ldflags("#{$LDFLAGS} -L#{dir}".strip) { have_freetds_libraries?(*FREETDS_LIBRARIES) }
-          $LDFLAGS += "#{$LDFLAGS} -L#{dir}".strip
+          $LDFLAGS = "-L#{dir} #{$LDFLAGS}".strip
           true
         else
           false
@@ -51,7 +51,7 @@ def find_freetds_include_path
       if File.directory?(dir)
         puts "#{message} yes"
         if with_cppflags("#{$CPPFLAGS} -I#{dir}".strip) { have_freetds_headers?(*FREETDS_HEADERS) }
-          $CPPFLAGS += "#{$CPPFLAGS} -I#{dir}".strip
+          $CPPFLAGS = "-I#{dir} #{$CPPFLAGS}".strip
           true
         else
           false
@@ -65,8 +65,9 @@ def find_freetds_include_path
 end
 
 def have_freetds?
-  (have_freetds_libraries?(*FREETDS_LIBRARIES) || find_freetds_libraries_path) && 
-  (have_freetds_headers?(*FREETDS_HEADERS) || find_freetds_include_path)
+  have_iconv = enable_config('iconv') ? have_library('iconv') : true
+  have_openssl = true # enable_config('openssl') ? have_library('openssl') : true
+  have_iconv && have_openssl && find_freetds_libraries_path && find_freetds_include_path
 end
 
 unless have_freetds?

@@ -4,18 +4,30 @@ require 'fileutils'
 require 'tempfile'
 
 class MiniPortile
-  attr_reader :name, :version, :target
-  attr_accessor :host, :files, :logger, :config_options
+  attr_reader :name, :version, :target, :prefix
+  attr_accessor :host, :files, :patchfiles, :logger, :config_options, :config_command, :force_configure,
+                :default_config_options, :reinplacements
 
   def initialize(name, version)
     @name = name
     @version = version
     @target = 'ports'
     @files = []
+    @patchfiles = []
     @logger = STDOUT
     @config_options = []
-
+    @config_command = 'configure'
+    @force_configure = false
+    @reinplacements = []
+    
     @host = RbConfig::CONFIG['arch']
+    @prefix = File.expand_path(port_path)
+    @default_config_options = [
+      "--disable-shared",    # disable generation of shared object
+      "--enable-static",     # build static library
+      "--host=#{@host}",     # build for specific target (host)
+      "--prefix=#{@prefix}"  # installation target
+    ]
   end
 
   def download
@@ -32,18 +44,24 @@ class MiniPortile
     end
   end
 
+  def patch
+    @patchfiles.each do |file|
+      file = File.expand_path(File.join(@target, '..', file))
+      patch_file(file)
+    end
+  end
+
+  def reinplace
+    @reinplacements.each do |r|
+      file, before, after = r
+      reinplace_file(file, before, after)
+    end
+  end
+
   def configure
     return if configured?
-
-    prefix  = File.expand_path(port_path)
-    options = [
-      "--disable-shared",   # disable generation of shared object
-      "--enable-static",    # build static library
-      "--host=#{@host}",    # build for specific target (host)
-      "--prefix=#{prefix}"  # installation target
-    ].concat(@config_options).join(' ')
-
-    execute('configure', %Q(sh configure #{options}))
+    options = @default_config_options.concat(@config_options).join(' ')
+    execute('configure', %Q(sh #{config_command} #{options}))
   end
 
   def compile
@@ -65,6 +83,7 @@ class MiniPortile
   end
 
   def configured?
+    return false if force_configure
     configure = File.join(work_path, 'configure')
     makefile  = File.join(work_path, 'Makefile')
 
@@ -81,6 +100,8 @@ class MiniPortile
   def cook
     download unless downloaded?
     extract
+    patch
+    reinplace
     configure unless configured?
     compile
     install unless installed?
@@ -147,6 +168,33 @@ private
       output "ERROR"
       output result
       raise "Failed to complete extract task"
+    end
+  end
+  
+  def patch_file(file)
+    filename = File.basename(file)
+
+    Dir.chdir work_path do
+      message "Patching with #{filename} into #{work_path}... "
+      result = `patch -p0 -s -i #{file}`
+      if $?.success?
+        output "OK"
+      else
+        output "ERROR"
+        output result
+        raise "Failed to complete patch task"
+      end
+    end
+  end
+
+  def reinplace_file(file, before, after)
+    output "Reinplace file #{file} before #{before.inspect} and after #{after.inspect}..."
+    Dir.chdir work_path do      
+      f = File.open(file, 'r')
+      s = f.read
+      s.gsub!(before, after)
+      f.reopen(file, 'w').write(s)
+      f.close
     end
   end
 

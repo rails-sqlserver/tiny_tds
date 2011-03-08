@@ -4,6 +4,7 @@ require "rake/clean"
 require 'rbconfig'
 require 'rake/testtask'
 require 'rake/extensiontask'
+require 'mini_portile'
 
 Dir["tasks/*.rake"].sort.each { |f| load f }
 
@@ -40,10 +41,7 @@ task :compile => ["ports:freetds"] unless ENV['TINYTDS_SKIP_PORTS']
 
 Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
   ext.lib_dir = 'lib/tiny_tds'
-  unless ENV['TINYTDS_SKIP_PORTS']
-    ext.config_options << "--enable-iconv"
-    # ext.config_options << "--enable-openssl" if ENV['TINYTDS_ENABLE_OPENSSL']
-  end
+  ext.config_options << "--enable-iconv" unless ENV['TINYTDS_SKIP_PORTS']
 end
 
 task :build => [:clean, :compile]

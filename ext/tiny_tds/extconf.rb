@@ -2,7 +2,6 @@ require 'mkmf'
 
 FREETDS_LIBRARIES = ['sybdb']
 FREETDS_LIBRARIES.unshift 'iconv' if enable_config('iconv')
-# FREETDS_LIBRARIES.unshift 'openssl' if enable_config('openssl')
 FREETDS_HEADERS = ['sybfront.h', 'sybdb.h']
 
 dir_config('freetds')
@@ -65,9 +64,7 @@ def find_freetds_include_path
 end
 
 def have_freetds?
-  have_iconv = enable_config('iconv') ? have_library('iconv') : true
-  have_openssl = true # enable_config('openssl') ? have_library('openssl') : true
-  have_iconv && have_openssl && find_freetds_libraries_path && find_freetds_include_path
+  find_freetds_libraries_path && find_freetds_include_path
 end
 
 unless have_freetds?

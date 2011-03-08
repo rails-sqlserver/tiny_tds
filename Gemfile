@@ -3,6 +3,7 @@ source :rubygems
 
 group :development do
   gem 'rake', '>= 0.8.7'
+  gem 'mini_portile', '0.1.0'
   gem 'rake-compiler', '0.7.6'
 end
 

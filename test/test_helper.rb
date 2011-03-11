@@ -59,10 +59,14 @@ module TinyTds
     end
     
     def connection_options(options={})
-      { :dataserver    => ENV['TINYTDS_UNIT_DATASERVER'],
+      dataserver = ENV['TINYTDS_UNIT_DATASERVER']
+      azure = !dataserver.match(/azure/).nil?
+      database = azure ? ENV['TINYTDS_UNIT_AZURE_DB'] : 'tinytds_test'
+      password = azure ? ENV['TINYTDS_UNIT_AZURE_PASS'] : ''
+      { :dataserver    => dataserver,
         :username      => 'tinytds',
-        :password      => '',
-        :database      => 'tinytds_test',
+        :password      => password,
+        :database      => database,
         :appname       => 'TinyTds Dev',
         :login_timeout => 5,
         :timeout       => 5

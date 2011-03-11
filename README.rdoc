@@ -12,6 +12,11 @@ The API is simple and consists of these classes:
 * TinyTds::Error - A wrapper for all exceptions.
 
 
+== New & Noteworthy
+
+* Works with FreeTDS 0.83.dev
+* Tested on Windows using MiniPortile & RailsInstaller.
+
 
 == Install
 
@@ -25,7 +30,7 @@ Although we search for FreeTDS's libraries and headers, you may have to specify 
 
 == FreeTDS Compatibility
 
-TinyTDS is developed primarily for FreeTDS 0.82 and tested with SQL Server 2000, 2005, and 2008 using TDS Version 8.0. We utilize FreeTDS's db-lib client library. We compile against sybdb.h and define MSDBLIB which means that our client enables Microsoft behavior in the db-lib API where it diverges from Sybase's. You do NOT need to compile FreeTDS with the "--enable-msdblib" option for our client to work properly. However, please make sure to compile FreeTDS with libiconv support for encodings to work at their best. Run "tsql -C" in your console and check for "iconv library: yes".
+TinyTDS is developed for FreeTDS 0.82 & 0.83.dev. It is tested with SQL Server 2000, 2005, and 2008 using TDS Version 8.0. We utilize FreeTDS's db-lib client library. We compile against sybdb.h and define MSDBLIB which means that our client enables Microsoft behavior in the db-lib API where it diverges from Sybase's. You do NOT need to compile FreeTDS with the "--enable-msdblib" option for our client to work properly. However, please make sure to compile FreeTDS with libiconv support for encodings to work at their best. Run "tsql -C" in your console and check for "iconv library: yes".
 
 
 
@@ -218,7 +223,9 @@ http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/wiki/Using-Tiny
 
 We use bundler for development. Simply run "bundle install" then "rake" to build the gem and run the unit tests. The tests assume you have created a database named "tinytds_test" accessible by a database owner named "tinytds". Before running the test rake task, you may need to define a pair of environment variables that help the client connect to your specific FreeTDS database server name and which schema (2000, 2005 or 2008) to use. For example:
 
-  $ env TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2008 rake
+  $ rake TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2008
+
+If you are compiling locally using MiniPortile (the default dev setup) and you do not have a user based freetds.conf file with your dataservers, you may have to configure the locally compiled freetds.conf file. You can find it at the ports/<platform>/freetds/<version>/etc/freetds.conf path locally to your repo. In this situation you may have to set the FREETDS environment variable too this full path.
 
 For help and support.
 
@@ -229,8 +236,6 @@ For help and support.
 
 Current to do list.
 
-* Test 0.83 development of FreeTDS.
-* Working with RailsInstaller.
 * Install an interrupt handler.
 * Allow #escape to accept all ruby primitives.
 * Get bug reports!

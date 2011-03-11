@@ -8,7 +8,9 @@ dir_config('freetds')
 
 def root_paths
   eop_regexp = /#{File::SEPARATOR}bin$/
-  paths = ENV['PATH'].split(File::PATH_SEPARATOR)
+  paths = ENV['PATH']
+  paths = paths.gsub(File::ALT_SEPARATOR, File::SEPARATOR) if File::ALT_SEPARATOR
+  paths = paths.split(File::PATH_SEPARATOR)
   bin_paths = paths.select{ |p| p =~ eop_regexp }
   bin_paths.map{ |p| p.sub(eop_regexp,'') }.compact.reject{ |p| p.empty? }.uniq
 end

@@ -1,6 +1,8 @@
 
 * master *
 
+* Allow SYBEICONVI errors to pass thru so that bad data is converted to ? marks.
+
 * Build native deps using MiniPortile [Luis Lavena]
 
 * Allow Result#fields to be called before iterating over the results.

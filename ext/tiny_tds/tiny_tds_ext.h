@@ -1,6 +1,8 @@
 #ifndef TINYTDS_EXT
 #define TINYTDS_EXT
+
 #undef MSDBLIB
+#define SYBDBLIB
 
 #include <ruby.h>
 #include <sybfront.h>

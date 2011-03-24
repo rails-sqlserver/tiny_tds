@@ -1,4 +1,9 @@
 
+* 0.4.2 *
+
+* Really fix what 0.4.1 was supposed to do, force SYBDBLIB compile.
+
+
 * 0.4.1 *
 
 * Undefine MSDBLIB in case others have explicitly compiled FreeTDS with "MS db-lib source compatibility: yes".

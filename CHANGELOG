@@ -1,6 +1,8 @@
 
 * 0.4.2 *
 
+* Iconv is a dep only when compiling locally. However, left in the ability to configure it for native gem installation but you must use --enable-iconv before using --with-iconv-dir=/some/dir
+
 * Really fix what 0.4.1 was supposed to do, force SYBDBLIB compile.
 
 

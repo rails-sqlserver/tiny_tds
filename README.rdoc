@@ -30,7 +30,7 @@ Although we search for FreeTDS's libraries and headers, you may have to specify 
 
 == FreeTDS Compatibility
 
-TinyTDS is developed for FreeTDS 0.82 & 0.83.dev. It is tested with SQL Server 2000, 2005, 2008 and Azure using TDS Version 8.0. We utilize FreeTDS's db-lib client library. We compile against sybdb.h and define MSDBLIB which means that our client enables Microsoft behavior in the db-lib API where it diverges from Sybase's. You do NOT need to compile FreeTDS with the "--enable-msdblib" option for our client to work properly. However, please make sure to compile FreeTDS with libiconv support for encodings to work at their best. Run "tsql -C" in your console and check for "iconv library: yes".
+TinyTDS is developed for FreeTDS 0.82 & 0.83.dev. It is tested with SQL Server 2000, 2005, 2008 and Azure using TDS Version 8.0. We utilize FreeTDS's db-lib client library. We compile against sybdb.h, undefine MSDBLIB and define SYBDBLIB which means that internally we conform to sybase API to db-lib. TinyTDS will work for both Sybase & Miscrosoft SQL Server. You do NOT need to compile FreeTDS with the "--enable-msdblib" option for our client to work properly. However, please make sure to compile FreeTDS with libiconv support for encodings to work at their best. Run "tsql -C" in your console and check for "iconv library: yes".
 
 
 
@@ -222,7 +222,7 @@ http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/wiki/Using-Tiny
 
 == Using TinyTDS with Azure
 
-TinyTDS is fully tested with the Azure platform. You must set the :azure => true connection option when connecting. This is needed to specify the default in the login packet since Azure has no notion of "USE [database]". You must use the latest FreeTDS 0.83.dev and it must be compiled with OpenSSL. Please make sure that 0.83.dev has included this patch as well https://gist.github.com/889190
+TinyTDS is fully tested with the Azure platform. You must set the :azure => true connection option when connecting. This is needed to specify the default in the login packet since Azure has no notion of "USE [database]". You must use the latest FreeTDS 0.83.dev and it must be compiled with OpenSSL.
 
 
 

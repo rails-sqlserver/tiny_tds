@@ -1,5 +1,7 @@
 
 TODO
+
+  * Update Readme when 0.83.dev becomes a release.
   
   * Client & Connection
     - Make a #ping method that does the "SELECT 1" when not closed.

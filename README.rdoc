@@ -64,6 +64,7 @@ Creating a new client takes a hash of options. For valid iconv encoding options,
 * :login_timeout - Seconds to wait for login. Default to 60 seconds.
 * :timeout - Seconds to wait for a response to a SQL command. Default 5 seconds.
 * :encoding - Any valid iconv value like CP1251 or ISO-8859-1. Default UTF-8.
+* :azure - Pass true to signal that you are connecting to azure.
 
 Close and free a clients connection.
 
@@ -216,6 +217,12 @@ By default row caching is turned on because the SQL Server adapter for ActiveRec
 As of version 2.3.11 & 3.0.3 of the adapter, you can specify a :dblib mode in database.yml and use TinyTDS as the low level connection mode. Make sure to add a :dataserver option to that matches the name in your freetds.conf file. The SQL Server adapter can be found using the link below. Also included is a direct link to the wiki article covering common questions when using TinyTDS as the low level connection mode for the adapter.
 
 http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/wiki/Using-TinyTds
+
+
+
+== Using TinyTDS with Azure
+
+TinyTDS is fully tested with the Azure platform. You must set the :azure => true connection option when connecting. This is needed to specify the default in the login packet since Azure has no notion of "USE [database]". You must use the latest FreeTDS 0.83.dev and it must be compiled with OpenSSL. Please make sure that 0.83.dev has included this patch as well https://gist.github.com/889190
 
 
 

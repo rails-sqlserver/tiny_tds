@@ -30,7 +30,7 @@ Although we search for FreeTDS's libraries and headers, you may have to specify 
 
 == FreeTDS Compatibility
 
-TinyTDS is developed for FreeTDS 0.82 & 0.83.dev. It is tested with SQL Server 2000, 2005, and 2008 using TDS Version 8.0. We utilize FreeTDS's db-lib client library. We compile against sybdb.h and define MSDBLIB which means that our client enables Microsoft behavior in the db-lib API where it diverges from Sybase's. You do NOT need to compile FreeTDS with the "--enable-msdblib" option for our client to work properly. However, please make sure to compile FreeTDS with libiconv support for encodings to work at their best. Run "tsql -C" in your console and check for "iconv library: yes".
+TinyTDS is developed for FreeTDS 0.82 & 0.83.dev. It is tested with SQL Server 2000, 2005, 2008 and Azure using TDS Version 8.0. We utilize FreeTDS's db-lib client library. We compile against sybdb.h and define MSDBLIB which means that our client enables Microsoft behavior in the db-lib API where it diverges from Sybase's. You do NOT need to compile FreeTDS with the "--enable-msdblib" option for our client to work properly. However, please make sure to compile FreeTDS with libiconv support for encodings to work at their best. Run "tsql -C" in your console and check for "iconv library: yes".
 
 
 
@@ -95,7 +95,7 @@ Calling #each on the result will lazily load each row from the database.
 
 A result object has a #fields accessor. It can be called before the result rows are iterated over. Even if no rows are returned, #fields will still return the column names you expected. Any SQL that does not return columned data will always return an empty array for #fields. It is important to remember that if you access the #fields before iterating over the results, the columns will always follow the default query option's :symbolize_keys setting at the client's level and will ignore the query options passed to each.
 
-  result = client.execute("USE [tinytds_test]")
+  result = client.execute("USE [tinytdstest]")
   result.fields # => []
   result.do
   
@@ -221,7 +221,7 @@ http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/wiki/Using-Tiny
 
 == Development & Testing
 
-We use bundler for development. Simply run "bundle install" then "rake" to build the gem and run the unit tests. The tests assume you have created a database named "tinytds_test" accessible by a database owner named "tinytds". Before running the test rake task, you may need to define a pair of environment variables that help the client connect to your specific FreeTDS database server name and which schema (2000, 2005 or 2008) to use. For example:
+We use bundler for development. Simply run "bundle install" then "rake" to build the gem and run the unit tests. The tests assume you have created a database named "tinytdstest" accessible by a database owner named "tinytds". Before running the test rake task, you may need to define a pair of environment variables that help the client connect to your specific FreeTDS database server name and which schema (2000, 2005, 2008 or azure) to use. For example:
 
   $ rake TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2008
 

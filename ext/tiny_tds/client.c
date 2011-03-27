@@ -4,7 +4,7 @@
 
 VALUE cTinyTdsClient;
 extern VALUE mTinyTds, cTinyTdsError;
-static ID sym_username, sym_password, sym_dataserver, sym_database, sym_appname, sym_tds_version, sym_login_timeout, sym_timeout, sym_encoding;
+static ID sym_username, sym_password, sym_dataserver, sym_database, sym_appname, sym_tds_version, sym_login_timeout, sym_timeout, sym_encoding, sym_azure;
 static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, intern_os_error_number_eql;
 static ID intern_new, intern_dup, intern_transpose_iconv_encoding, intern_local_offset, intern_gsub;
 VALUE opt_escape_regex, opt_escape_dblquote;
@@ -224,7 +224,7 @@ static VALUE rb_tinytds_return_code(VALUE self) {
 
 static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   /* Parsing options hash to local vars. */
-  VALUE user, pass, dataserver, database, app, version, ltimeout, timeout, charset;
+  VALUE user, pass, dataserver, database, app, version, ltimeout, timeout, charset, azure;
   user = rb_hash_aref(opts, sym_username);
   pass = rb_hash_aref(opts, sym_password);
   dataserver = rb_hash_aref(opts, sym_dataserver);
@@ -234,6 +234,7 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   ltimeout = rb_hash_aref(opts, sym_login_timeout);
   timeout = rb_hash_aref(opts, sym_timeout);
   charset = rb_hash_aref(opts, sym_encoding);
+  azure = rb_hash_aref(opts, sym_azure);
   /* Dealing with options. */
   if (dbinit() == FAIL) {
     rb_raise(cTinyTdsError, "failed dbinit() function");
@@ -257,14 +258,22 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
     dbsettime(NUM2INT(timeout));
   if (!NIL_P(charset))
     DBSETLCHARSET(cwrap->login, StringValuePtr(charset));
+  if (!NIL_P(database) && (azure == Qtrue)) {
+    #ifdef DBSETLDBNAME
+      DBSETLDBNAME(cwrap->login, StringValuePtr(database));
+    #else
+      rb_warn("TinyTds: Azure connections not supported in this version of FreeTDS.\n");
+    #endif
+  }
   cwrap->client = dbopen(cwrap->login, StringValuePtr(dataserver));
   if (cwrap->client) {
     cwrap->closed = 0;
     cwrap->charset = charset;
     dbsetuserdata(cwrap->client, (BYTE*)cwrap->userdata);
     cwrap->userdata->closed = 0;
-    if (!NIL_P(database))
+    if (!NIL_P(database) && (azure != Qtrue)) {
       dbuse(cwrap->client, StringValuePtr(database));
+    }
     #ifdef HAVE_RUBY_ENCODING_H
       VALUE transposed_encoding = rb_funcall(cTinyTdsClient, intern_transpose_iconv_encoding, 1, charset);
       cwrap->encoding = rb_enc_find(StringValuePtr(transposed_encoding));
@@ -302,6 +311,7 @@ void init_tinytds_client() {
   sym_login_timeout = ID2SYM(rb_intern("login_timeout"));
   sym_timeout = ID2SYM(rb_intern("timeout"));
   sym_encoding = ID2SYM(rb_intern("encoding"));
+  sym_azure = ID2SYM(rb_intern("azure"));
   /* Intern TinyTds::Error Accessors */
   intern_source_eql = rb_intern("source=");
   intern_severity_eql = rb_intern("severity=");

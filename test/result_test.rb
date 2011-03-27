@@ -202,7 +202,7 @@ class ResultTest < TinyTds::TestCase
     end
     
     should 'always return an array for fields for all sql' do
-      result = @client.execute("USE [tinytds_test]")
+      result = @client.execute("USE [tinytdstest]")
       result.fields.must_equal []
       result.do
       result.fields.must_equal []
@@ -297,7 +297,7 @@ class ResultTest < TinyTds::TestCase
       assert_equal col_name, row.keys.first
       assert_utf8_encoding result.fields.first
       assert_utf8_encoding row.keys.first
-    end
+    end unless sqlserver_azure?
     
     should 'allow #return_code to work with stored procedures and reset per sql batch' do
       assert_nil @client.return_code
@@ -367,7 +367,7 @@ class ResultTest < TinyTds::TestCase
           result.fields.must_equal ['id']
         end
       end
-
+    
     end
     
     context 'when casting to native ruby values' do

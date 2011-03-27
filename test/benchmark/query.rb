@@ -22,7 +22,7 @@ reps 1_000
   :dataserver    => ENV['TINYTDS_UNIT_DATASERVER'],
   :username      => 'tinytds',
   :password      => '',
-  :database      => 'tinytds_test',
+  :database      => 'tinytdstest',
   :appname       => 'TinyTds Dev',
   :login_timeout => 5,
   :timeout       => 5 )

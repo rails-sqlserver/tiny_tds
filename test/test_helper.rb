@@ -16,7 +16,7 @@ class DateTime
   end
 end
 
-TINYTDS_SCHEMAS = ['sqlserver_2000', 'sqlserver_2005', 'sqlserver_2008'].freeze
+TINYTDS_SCHEMAS = ['sqlserver_2000', 'sqlserver_2005', 'sqlserver_2008', 'sqlserver_azure'].freeze
 
 module TinyTds
   class TestCase < MiniTest::Spec
@@ -52,24 +52,25 @@ module TinyTds
     
     def new_connection(options={})
       client = TinyTds::Client.new(connection_options(options))
-      client.execute("SET ANSI_DEFAULTS ON").do
-      client.execute("SET IMPLICIT_TRANSACTIONS OFF").do
-      client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
+      unless sqlserver_azure?
+        client.execute("SET ANSI_DEFAULTS ON").do
+        client.execute("SET IMPLICIT_TRANSACTIONS OFF").do
+        client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
+      end
       client
     end
     
     def connection_options(options={})
-      dataserver = ENV['TINYTDS_UNIT_DATASERVER']
-      azure = !dataserver.match(/azure/).nil?
-      database = azure ? ENV['TINYTDS_UNIT_AZURE_DB'] : 'tinytds_test'
-      password = azure ? ENV['TINYTDS_UNIT_AZURE_PASS'] : ''
-      { :dataserver    => dataserver,
-        :username      => 'tinytds',
+      username = sqlserver_azure? ? ENV['TINYTDS_UNIT_AZURE_USER'] : 'tinytds'
+      password = sqlserver_azure? ? ENV['TINYTDS_UNIT_AZURE_PASS'] : ''
+      { :dataserver    => ENV['TINYTDS_UNIT_DATASERVER'],
+        :username      => username,
         :password      => password,
-        :database      => database,
+        :database      => 'tinytdstest',
         :appname       => 'TinyTds Dev',
         :login_timeout => 5,
-        :timeout       => 5
+        :timeout       => 5,
+        :azure         => sqlserver_azure?
       }.merge(options)
     end
     
@@ -146,7 +147,7 @@ module TinyTds
       %|IF EXISTS (
           SELECT TABLE_NAME
           FROM INFORMATION_SCHEMA.TABLES 
-          WHERE TABLE_CATALOG = 'tinytds_test' 
+          WHERE TABLE_CATALOG = 'tinytdstest' 
           AND TABLE_TYPE = 'BASE TABLE' 
           AND TABLE_NAME = 'datatypes'
         ) DROP TABLE [datatypes]

@@ -1,5 +1,5 @@
 
-* master *
+* 0.4.3 *
 
 * New Client#active? method to check for good connection. Always use this abstract method.
 

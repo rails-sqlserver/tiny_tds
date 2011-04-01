@@ -138,9 +138,9 @@ class ClientTest < TinyTds::TestCase
       options = connection_options :encoding => 'ISO-WTF'
       action = lambda { new_connection(options) }
       assert_raise_tinytds_error(action) do |e|
-        assert_equal 20017, e.db_error_number
+        assert_equal 20002, e.db_error_number
         assert_equal 9, e.severity
-        assert_match %r{unexpected eof from the server}i, e.message, 'ignore if non-english test run'
+        assert_match %r{connection failed}i, e.message, 'ignore if non-english test run'
       end
       assert_new_connections_work
     end

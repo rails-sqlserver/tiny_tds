@@ -66,6 +66,8 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
    case SYBESEOF: {
      if (userdata && userdata->timing_out)
        return_value = INT_TIMEOUT;
+     return INT_CANCEL;
+     break;
    }
    case SYBETIME: {
      if (userdata) {
@@ -75,6 +77,12 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
          userdata->timing_out = 1;
        }
      }
+     cancel = 1;
+     break;
+   }
+   case SYBEWRIT: {
+     if (userdata && (userdata->dbsqlok_sent || userdata->dbcancel_sent))
+       return INT_CANCEL;
      cancel = 1;
      break;
    }
@@ -148,6 +156,11 @@ static VALUE rb_tinytds_close(VALUE self) {
     cwrap->userdata->closed = 1;
   }
   return Qtrue;
+}
+
+static VALUE rb_tinytds_dead(VALUE self) {
+  GET_CLIENT_WRAPPER(self);
+  return dbdead(cwrap->client) ? Qtrue : Qfalse;
 }
 
 static VALUE rb_tinytds_closed(VALUE self) {
@@ -293,6 +306,7 @@ void init_tinytds_client() {
   rb_define_method(cTinyTdsClient, "close", rb_tinytds_close, 0);
   rb_define_method(cTinyTdsClient, "closed?", rb_tinytds_closed, 0);
   rb_define_method(cTinyTdsClient, "canceled?", rb_tinytds_canceled, 0);
+  rb_define_method(cTinyTdsClient, "dead?", rb_tinytds_dead, 0);
   rb_define_method(cTinyTdsClient, "sqlsent?", rb_tinytds_sqlsent, 0);
   rb_define_method(cTinyTdsClient, "execute", rb_tinytds_execute, 1);
   rb_define_method(cTinyTdsClient, "charset", rb_tinytds_charset, 0);

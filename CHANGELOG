@@ -1,6 +1,8 @@
 
 * master *
 
+* Better SYBEWRIT "Write to SQL Server failed." error handling. New Client#dead? check.
+
 * Azure tested using latest FreeTDS with submitted patch. https://gist.github.com/889190
 
 

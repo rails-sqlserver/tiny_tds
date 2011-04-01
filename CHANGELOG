@@ -1,6 +1,8 @@
 
 * master *
 
+* New Client#active? method to check for good connection. Always use this abstract method.
+
 * Better SYBEWRIT "Write to SQL Server failed." error handling. New Client#dead? check.
 
 * Azure tested using latest FreeTDS with submitted patch. https://gist.github.com/889190

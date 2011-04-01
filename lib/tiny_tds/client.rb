@@ -62,6 +62,9 @@ module TinyTds
       "#{info[:name]} - #{info[:description]}" if info
     end
 
+    def active?
+      !closed? && !dead?
+    end
 
     private
     

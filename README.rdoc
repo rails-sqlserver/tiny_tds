@@ -66,10 +66,18 @@ Creating a new client takes a hash of options. For valid iconv encoding options,
 * :encoding - Any valid iconv value like CP1251 or ISO-8859-1. Default UTF-8.
 * :azure - Pass true to signal that you are connecting to azure.
 
-Close and free a clients connection.
-
+Use the #active? method to determine if a connection is good. The implementation of this method may change but it should always guarantee that a connection is good. Current it checks for either a closed or dead connection.
+  
+  client.dead?    # => false
+  client.closed?  # => false
+  client.active?  # => true
+  client.execute("SQL TO A DEAD SERVER")
+  client.dead?    # => true
+  client.closed?  # => false
+  client.active?  # => false
   client.close
-  client.closed? # => true
+  client.closed?  # => true
+  client.active?  # => false
 
 Escape strings.
 
@@ -251,7 +259,7 @@ Current to do list.
 
 == About Me
 
-My name is Ken Collins and to avoid confusion – I have no love for Microsoft nor do I work on Windows or have I ever owned a PC, just so we know :) – I currently maintain the SQL Server adapter for ActiveRecord and wrote this library as my first cut into learning ruby C extensions. Hopefully it will help promote the power of ruby and the rails framework to those that have not yet discovered it. My blog is http://metaskills.net and I can be found on twitter as @metaskills. Enjoy!
+My name is Ken Collins and I currently maintain the SQL Server adapter for ActiveRecord and wrote this library as my first cut into learning ruby C extensions. Hopefully it will help promote the power of ruby and the rails framework to those that have not yet discovered it. My blog is http://metaskills.net and I can be found on twitter as @metaskills. Enjoy!
 
 
 

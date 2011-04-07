@@ -70,9 +70,14 @@ def have_freetds?
   find_freetds_libraries_path && find_freetds_include_path
 end
 
-unless have_freetds?
-  abort "-----\nCan not find FreeTDS's db-lib or include directory.\n-----"
+if enable_config("lookup", true)
+  unless have_freetds?
+    abort "-----\nCan not find FreeTDS's db-lib or include directory.\n-----"
+  end
+else
+  unless have_freetds_libraries?(*FREETDS_LIBRARIES) && have_freetds_headers?(*FREETDS_HEADERS)
+    abort "-----\nCan not find FreeTDS's db-lib or include directory.\n-----"
+  end
 end
 
 create_makefile('tiny_tds/tiny_tds')
-

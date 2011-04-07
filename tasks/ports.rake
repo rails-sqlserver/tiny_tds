@@ -10,6 +10,7 @@ namespace :ports do
     "0.83.dev" => "current"
   }
   FREETDS_STABLE_OR_CURRENT = FREETDS_VERSION_INFO[FREETDS_VERSION]
+  ORIGINAL_HOST = RbConfig::CONFIG["arch"]
 
   directory "ports"
 
@@ -40,7 +41,13 @@ namespace :ports do
 
     unless File.exist?(checkpoint)
       recipe.configure_options << "--disable-odbc"
-      recipe.configure_options << "--with-libiconv-prefix=#{$recipes[:libiconv].path}"
+
+      # HACK: Only do this when cross compiling
+      # (util MiniPortile#activate gets the job done)
+      unless recipe.host == ORIGINAL_HOST
+        recipe.configure_options << "--with-libiconv-prefix=#{$recipes[:libiconv].path}"
+      end
+
       recipe.cook
       touch checkpoint
     end

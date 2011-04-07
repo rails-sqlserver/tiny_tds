@@ -11,5 +11,7 @@ Gem::Specification.new do |s|
   s.authors = ['Ken Collins', 'Erik Bryn']
   s.email = 'ken@metaskills.net'
   s.extensions = ['ext/tiny_tds/extconf.rb']
-  s.files = Dir['CHANGELOG', 'MIT-LICENSE', 'README.rdoc', 'ext/**/*', 'lib/**/*']
+
+  # use git file manifest instead of globing, exclude the gemspec from the list of files
+  s.files = `git ls-files`.split - ["tiny_tds.gemspec"]
 end

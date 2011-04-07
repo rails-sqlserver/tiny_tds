@@ -4,7 +4,7 @@ require "rake/clean"
 require 'rbconfig'
 require 'rake/testtask'
 require 'rake/extensiontask'
-require 'mini_portile'
+require "rubygems/package_task"
 
 Dir["tasks/*.rake"].sort.each { |f| load f }
 
@@ -26,15 +26,9 @@ Rake::TestTask.new do |t|
   t.verbose = true
 end
 
-desc "Build the gem"
-task :gem => [:distclean] do
-  sh %{gem build tiny_tds.gemspec}
-end
-
-desc "Try to clean up everything"
-task :distclean  do
-  CLEAN.concat(['pkg', 'tiny_tds-*.gem', 'tmp', 'lib/tiny_tds/tiny_tds.bundle'])
-  Rake::Task[:clean].invoke
+Gem::PackageTask.new(gemspec) do |pkg|
+  pkg.need_tar = false
+  pkg.need_zip = false
 end
 
 task :compile => ["ports:freetds"] unless ENV['TINYTDS_SKIP_PORTS']

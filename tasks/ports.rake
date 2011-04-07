@@ -39,6 +39,7 @@ namespace :ports do
 
     unless File.exist?(checkpoint)
       recipe.configure_options << "--disable-odbc"
+      recipe.configure_options << "--with-libiconv-prefix=#{$recipes[:libiconv].path}"
       recipe.cook
       touch checkpoint
     end

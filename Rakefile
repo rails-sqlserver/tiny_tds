@@ -36,10 +36,9 @@ task :compile => ["ports:freetds"] unless ENV['TINYTDS_SKIP_PORTS']
 Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
   ext.lib_dir = 'lib/tiny_tds'
   ext.config_options << "--enable-iconv" unless ENV['TINYTDS_SKIP_PORTS']
-
-  # automatically add build options to avoid need of manual input
+  # Automatically add build options to avoid need of manual input.
   if RUBY_PLATFORM =~ /mswin|mingw/ then
-    # define target for extension (supporting fat binaries)
+    # Define target for extension (supporting fat binaries).
     RUBY_VERSION =~ /(\d+\.\d+)/
     ext.lib_dir = "lib/tiny_tds/#{$1}"
   else
@@ -54,53 +53,6 @@ end
 task :build => [:clean, :compile]
 
 task :default => [:build, :test]
-
-
-
-namespace :rvm do
-  
-  RVM_RUBIES = ['ruby-1.8.6', 'ruby-1.8.7', 'ruby-1.9.1', 'ruby-1.9.2', 'ree-1.8.7', 'jruby-head']
-  RVM_GEMSET_NAME = 'tinytds'
-  
-  
-  task :setup do
-    unless @rvm_setup
-      rvm_lib_path = "#{`echo $rvm_path`.strip}/lib"
-      $LOAD_PATH.unshift(rvm_lib_path) unless $LOAD_PATH.include?(rvm_lib_path)
-      require 'rvm'
-      require 'tmpdir'
-      @rvm_setup = true
-    end
-  end
-  
-  desc "Install development gems using bundler to each rubie version."
-  task :bundle => :setup do
-    rvm_each_rubie { RVM.run 'bundle install' }
-  end
-  
-  desc "Echo command to test under each rvm rubie."
-  task :test => :setup do
-    puts "rvm #{rvm_rubies.join(',')} rake"
-  end
-  
-end
-
-
-
-# RVM Helper Methods
-
-def rvm_each_rubie
-  rvm_rubies.each do |rubie|
-    RVM.use(rubie)
-    yield
-  end
-ensure
-  RVM.reset_current!
-end
-
-def rvm_rubies(options={})
-  RVM_RUBIES.map{ |rubie| "#{rubie}@#{RVM_GEMSET_NAME}" }
-end
 
 
 

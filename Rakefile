@@ -42,6 +42,19 @@ task :compile => ["ports:freetds"] unless ENV['TINYTDS_SKIP_PORTS']
 Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
   ext.lib_dir = 'lib/tiny_tds'
   ext.config_options << "--enable-iconv" unless ENV['TINYTDS_SKIP_PORTS']
+
+  # automatically add build options to avoid need of manual input
+  if RUBY_PLATFORM =~ /mswin|mingw/ then
+    # define target for extension (supporting fat binaries)
+    RUBY_VERSION =~ /(\d+\.\d+)/
+    ext.lib_dir = "lib/tiny_tds/#{$1}"
+  else
+    ext.cross_compile = true
+    ext.cross_platform = ['i386-mingw32']
+    ext.cross_config_options << "--disable-lookup"
+    ext.cross_config_options << "--with-iconv-dir=#{$recipes[:libiconv].path}"
+    ext.cross_config_options << "--with-freetds-dir=#{$recipes[:freetds].path}"
+  end
 end
 
 task :build => [:clean, :compile]

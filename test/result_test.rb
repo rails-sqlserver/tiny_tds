@@ -252,7 +252,7 @@ class ResultTest < TinyTds::TestCase
       @client.sqlsent?.must_equal false
       @client.canceled?.must_equal false
       # With each and block canceled half way thru.
-      count = @client.execute("SELECT COUNT([id]) AS [count] FROM [datatypes]").first['count']
+      count = @client.execute("SELECT COUNT([id]) AS [count] FROM [datatypes]").each[0]['count']
       assert count > 10, 'since we want to cancel early for test'
       result = @client.execute("SELECT [id] FROM [datatypes]")
       index = 0

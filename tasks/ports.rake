@@ -2,10 +2,10 @@
 namespace :ports do
 
   ICONV_VERSION = "1.13.1"
-  FREETDS_VERSION = ENV['TINYTDS_FREETDS_STABLE'] ? "0.82" : "0.83.dev"
+  FREETDS_VERSION = ENV['TINYTDS_FREETDS_082'] ? "0.82" : "0.91rc1"
   FREETDS_VERSION_INFO = {
     "0.82" => {:files => ["http://ibiblio.org/pub/Linux/ALPHA/freetds/stable/freetds-stable.tgz"]},
-    "0.83.dev" => {:files => ["http://ibiblio.org/pub/Linux/ALPHA/freetds/current/freetds-current.tgz"]}
+    "0.91rc1" => {:files => ["http://www.ibiblio.org/pub/Linux/ALPHA/freetds/stable/release_candidates/freetds-0.91rc1.tgz"]}
   }
 
   directory "ports"

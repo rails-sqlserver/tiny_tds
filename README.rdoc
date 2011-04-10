@@ -230,7 +230,7 @@ http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/wiki/Using-Tiny
 
 == Using TinyTDS with Azure
 
-TinyTDS is fully tested with the Azure platform. You must set the :azure => true connection option when connecting. This is needed to specify the default database name in the login packet since Azure has no notion of "USE [database]". You must use the latest FreeTDS 0.91, currently called 0.83.dev. FreeTDS must be compiled with OpenSSL too.
+TinyTDS is fully tested with the Azure platform. You must set the :azure => true connection option when connecting. This is needed to specify the default database name in the login packet since Azure has no notion of "USE [database]". You must use the latest FreeTDS 0.91. FreeTDS must be compiled with OpenSSL too.
 
 
 

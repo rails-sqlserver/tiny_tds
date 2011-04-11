@@ -38,10 +38,6 @@ namespace :ports do
     unless File.exist?(checkpoint)
       recipe.configure_options << "--disable-odbc"
       recipe.configure_options << "--with-tdsver=7.1"
-      # HACK: Only do this when cross compiling (util MiniPortile#activate gets the job done)
-      unless recipe.host == ORIGINAL_HOST
-        recipe.configure_options << "--with-libiconv-prefix=#{$recipes[:libiconv].path}"
-      end
       recipe.cook
       touch checkpoint
     end
@@ -55,5 +51,7 @@ task :cross do
   $recipes.each do |_, recipe|
     recipe.host = host
   end
-end
 
+  # hook compile task with dependencies
+  Rake::Task["compile"].prerequisites.unshift "ports:freetds"
+end

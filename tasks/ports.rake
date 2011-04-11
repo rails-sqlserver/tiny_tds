@@ -4,7 +4,7 @@ require "rake/extensioncompiler"
 namespace :ports do
 
   ICONV_VERSION = "1.13.1"
-  FREETDS_VERSION = ENV['TINYTDS_FREETDS_082'] ? "0.82" : "0.91rc1"
+  FREETDS_VERSION = ENV['TINYTDS_FREETDS_082'] ? "0.82" : "0.91"
   FREETDS_VERSION_INFO = {
     "0.82" => {:files => "http://ibiblio.org/pub/Linux/ALPHA/freetds/stable/freetds-stable.tgz"},
     "0.91" => {:files => "http://www.ibiblio.org/pub/Linux/ALPHA/freetds/current/freetds-current.tgz"} }

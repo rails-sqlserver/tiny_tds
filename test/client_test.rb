@@ -44,11 +44,19 @@ class ClientTest < TinyTds::TestCase
         assert_equal Encoding.find(encoding), client.encoding if ruby19?
       end
     end
+    
+    should 'be able to use :host/:port connection' do
+      client = new_connection :dataserver => nil, :host => ENV['TINYTDS_UNIT_HOST'], :port => 1433
+    end
   
   end
   
   context 'With in-valid options' do
-  
+    
+    should 'raise an argument error when no :host given and :dataserver is blank' do
+      assert_raises(ArgumentError) { new_connection :dataserver => nil, :host => nil }
+    end
+    
     should 'raise an argument error when no :username is supplied' do
       assert_raises(ArgumentError) { TinyTds::Client.new :username => nil }
     end

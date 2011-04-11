@@ -16,6 +16,7 @@ The API is simple and consists of these classes:
 
 * Works with FreeTDS 0.91
 * Tested on Windows using MiniPortile & RailsInstaller.
+* New :host/:port connection options. Removes need for freetds.conf file.
 
 
 == Install
@@ -51,13 +52,15 @@ Below is a list of the data types we plan to support using future versions of Fr
 
 Connect to a database.
 
-  client = TinyTds::Client.new(:username => 'sa', :password => 'secret', :dataserver => 'mytds_box')
+  client = TinyTds::Client.new(:username => 'sa', :password => 'secret', :host => 'mydb.host.net')
 
 Creating a new client takes a hash of options. For valid iconv encoding options, see the output of "iconv -l". Only a few have been tested and highly recommended to leave blank for the UTF-8 default.
 
 * :username - The database server user.
 * :password - The user password.
 * :dataserver - The name for your server as defined in freetds.conf.
+* :host - Used if :dataserver blank. Removes need for freetds.conf file.
+* :port - Defaults to 1433. Only used if :host is used.
 * :database - The default database to use.
 * :appname - Short string seen in SQL Servers process/activity window.
 * :tds_version - TDS version. Defaults to 80, not recommended to change.
@@ -222,7 +225,7 @@ By default row caching is turned on because the SQL Server adapter for ActiveRec
 
 == Using TinyTDS With Rails & The ActiveRecord SQL Server adapter.
 
-As of version 2.3.11 & 3.0.3 of the adapter, you can specify a :dblib mode in database.yml and use TinyTDS as the low level connection mode. Make sure to add a :dataserver option to that matches the name in your freetds.conf file. The SQL Server adapter can be found using the link below. Also included is a direct link to the wiki article covering common questions when using TinyTDS as the low level connection mode for the adapter.
+As of version 2.3.11 & 3.0.3 of the adapter, you can specify a :dblib mode in database.yml and use TinyTDS as the low level connection mode. The SQL Server adapter can be found using the link below. Also included is a direct link to the wiki article covering common questions when using TinyTDS as the low level connection mode for the adapter.
 
 http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/wiki/Using-TinyTds
 
@@ -239,6 +242,8 @@ TinyTDS is fully tested with the Azure platform. You must set the :azure => true
 We use bundler for development. Simply run "bundle install" then "rake" to build the gem and run the unit tests. The tests assume you have created a database named "tinytdstest" accessible by a database owner named "tinytds". Before running the test rake task, you may need to define a pair of environment variables that help the client connect to your specific FreeTDS database server name and which schema (2000, 2005, 2008 or azure) to use. For example:
 
   $ rake TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2008
+    or
+  $ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_SCHEMA=sqlserver_azure
 
 If you are compiling locally using MiniPortile (the default dev setup) and you do not have a user based freetds.conf file with your dataservers, you may have to configure the locally compiled freetds.conf file. You can find it at the ports/<platform>/freetds/<version>/etc/freetds.conf path locally to your repo. In this situation you may have to set the FREETDS environment variable too this full path.
 

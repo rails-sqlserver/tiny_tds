@@ -35,7 +35,14 @@ module TinyTds
       
     end
     
-    def test_base_tiny_tds_case ; assert(true) ; end
+    setup do
+      
+    end
+    
+    teardown do
+      ENV['TDSPORT'] = nil
+      ENV['TDSHOST'] = nil
+    end
     
     
     protected
@@ -64,6 +71,7 @@ module TinyTds
       username = sqlserver_azure? ? ENV['TINYTDS_UNIT_AZURE_USER'] : 'tinytds'
       password = sqlserver_azure? ? ENV['TINYTDS_UNIT_AZURE_PASS'] : ''
       { :dataserver    => ENV['TINYTDS_UNIT_DATASERVER'],
+        :host          => ENV['TINYTDS_UNIT_HOST'],
         :username      => username,
         :password      => password,
         :database      => 'tinytdstest',

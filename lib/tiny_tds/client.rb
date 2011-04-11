@@ -47,15 +47,20 @@ module TinyTds
 
 
     def initialize(opts={})
-      raise ArgumentError, 'missing :username option' if opts[:username].nil? || opts[:username].empty?
+      raise ArgumentError, 'missing :username option' if opts[:username].to_s.empty?
+      raise ArgumentError, 'missing :host option if no :dataserver given' if opts[:dataserver].to_s.empty? && opts[:host].to_s.empty?
       @query_options = @@default_query_options.dup
-      opts[:port] ||= 1433
       opts[:appname] ||= 'TinyTds'
       opts[:tds_version] = TDS_VERSIONS_SETTERS[opts[:tds_version].to_s] || TDS_VERSIONS_SETTERS['80']
       opts[:login_timeout] ||= 60
       opts[:timeout] ||= 5
       opts[:encoding] = (opts[:encoding].nil? || opts[:encoding].downcase == 'utf8') ? 'UTF-8' : opts[:encoding].upcase
-      # TODO: Check for dataserver and/or host/port combo and raise errors if not aligned.
+      opts[:port] ||= 1433
+      ENV['TDSPORT'] = opts[:port].to_s
+      if opts[:dataserver].to_s.empty?
+        opts[:dataserver] = ''
+        ENV['TDSHOST'] = opts[:host].to_s
+      end
       connect(opts)
     end
     

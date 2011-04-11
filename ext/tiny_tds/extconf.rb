@@ -75,6 +75,7 @@ if enable_config("lookup", true)
     abort "-----\nCan not find FreeTDS's db-lib or include directory.\n-----"
   end
 else
+  $LDFLAGS = ENV.fetch("LDFLAGS")
   unless have_freetds_libraries?(*FREETDS_LIBRARIES) && have_freetds_headers?(*FREETDS_HEADERS)
     abort "-----\nCan not find FreeTDS's db-lib or include directory.\n-----"
   end

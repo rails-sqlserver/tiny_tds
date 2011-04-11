@@ -37,6 +37,7 @@ namespace :ports do
     checkpoint = "ports/.#{recipe.name}.#{recipe.version}.#{recipe.host}.timestamp"
     unless File.exist?(checkpoint)
       recipe.configure_options << "--disable-odbc"
+      recipe.configure_options << "--with-tdsver=7.1"
       # HACK: Only do this when cross compiling (util MiniPortile#activate gets the job done)
       unless recipe.host == ORIGINAL_HOST
         recipe.configure_options << "--with-libiconv-prefix=#{$recipes[:libiconv].path}"

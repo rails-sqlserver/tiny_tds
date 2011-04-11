@@ -8,7 +8,7 @@ namespace :ports do
   FREETDS_VERSION_INFO = {
     "0.82" => {:files => "http://ibiblio.org/pub/Linux/ALPHA/freetds/stable/freetds-stable.tgz"},
     "0.91" => {:files => "http://www.ibiblio.org/pub/Linux/ALPHA/freetds/current/freetds-current.tgz"} }
-  
+
   ORIGINAL_HOST = RbConfig::CONFIG["arch"]
 
   directory "ports"

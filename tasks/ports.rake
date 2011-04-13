@@ -36,6 +36,8 @@ namespace :ports do
     recipe = $recipes[:freetds]
     checkpoint = "ports/.#{recipe.name}.#{recipe.version}.#{recipe.host}.timestamp"
     unless File.exist?(checkpoint)
+      # recipe.configure_options << "--disable-debug"
+      recipe.configure_options << '--sysconfdir="C:/Sites"' if recipe.host != ORIGINAL_HOST
       recipe.configure_options << "--disable-odbc"
       recipe.configure_options << "--with-tdsver=7.1"
       recipe.cook
@@ -51,7 +53,6 @@ task :cross do
   $recipes.each do |_, recipe|
     recipe.host = host
   end
-
   # hook compile task with dependencies
   Rake::Task["compile"].prerequisites.unshift "ports:freetds"
 end

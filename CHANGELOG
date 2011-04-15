@@ -1,5 +1,7 @@
 
-* master *
+* 0.4.5.rc1 *
+
+* Release static libs for Windows.
 
 * Change how :host/:port are implemented. Now sending "host:port" to :dataserver.
 

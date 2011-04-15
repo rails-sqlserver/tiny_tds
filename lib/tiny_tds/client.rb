@@ -56,11 +56,7 @@ module TinyTds
       opts[:timeout] ||= 5
       opts[:encoding] = (opts[:encoding].nil? || opts[:encoding].downcase == 'utf8') ? 'UTF-8' : opts[:encoding].upcase
       opts[:port] ||= 1433
-      ENV['TDSPORT'] = opts[:port].to_s
-      if opts[:dataserver].to_s.empty?
-        opts[:dataserver] = ''
-        ENV['TDSHOST'] = opts[:host].to_s
-      end
+      opts[:dataserver] = "#{opts[:host]}:#{opts[:port]}" if opts[:dataserver].to_s.empty?
       connect(opts)
     end
     

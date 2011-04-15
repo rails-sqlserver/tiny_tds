@@ -1,4 +1,9 @@
 
+* master *
+
+* Change how :host/:port are implemented. Now sending "host:port" to :dataserver.
+
+
 * 0.4.4 *
 
 * New :host/:port connection options. Removes need for freetds.conf file.

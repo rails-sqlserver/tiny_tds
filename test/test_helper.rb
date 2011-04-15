@@ -35,15 +35,6 @@ module TinyTds
       
     end
     
-    setup do
-      
-    end
-    
-    teardown do
-      ENV['TDSPORT'] = nil
-      ENV['TDSHOST'] = nil
-    end
-    
     
     protected
     

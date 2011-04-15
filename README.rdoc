@@ -58,8 +58,8 @@ Creating a new client takes a hash of options. For valid iconv encoding options,
 
 * :username - The database server user.
 * :password - The user password.
-* :dataserver - The name for your server as defined in freetds.conf.
-* :host - Used if :dataserver blank. Removes need for freetds.conf file.
+* :dataserver - Many options. Can be the name for your data server as defined in freetds.conf. Raw host name or IP will work here too. You can also used a named instance like 'localhost\SQLEXPRESS' too.
+* :host - Used if :dataserver blank. Can be an host name or IP.
 * :port - Defaults to 1433. Only used if :host is used.
 * :database - The default database to use.
 * :appname - Short string seen in SQL Servers process/activity window.

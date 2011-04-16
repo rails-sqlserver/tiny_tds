@@ -8,7 +8,7 @@ require 'tiny_tds/error'
 require 'tiny_tds/client'
 require 'tiny_tds/result'
 
-# support multiple ruby version (fat binaries under windows)
+# Support multiple ruby versions, fat binaries under Windows.
 begin
   RUBY_VERSION =~ /(\d+.\d+)/
   require "tiny_tds/#{$1}/tiny_tds"

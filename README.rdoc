@@ -9,7 +9,7 @@ The API is simple and consists of these classes:
 
 * TinyTds::Client - Your connection to the database.
 * TinyTds::Result - Returned from issuing an #execute on the connection. It includes Enumerable.
-* TinyTds::Error - A wrapper for all exceptions.
+* TinyTds::Error - A wrapper for all FreeTDS exceptions.
 
 
 == New & Noteworthy

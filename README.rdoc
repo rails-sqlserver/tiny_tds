@@ -237,7 +237,7 @@ TinyTDS is fully tested with the Azure platform. You must set the :azure => true
 
 
 
-== Development & Testing
+== Development & Testing  
 
 We use bundler for development. Simply run "bundle install" then "rake" to build the gem and run the unit tests. The tests assume you have created a database named "tinytdstest" accessible by a database owner named "tinytds". Before running the test rake task, you may need to define a pair of environment variables that help the client connect to your specific FreeTDS database server name and which schema (2000, 2005, 2008 or azure) to use. For example:
 
@@ -245,7 +245,9 @@ We use bundler for development. Simply run "bundle install" then "rake" to build
     or
   $ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_SCHEMA=sqlserver_azure
 
-If you are compiling locally using MiniPortile (the default dev setup) and you do not have a user based freetds.conf file with your dataservers, you may have to configure the locally compiled freetds.conf file. You can find it at the ports/<platform>/freetds/<version>/etc/freetds.conf path locally to your repo. In this situation you may have to set the FREETDS environment variable too this full path.
+If you do not want to use MiniPortile to compile a local project version of FreeTDS, use the TINYTDS_SKIP_PORTS environment variable. This will ignore any port tasks and will instead look for your systems FreeTDS installation as a normal gem install would.
+
+  $ rake TINYTDS_SKIP_PORTS=true
 
 For help and support.
 

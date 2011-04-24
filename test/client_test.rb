@@ -47,7 +47,7 @@ class ClientTest < TinyTds::TestCase
     
     should 'be able to use :host/:port connection' do
       client = new_connection :dataserver => nil, :host => ENV['TINYTDS_UNIT_HOST'], :port => 1433
-    end
+    end unless sqlserver_azure?
   
   end
   

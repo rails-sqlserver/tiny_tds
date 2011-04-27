@@ -266,7 +266,7 @@ static VALUE rb_tinytds_result_fields(VALUE self) {
       VALUE fields = rb_ary_new2(rwrap->number_of_fields);
       for (fldi = 0; fldi < rwrap->number_of_fields; fldi++) {
         char *colname = dbcolname(rwrap->client, fldi+1);
-        VALUE field = symbolize_keys ? ID2SYM(rb_intern(colname)) : rb_obj_freeze(ENCODED_STR_NEW2(colname));
+        VALUE field = symbolize_keys ? rb_str_intern(ENCODED_STR_NEW2(colname))  : rb_obj_freeze(ENCODED_STR_NEW2(colname));
         rb_ary_store(fields, fldi, field);
       }
       /* Store the fields. */

@@ -426,7 +426,7 @@ static VALUE rb_tinytds_result_insert(VALUE self) {
         DBINT data_len = dbdatlen(rwrap->client, col);
         int null_val = ((data == NULL) && (data_len == 0));
         if (!null_val)
-          identity = LONG2NUM(*(long *)data);
+          identity = LL2NUM(*(DBBIGINT *)data);
       }
     }
     return identity;

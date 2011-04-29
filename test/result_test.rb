@@ -174,6 +174,20 @@ class ResultTest < TinyTds::TestCase
         assert_equal sql_identity+1, native_identity
       end
     end
+
+    should 'return bigint for #insert when needed' do
+      rollback_transaction(@client) do
+        seed = 9223372036854775805
+        @client.execute("DELETE FROM [datatypes]").do
+        id_constraint_name = @client.execute("EXEC sp_helpindex [datatypes]").detect{ |row| row['index_keys'] == 'id' }['index_name']
+        @client.execute("ALTER TABLE [datatypes] DROP CONSTRAINT [#{id_constraint_name}]").do
+        @client.execute("ALTER TABLE [datatypes] DROP COLUMN [id]").do
+        @client.execute("ALTER TABLE [datatypes] ADD [id] [bigint] NOT NULL IDENTITY(1,1) PRIMARY KEY").do
+        @client.execute("DBCC CHECKIDENT ('datatypes', RESEED, #{seed})").do
+        identity = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('something')").insert
+        assert_equal seed, identity
+      end
+    end
     
     should 'be able to begin/commit transactions with raw sql' do
       rollback_transaction(@client) do

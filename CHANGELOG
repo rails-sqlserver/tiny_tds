@@ -1,5 +1,7 @@
 
-* 0.4.5.rc1 *
+* 0.4.5.rc3 *
+
+* Use same bigint ruby functions to return identity. Hopefully fixes #19.
 
 * Release static libs for Windows.
 

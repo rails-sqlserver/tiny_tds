@@ -1,6 +1,8 @@
 
 * 0.4.5.rc3 *
 
+* Fixed symbolized unicode column names.
+
 * Use same bigint ruby functions to return identity. Hopefully fixes #19.
 
 * Release static libs for Windows.

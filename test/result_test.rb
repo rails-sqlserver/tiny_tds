@@ -300,17 +300,17 @@ class ResultTest < TinyTds::TestCase
       assert_equal data.first.keys.map{ |r| r.object_id }, data.last.keys.map{ |r| r.object_id }
     end
     
-    should 'have properly encoded column names' do
+    should 'have properly encoded column names with symbol keys' do
       col_name = "öäüß"
       @client.execute("DROP TABLE [test_encoding]").do rescue nil
       @client.execute("CREATE TABLE [dbo].[test_encoding] ( [#{col_name}] [nvarchar](10) NOT NULL )").do
       @client.execute("INSERT INTO [test_encoding] ([#{col_name}]) VALUES (N'#{col_name}')").do
       result = @client.execute("SELECT [#{col_name}] FROM [test_encoding]")
-      row = result.each.first
-      assert_equal col_name, result.fields.first
-      assert_equal col_name, row.keys.first
-      assert_utf8_encoding result.fields.first
-      assert_utf8_encoding row.keys.first
+      row = result.each(:as => :hash, :symbolize_keys => true).first
+      assert_instance_of Symbol, result.fields.first
+      assert_equal col_name.to_sym, result.fields.first
+      assert_instance_of Symbol, row.keys.first
+      assert_equal col_name.to_sym, row.keys.first
     end unless sqlserver_azure?
     
     should 'allow #return_code to work with stored procedures and reset per sql batch' do

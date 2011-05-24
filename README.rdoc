@@ -258,6 +258,7 @@ For help and support.
 
 Current to do list.
 
+* Include OpenSSL with Windows binaries for SQL Azure.
 * Install an interrupt handler.
 * Allow #escape to accept all ruby primitives.
 * Get bug reports!

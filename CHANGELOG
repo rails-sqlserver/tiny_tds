@@ -1,5 +1,7 @@
 
-* 0.4.5.rc3 *
+* 0.4.5 *
+
+* Includes precompiled Windows binaries for FreeTDS & LibIconv. No precompiled OpenSSL yet for Windows to SQL Azure.
 
 * Fixed symbolized unicode column names.
 

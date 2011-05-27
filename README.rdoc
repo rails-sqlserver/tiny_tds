@@ -278,3 +278,8 @@ My name is Ken Collins and I currently maintain the SQL Server adapter for Activ
 * Yehuda Katz for articulating ruby's need for proper encoding support. Especially in database drivers - http://yehudakatz.com/2010/05/05/ruby-1-9-encodings-a-primer-and-the-solution-for-rails/
 * Josh Clayton of Thoughtbot for writing about ruby C extensions. - http://robots.thoughtbot.com/post/1037240922/get-your-c-on
 
+
+== License
+
+TinyTDS is Copyright (c) 2010-2011 Ken Collins, <ken@metaskills.net> and is distributed under the MIT license. Windows binaries containe precompiled versions of FreeTDS, it is licensed under the GNU LGPL license http://www.gnu.org/licenses/lgpl-2.0.html
+

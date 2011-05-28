@@ -6,6 +6,9 @@ require 'rake/testtask'
 require 'rake/extensiontask'
 require "rubygems/package_task"
 
+# My notes for cross compile native Windows gem.
+# gcla ; bundle install ; rake compile ; rake cross compile ; rake cross native gem
+
 def test_libs
   ['lib','test']
 end

@@ -233,6 +233,18 @@ http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/wiki/Using-Tiny
 TinyTDS is fully tested with the Azure platform. You must set the :azure => true connection option when connecting. This is needed to specify the default database name in the login packet since Azure has no notion of "USE [database]". You must use the latest FreeTDS 0.91. FreeTDS must be compiled with OpenSSL too.
 
 
+== Using MiniPortile
+
+MiniPortile is a minimalistic, simplistic and stupid implementation of a port/recipe system for developers. <https://github.com/luislavena/mini_portile>
+
+The TinyTDS project uses MiniPortile so that we can easily install a local "project specific" version of FreeTDS and supporting libraries to link against when building a test version of TinyTDS. MiniPortile is a great tool that even allows us to build statically linked components that TinyTDS relies on. Hence this allows us to publish native gems for any platform. We use this feature for gems targeted at Windows.
+
+You too can use MiniPortile to build TinyTDS and build your own gems for your own package management needs. Here is a few simple steps that assume you have cloned a fresh copy of this repository. 1) Bundling will install all the development dependencies. 2) Running "rake compile" will basically download and install a supported version of FreeTDS in our "ports.rake" file and supporting libraries. These will all be installed into the projects tmp directory. 3) The final "rake native gem" command will build a native gem for your specific platform.
+
+  $ bundle install
+  $ rake compile
+  $ rake native gem
+
 
 == Development & Testing  
 
@@ -242,10 +254,10 @@ We use bundler for development. Simply run "bundle install" then "rake" to build
     or
   $ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_SCHEMA=sqlserver_azure
 
-If you do not want to use MiniPortile to compile a local project version of FreeTDS, use the TINYTDS_SKIP_PORTS environment variable. This will ignore any port tasks and will instead look for your systems FreeTDS installation as a normal gem install would.
+If you do not want to use MiniPortile to compile a local project version of FreeTDS and instead use your local system version, use the TINYTDS_SKIP_PORTS environment variable. This will ignore any port tasks and will instead build and link to your system's FreeTDS installation as a normal gem install would.
 
   $ rake TINYTDS_SKIP_PORTS=true
-  
+
 
 == Help & Support
 

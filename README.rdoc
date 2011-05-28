@@ -216,11 +216,9 @@ Besides the standard query options, the result object can take one additional op
   result.each(:first => true) # => [{'id' => 24}]
 
 
-
 == Row Caching
 
 By default row caching is turned on because the SQL Server adapter for ActiveRecord would not work without it. I hope to find some time to create some performance patches for ActiveRecord that would allow it to take advantages of lazily created yielded rows from result objects. Currently only TinyTDS and the Mysql2 gem allow such a performance gain.
-
 
 
 == Using TinyTDS With Rails & The ActiveRecord SQL Server adapter.
@@ -228,7 +226,6 @@ By default row caching is turned on because the SQL Server adapter for ActiveRec
 As of version 2.3.11 & 3.0.3 of the adapter, you can specify a :dblib mode in database.yml and use TinyTDS as the low level connection mode. The SQL Server adapter can be found using the link below. Also included is a direct link to the wiki article covering common questions when using TinyTDS as the low level connection mode for the adapter.
 
 http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/wiki/Using-TinyTds
-
 
 
 == Using TinyTDS with Azure
@@ -248,27 +245,26 @@ We use bundler for development. Simply run "bundle install" then "rake" to build
 If you do not want to use MiniPortile to compile a local project version of FreeTDS, use the TINYTDS_SKIP_PORTS environment variable. This will ignore any port tasks and will instead look for your systems FreeTDS installation as a normal gem install would.
 
   $ rake TINYTDS_SKIP_PORTS=true
+  
 
-For help and support.
+== Help & Support
 
 * Github Source: http://github.com/rails-sqlserver/tiny_tds
 * Github Issues: http://github.com/rails-sqlserver/tiny_tds/issues
 * Google Group: http://groups.google.com/group/rails-sqlserver-adapter
 * IRC Room: #rails-sqlserver on irc.freenode.net
 
-Current to do list.
+
+== TODO List
 
 * Include OpenSSL with Windows binaries for SQL Azure.
 * Install an interrupt handler.
 * Allow #escape to accept all ruby primitives.
-* Get bug reports!
-
 
 
 == About Me
 
 My name is Ken Collins and I currently maintain the SQL Server adapter for ActiveRecord and wrote this library as my first cut into learning ruby C extensions. Hopefully it will help promote the power of ruby and the rails framework to those that have not yet discovered it. My blog is http://metaskills.net and I can be found on twitter as @metaskills. Enjoy!
-
 
 
 == Special Thanks
@@ -281,5 +277,6 @@ My name is Ken Collins and I currently maintain the SQL Server adapter for Activ
 
 == License
 
-TinyTDS is Copyright (c) 2010-2011 Ken Collins, <ken@metaskills.net> and is distributed under the MIT license. Windows binaries containe precompiled versions of FreeTDS, it is licensed under the GNU LGPL license http://www.gnu.org/licenses/lgpl-2.0.html
+TinyTDS is Copyright (c) 2010-2011 Ken Collins, <ken@metaskills.net> and is distributed under the MIT license. Windows binaries contain precompiled versions of FreeTDS <http://www.freetds.org/> which is licensed under the GNU LGPL license at <http://www.gnu.org/licenses/lgpl-2.0.html>
+
 

@@ -553,6 +553,21 @@ class ResultTest < TinyTds::TestCase
         assert_equal [], @client.execute('').each
       end
       
+      should 'not raise an error when severity is 10 or less' do
+        (1..10).to_a.each do |severity|
+          @client.execute("RAISERROR(N'Test #{severity} severity', #{severity}, 0)").do
+        end
+      end
+      
+      should 'raise an error when severity is greater than 10' do
+        action = lambda { @client.execute("RAISERROR(N'Test 11 severity', 11, 0)").do }
+        assert_raise_tinytds_error(action) do |e|
+          assert_equal "Test 11 severity", e.message
+          assert_equal 11, e.severity
+          assert_equal 50000, e.db_error_number
+        end
+      end
+      
       should 'throw an error when you execute another query with other results pending' do
         result1 = @client.execute(@query1)
         action = lambda { @client.execute(@query1) }

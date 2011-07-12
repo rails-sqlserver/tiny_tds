@@ -1,4 +1,9 @@
 
+* 0.5.0 *
+
+* Returning empty result sets with a command batch that has multiple statements is now the default. Use :empty_sets => false to override.
+
+
 * 0.4.5 *
 
 * Includes precompiled Windows binaries for FreeTDS 0.91rc2 & LibIconv. No precompiled OpenSSL yet for Windows to SQL Azure.

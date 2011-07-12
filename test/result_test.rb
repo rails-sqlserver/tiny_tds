@@ -328,8 +328,18 @@ class ResultTest < TinyTds::TestCase
     context 'with multiple result sets' do
   
       setup do
-        @double_select = "SELECT 1 AS [rs1]\nSELECT 2 AS [rs2]" 
-        @triple_select = "SELECT 1 AS [rs1]\nSELECT 2 AS [rs2], 3 as [title] WHERE 1=0\nSELECT 3 AS[rs3]" 
+        @empty_select  = "SELECT 1 AS [rs1] WHERE 1 = 0"
+        @double_select = "SELECT 1 AS [rs1]
+                          SELECT 2 AS [rs2]" 
+        @triple_select_1st_empty = "SELECT 1 AS [rs1] WHERE 1 = 0
+                                    SELECT 2 AS [rs2]
+                                    SELECT 3 AS [rs3]"
+        @triple_select_2nd_empty = "SELECT 1 AS [rs1]
+                                    SELECT 2 AS [rs2] WHERE 1 = 0
+                                    SELECT 3 AS [rs3]"
+        @triple_select_3rd_empty = "SELECT 1 AS [rs1]
+                                    SELECT 2 AS [rs2]
+                                    SELECT 3 AS [rs3] WHERE 1 = 0"
       end
       
       should 'handle a command buffer with double selects' do
@@ -338,7 +348,7 @@ class ResultTest < TinyTds::TestCase
         assert_equal 2, result_sets.size
         assert_equal [{'rs1' => 1}], result_sets.first
         assert_equal [{'rs2' => 2}], result_sets.last
-        assert_equal [['rs1'],['rs2']], result.fields
+        assert_equal [['rs1'], ['rs2']], result.fields
         assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
         # As array
         result = @client.execute(@double_select)
@@ -346,7 +356,7 @@ class ResultTest < TinyTds::TestCase
         assert_equal 2, result_sets.size
         assert_equal [[1]], result_sets.first
         assert_equal [[2]], result_sets.last
-        assert_equal [['rs1'],['rs2']], result.fields
+        assert_equal [['rs1'], ['rs2']], result.fields
         assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
       end
       
@@ -366,45 +376,161 @@ class ResultTest < TinyTds::TestCase
         assert constraint_info.key?("constraint_name")
       end
       
-      should 'ignore empty result sets' do
-        rollback_transaction(@client) do
-          @client.execute("DELETE FROM [datatypes]").do
-          id = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('test empty result sets')").insert
-          sql = %|
-            SET NOCOUNT ON
-            DECLARE @row_number TABLE (row int identity(1,1), id int) 
-            INSERT INTO @row_number (id) 
-              SELECT [datatypes].[id] FROM [datatypes]
-            SET NOCOUNT OFF 
-            SELECT id FROM @row_number|
-          result = @client.execute(sql)
-          result.each.must_equal [{"id"=>id}]
-          result.fields.must_equal ['id']
+      context 'using :empty_sets TRUE' do
+        
+        setup do
+          @old_query_option_value = TinyTds::Client.default_query_options[:empty_sets]
+          TinyTds::Client.default_query_options[:empty_sets] = true
+          @client = new_connection
         end
+        
+        teardown do
+          TinyTds::Client.default_query_options[:empty_sets] = @old_query_option_value
+        end
+        
+        should 'handle a basic empty result set' do
+          result = @client.execute(@empty_select)
+          assert_equal [], result.each
+          assert_equal ['rs1'], result.fields
+        end
+
+        should 'include empty result sets by default - using 1st empty buffer' do
+          result = @client.execute(@triple_select_1st_empty)
+          result_sets = result.each
+          assert_equal 3, result_sets.size
+          assert_equal [], result_sets[0]
+          assert_equal [{'rs2' => 2}], result_sets[1]
+          assert_equal [{'rs3' => 3}], result_sets[2]
+          assert_equal [['rs1'], ['rs2'], ['rs3']], result.fields
+          assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
+          # As array
+          result = @client.execute(@triple_select_1st_empty)
+          result_sets = result.each(:as => :array)
+          assert_equal 3, result_sets.size
+          assert_equal [], result_sets[0]
+          assert_equal [[2]], result_sets[1]
+          assert_equal [[3]], result_sets[2]
+          assert_equal [['rs1'], ['rs2'], ['rs3']], result.fields
+          assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
+        end
+
+        should 'include empty result sets by default - using 2nd empty buffer' do
+          result = @client.execute(@triple_select_2nd_empty)
+          result_sets = result.each
+          assert_equal 3, result_sets.size
+          assert_equal [{'rs1' => 1}], result_sets[0]
+          assert_equal [], result_sets[1]
+          assert_equal [{'rs3' => 3}], result_sets[2]
+          assert_equal [['rs1'], ['rs2'], ['rs3']], result.fields
+          assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
+          # As array
+          result = @client.execute(@triple_select_2nd_empty)
+          result_sets = result.each(:as => :array)
+          assert_equal 3, result_sets.size
+          assert_equal [[1]], result_sets[0]
+          assert_equal [], result_sets[1]
+          assert_equal [[3]], result_sets[2]
+          assert_equal [['rs1'], ['rs2'], ['rs3']], result.fields
+          assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
+        end
+
+        should 'include empty result sets by default - using 3rd empty buffer' do
+          result = @client.execute(@triple_select_3rd_empty)
+          result_sets = result.each
+          assert_equal 3, result_sets.size
+          assert_equal [{'rs1' => 1}], result_sets[0]
+          assert_equal [{'rs2' => 2}], result_sets[1]
+          assert_equal [], result_sets[2]
+          assert_equal [['rs1'], ['rs2'], ['rs3']], result.fields
+          assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
+          # As array
+          result = @client.execute(@triple_select_3rd_empty)
+          result_sets = result.each(:as => :array)
+          assert_equal 3, result_sets.size
+          assert_equal [[1]], result_sets[0]
+          assert_equal [[2]], result_sets[1]
+          assert_equal [], result_sets[2]
+          assert_equal [['rs1'], ['rs2'], ['rs3']], result.fields
+          assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
+        end
+
       end
-    
-    
-      should "include empty result sets only if requested" do
-        result = @client.execute(@triple_select)
-        result_sets = result.each( :include_empty_sets => true )
-        assert_equal 3, result_sets.size
-        assert_equal [{'rs1' => 1}], result_sets[0]
-        assert_equal [], result_sets[1]
-        assert_equal [{'rs3' => 3}], result_sets[2]
-        assert_equal [['rs1'],['rs2', 'title'],['rs3']], result.fields
-        assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
-        # As array
-        result = @client.execute(@triple_select)
-        result_sets = result.each(:as => :array, :include_empty_sets => true )
-        assert_equal 3, result_sets.size
-        assert_equal [[1]], result_sets[0]
-        assert_equal [], result_sets[1]
-        assert_equal [[3]], result_sets[2]
-        assert_equal [['rs1'],['rs2', 'title'],['rs3']], result.fields
-        assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
+      
+      context 'using :empty_sets FALSE' do
+        
+        setup do
+          @old_query_option_value = TinyTds::Client.default_query_options[:empty_sets]
+          TinyTds::Client.default_query_options[:empty_sets] = false
+          @client = new_connection
+        end
+        
+        teardown do
+          TinyTds::Client.default_query_options[:empty_sets] = @old_query_option_value
+        end
+        
+        should 'handle a basic empty result set' do
+          result = @client.execute(@empty_select)
+          assert_equal [], result.each
+          assert_equal ['rs1'], result.fields
+        end
+        
+        should 'not include empty result sets by default - using 1st empty buffer' do
+          result = @client.execute(@triple_select_1st_empty)
+          result_sets = result.each
+          assert_equal 2, result_sets.size
+          assert_equal [{'rs2' => 2}], result_sets[0]
+          assert_equal [{'rs3' => 3}], result_sets[1]
+          assert_equal [['rs2'], ['rs3']], result.fields
+          assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
+          # As array
+          result = @client.execute(@triple_select_1st_empty)
+          result_sets = result.each(:as => :array)
+          assert_equal 2, result_sets.size
+          assert_equal [[2]], result_sets[0]
+          assert_equal [[3]], result_sets[1]
+          assert_equal [['rs2'], ['rs3']], result.fields
+          assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
+        end
+        
+        should 'not include empty result sets by default - using 2nd empty buffer' do
+          result = @client.execute(@triple_select_2nd_empty)
+          result_sets = result.each
+          assert_equal 2, result_sets.size
+          assert_equal [{'rs1' => 1}], result_sets[0]
+          assert_equal [{'rs3' => 3}], result_sets[1]
+          assert_equal [['rs1'], ['rs3']], result.fields
+          assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
+          # As array
+          result = @client.execute(@triple_select_2nd_empty)
+          result_sets = result.each(:as => :array)
+          assert_equal 2, result_sets.size
+          assert_equal [[1]], result_sets[0]
+          assert_equal [[3]], result_sets[1]
+          assert_equal [['rs1'], ['rs3']], result.fields
+          assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
+        end
+
+        should 'not include empty result sets by default - using 3rd empty buffer' do
+          result = @client.execute(@triple_select_3rd_empty)
+          result_sets = result.each
+          assert_equal 2, result_sets.size
+          assert_equal [{'rs1' => 1}], result_sets[0]
+          assert_equal [{'rs2' => 2}], result_sets[1]
+          assert_equal [['rs1'], ['rs2']], result.fields
+          assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
+          # As array
+          result = @client.execute(@triple_select_3rd_empty)
+          result_sets = result.each(:as => :array)
+          assert_equal 2, result_sets.size
+          assert_equal [[1]], result_sets[0]
+          assert_equal [[2]], result_sets[1]
+          assert_equal [['rs1'], ['rs2']], result.fields
+          assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
+        end
+
       end
-    
-   end
+      
+    end
     
     context 'when casting to native ruby values' do
     

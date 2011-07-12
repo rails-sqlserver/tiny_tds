@@ -29,7 +29,8 @@ module TinyTds
       :as => :hash,
       :symbolize_keys => false,
       :cache_rows => true,
-      :timezone => :local
+      :timezone => :local,
+      :empty_sets => true
     }
     
     attr_reader :query_options

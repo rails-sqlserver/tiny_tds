@@ -202,6 +202,7 @@ Every TinyTds::Result object can pass query options to the #each method. The def
 * :symbolize_keys => false - Row hash keys. Defaults to shared/frozen string keys.
 * :cache_rows => true - Successive calls to #each returns the cached rows.
 * :timezone => :local - Local to the ruby client or :utc for UTC.
+* :include_empty_sets => false - Also include empty results set in queries that return multiple result sets
 
 Each result gets a copy of the default options you specify at the client level and can be overridden by passing an options hash to the #each method. For example
   

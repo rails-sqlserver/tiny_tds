@@ -96,7 +96,7 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
 
 int tinytds_msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line) {
   static char *source = "message";
-  if (severity)
+  if (severity > 10)
     rb_tinytds_raise_error(dbproc, 1, msgtext, source, severity, msgno, msgstate);
   return 0;
 }

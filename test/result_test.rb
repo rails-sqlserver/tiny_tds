@@ -326,9 +326,10 @@ class ResultTest < TinyTds::TestCase
     end
     
     context 'with multiple result sets' do
-      
+  
       setup do
         @double_select = "SELECT 1 AS [rs1]\nSELECT 2 AS [rs2]" 
+        @triple_select = "SELECT 1 AS [rs1]\nSELECT 2 AS [rs2], 3 as [title] WHERE 1=0\nSELECT 3 AS[rs3]" 
       end
       
       should 'handle a command buffer with double selects' do
@@ -382,7 +383,28 @@ class ResultTest < TinyTds::TestCase
         end
       end
     
-    end
+    
+      should "include empty result sets only if requested" do
+        result = @client.execute(@triple_select)
+        result_sets = result.each( :include_empty_sets => true )
+        assert_equal 3, result_sets.size
+        assert_equal [{'rs1' => 1}], result_sets[0]
+        assert_equal [], result_sets[1]
+        assert_equal [{'rs3' => 3}], result_sets[2]
+        assert_equal [['rs1'],['rs2', 'title'],['rs3']], result.fields
+        assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
+        # As array
+        result = @client.execute(@triple_select)
+        result_sets = result.each(:as => :array, :include_empty_sets => true )
+        assert_equal 3, result_sets.size
+        assert_equal [[1]], result_sets[0]
+        assert_equal [], result_sets[1]
+        assert_equal [[3]], result_sets[2]
+        assert_equal [['rs1'],['rs2', 'title'],['rs3']], result.fields
+        assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
+      end
+    
+   end
     
     context 'when casting to native ruby values' do
     

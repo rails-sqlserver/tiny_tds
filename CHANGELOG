@@ -3,6 +3,8 @@
 
 * Returning empty result sets with a command batch that has multiple statements is now the default. Use :empty_sets => false to override.
 
+* Do not raise a TinyTds::Error with our message handler unless the severity is greater than 10.
+
 
 * 0.4.5 *
 

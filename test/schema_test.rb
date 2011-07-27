@@ -242,33 +242,54 @@ class SchemaTest < TinyTds::TestCase
     
     context 'for 2008 and up' do
       
-      should 'cast date' do
-        
-      end
+      # These data types always come back as SYBTEXT and there is no way I can 
+      # find out the column's human readable name. 
+      # 
+      #   * [date]
+      #   * [datetime2]
+      #   * [datetimeoffset]
+      #   * [time]
+      # 
+      # I have tried the following and I only get back either "char" or 0/null.
+      # 
+      #   rb_warn("SYBTEXT: dbprtype: %s", dbprtype(coltype));
+      #   rb_warn("SYBTEXT: dbcolutype: %s", dbcolutype(rwrap->client, col));
+      #   rb_warn("SYBTEXT: dbcolutype: %ld", dbcolutype(rwrap->client, col));
       
-      should 'cast datetime2' do
-        
-      end
-      
-      should 'cast datetimeoffset' do
-        
-      end
-      
-      should 'cast geography' do
-        
-      end
-      
-      should 'cast geometry' do
-        
-      end
-      
-      should 'cast hierarchyid' do
-        
-      end
-      
-      should 'cast time' do
-        
-      end
+      # should 'cast date' do
+      #   value = find_value 51, :date
+      #   assert_equal '', value
+      # end
+      # 
+      # should 'cast datetime2' do
+      #   value = find_value 72, :datetime2_7
+      #   assert_equal '', value
+      # end
+      # 
+      # should 'cast datetimeoffset' do
+      #   value = find_value 81, :datetimeoffset_2
+      #   assert_equal '', value
+      # end
+      # 
+      # should 'cast geography' do
+      #   value = find_value 111, :geography
+      #   assert_equal '', value
+      # end
+      # 
+      # should 'cast geometry' do
+      #   value = find_value 121, :geometry
+      #   assert_equal '', value
+      # end
+      # 
+      # should 'cast hierarchyid' do
+      #   value = find_value 131, :hierarchyid
+      #   assert_equal '', value
+      # end
+      # 
+      # should 'cast time' do
+      #   value = find_value 283, :time_7
+      #   assert_equal '', value
+      # end
       
     end if sqlserver_2008? || sqlserver_azure?
   

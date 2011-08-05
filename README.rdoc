@@ -1,4 +1,3 @@
-
 = TinyTDS - A modern, simple and fast FreeTDS library for Ruby using DB-Library.
 
 The TinyTDS gem is meant to serve the extremely common use-case of connecting, querying and iterating over results to Microsoft SQL Server databases from ruby. Even though it uses FreeTDS's DB-Library, it is NOT meant to serve as direct 1:1 mapping of that complex C API.
@@ -21,7 +20,7 @@ The API is simple and consists of these classes:
 
 == Install
 
-Installing with rubygems should just work. TinyTDS is tested on ruby version 1.8.6, 1.8.7, 1.9.1, 1.9.2 as well as REE & JRuby.
+Installing with rubygems should just work. TinyTDS is tested on ruby version 1.8.6, 1.8.7, 1.9.1, 1.9.2 as well as REE & JRuby(we currently don't have jdbc support, so even using JRuby, you should install FreeTDS before trying to install tiny_tds gem).
 
     $ gem install tiny_tds
 

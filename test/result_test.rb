@@ -4,7 +4,7 @@ require 'test_helper'
 class ResultTest < TinyTds::TestCase
   
   context 'Basic query and result' do
-
+  
     setup do
       @@current_schema_loaded ||= load_current_schema
       @client = new_connection
@@ -174,7 +174,7 @@ class ResultTest < TinyTds::TestCase
         assert_equal sql_identity+1, native_identity
       end
     end
-
+  
     should 'return bigint for #insert when needed' do
       rollback_transaction(@client) do
         seed = 9223372036854775805
@@ -393,7 +393,7 @@ class ResultTest < TinyTds::TestCase
           assert_equal [], result.each
           assert_equal ['rs1'], result.fields
         end
-
+  
         should 'include empty result sets by default - using 1st empty buffer' do
           result = @client.execute(@triple_select_1st_empty)
           result_sets = result.each
@@ -413,7 +413,7 @@ class ResultTest < TinyTds::TestCase
           assert_equal [['rs1'], ['rs2'], ['rs3']], result.fields
           assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
         end
-
+  
         should 'include empty result sets by default - using 2nd empty buffer' do
           result = @client.execute(@triple_select_2nd_empty)
           result_sets = result.each
@@ -433,7 +433,7 @@ class ResultTest < TinyTds::TestCase
           assert_equal [['rs1'], ['rs2'], ['rs3']], result.fields
           assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
         end
-
+  
         should 'include empty result sets by default - using 3rd empty buffer' do
           result = @client.execute(@triple_select_3rd_empty)
           result_sets = result.each
@@ -453,7 +453,7 @@ class ResultTest < TinyTds::TestCase
           assert_equal [['rs1'], ['rs2'], ['rs3']], result.fields
           assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
         end
-
+  
       end
       
       context 'using :empty_sets FALSE' do
@@ -509,7 +509,7 @@ class ResultTest < TinyTds::TestCase
           assert_equal [['rs1'], ['rs3']], result.fields
           assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
         end
-
+  
         should 'not include empty result sets by default - using 3rd empty buffer' do
           result = @client.execute(@triple_select_3rd_empty)
           result_sets = result.each
@@ -527,7 +527,7 @@ class ResultTest < TinyTds::TestCase
           assert_equal [['rs1'], ['rs2']], result.fields
           assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
         end
-
+  
       end
       
     end
@@ -577,7 +577,7 @@ class ResultTest < TinyTds::TestCase
           assert_equal 20019, e.db_error_number
         end
       end
-    
+          
       should 'error gracefully with bad table name' do
         action = lambda { @client.execute('SELECT * FROM [foobar]').each }
         assert_raise_tinytds_error(action) do |e|
@@ -588,7 +588,7 @@ class ResultTest < TinyTds::TestCase
         assert_followup_query
       end
       
-      should 'error gracefully with invalid syntax' do
+      should 'error gracefully with incorrect syntax' do
         action = lambda { @client.execute('this will not work').each }
         assert_raise_tinytds_error(action) do |e|
           assert_match %r|incorrect syntax|i, e.message
@@ -596,6 +596,20 @@ class ResultTest < TinyTds::TestCase
           assert_equal 156, e.db_error_number
         end
         assert_followup_query
+      end
+      
+      should 'error gracefully with incorrect syntax in sp_executesql' do
+        if @client.freetds_091_or_higer?
+          action = lambda { @client.execute("EXEC sp_executesql N'this will not work'").each }
+          assert_raise_tinytds_error(action) do |e|
+            assert_match %r|incorrect syntax|i, e.message
+            assert_equal 15, e.severity
+            assert_equal 156, e.db_error_number
+          end
+          assert_followup_query
+        else
+          skip 'FreeTDS 0.91 and higher can only pass this test.'
+        end
       end
     
     end

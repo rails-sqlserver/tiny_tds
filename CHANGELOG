@@ -1,6 +1,8 @@
 
 * 0.5.0 *
 
+* FreeTDS 0.91 has been released. Update our port scripts.
+
 * Add test for 0.91 and higher to handle incorrect syntax in sp_executesql.
 
 * Returning empty result sets with a command batch that has multiple statements is now the default. Use :empty_sets => false to override.

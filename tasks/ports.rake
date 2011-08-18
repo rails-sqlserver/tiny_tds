@@ -9,7 +9,7 @@ namespace :ports do
   ICONV_VERSION = "1.13.1"
   FREETDS_VERSION = ENV['TINYTDS_FREETDS_082'] ? "0.82" : "0.91"
   FREETDS_VERSION_INFO = {
-    "0.82" => {:files => "http://ibiblio.org/pub/Linux/ALPHA/freetds/old/0.82/freetds-0.82.tar.gz"},
+    "0.82" => {:files => "http://ibiblio.org/pub/Linux/ALPHA/freetds/old/0.82/freetds-patched.tgz"},
     "0.91" => {:files => "http://ibiblio.org/pub/Linux/ALPHA/freetds/stable/freetds-0.91.tar.gz"} }
 
   ORIGINAL_HOST = RbConfig::CONFIG["arch"]

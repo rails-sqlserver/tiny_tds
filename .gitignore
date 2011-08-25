@@ -11,6 +11,7 @@ tmp
 vendor
 lib/tiny_tds/tiny_tds.rb
 .rvmrc
+.rbenv-version
 Gemfile.lock
 misc
 *.gem

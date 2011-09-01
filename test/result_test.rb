@@ -555,12 +555,12 @@ class ResultTest < TinyTds::TestCase
       
       should 'not raise an error when severity is 10 or less' do
         (1..10).to_a.each do |severity|
-          @client.execute("RAISERROR(N'Test #{severity} severity', #{severity}, 0)").do
+          @client.execute("RAISERROR(N'Test #{severity} severity', #{severity}, 1)").do
         end
       end
       
       should 'raise an error when severity is greater than 10' do
-        action = lambda { @client.execute("RAISERROR(N'Test 11 severity', 11, 0)").do }
+        action = lambda { @client.execute("RAISERROR(N'Test 11 severity', 11, 1)").do }
         assert_raise_tinytds_error(action) do |e|
           assert_equal "Test 11 severity", e.message
           assert_equal 11, e.severity

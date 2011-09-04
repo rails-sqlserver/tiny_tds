@@ -1,6 +1,11 @@
 
 * 0.5.0 *
 
+* Update our TDS version constants to reflect changed 8.0/9.0 to 7.1/7.2 DBLIB versions in FreeTDS 
+  while making it backward compatible, again like FreeTDS. Even tho you can not configure FreeTDS with
+  TDS version 7.2 or technically even use it, I added tests to prove that we correctly handle both
+  varchar(max) and nvarchar(max) with large amounts of data.
+
 * FreeTDS 0.91 has been released. Update our port scripts.
 
 * Add test for 0.91 and higher to handle incorrect syntax in sp_executesql.
@@ -39,7 +44,8 @@
 
 * 0.4.2 *
 
-* Iconv is a dep only when compiling locally. However, left in the ability to configure it for native gem installation but you must use --enable-iconv before using --with-iconv-dir=/some/dir
+* Iconv is a dep only when compiling locally. However, left in the ability to configure it for native gem installation 
+  but you must use --enable-iconv before using --with-iconv-dir=/some/dir
 
 * Really fix what 0.4.1 was supposed to do, force SYBDBLIB compile.
 

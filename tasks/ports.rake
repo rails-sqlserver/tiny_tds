@@ -5,11 +5,11 @@ namespace :ports do
   
   # If your using 0.82, you may have to make a conf file to get it to work. For example:
   # $ export FREETDSCONF='/opt/local/etc/freetds/freetds.conf'
-  
   ICONV_VERSION = "1.13.1"
   FREETDS_VERSION = ENV['TINYTDS_FREETDS_082'] ? "0.82" : "0.91"
   FREETDS_VERSION_INFO = {
-    "0.82" => {:files => "http://ibiblio.org/pub/Linux/ALPHA/freetds/old/0.82/freetds-patched.tgz"},
+    "0.82" => {:files => "http://ibiblio.org/pub/Linux/ALPHA/freetds/old/0.82/freetds-0.82.tar.gz"},
+    # "0.82" => {:files => "http://ibiblio.org/pub/Linux/ALPHA/freetds/old/0.82/freetds-patched.tgz"},
     "0.91" => {:files => "http://ibiblio.org/pub/Linux/ALPHA/freetds/stable/freetds-0.91.tar.gz"} }
 
   ORIGINAL_HOST = RbConfig::CONFIG["arch"]
@@ -42,7 +42,7 @@ namespace :ports do
       # recipe.configure_options << "--disable-debug"
       recipe.configure_options << '--sysconfdir="C:/Sites"' if recipe.host != ORIGINAL_HOST
       recipe.configure_options << "--disable-odbc"
-      recipe.configure_options << "--with-tdsver=7.1"
+      recipe.configure_options << ENV['TINYTDS_FREETDS_082'] ? "--with-tdsver=8.0" : "--with-tdsver=7.1"
       recipe.cook
       touch checkpoint
     end

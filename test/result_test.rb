@@ -110,7 +110,7 @@ class ResultTest < TinyTds::TestCase
         assert_equal text, row['varchar_50']
       end
     end
-    
+        
     should 'insert and find unicode data' do
       rollback_transaction(@client) do
         text = '✓'
@@ -546,6 +546,28 @@ class ResultTest < TinyTds::TestCase
     
     end
     
+    context 'with data type' do
+
+      context 'char max' do
+
+        setup do
+          @big_text = 'x' * 2_000_000
+          @old_textsize = @client.execute("SELECT @@TEXTSIZE AS [textsize]").each.first['textsize'].inspect
+          @client.execute("SET TEXTSIZE #{(@big_text.length*2)+1}").do
+        end
+
+        should 'insert and select large varchar_max' do
+          insert_and_select_datatype :varchar_max
+        end
+
+        should 'insert and select large nvarchar_max' do
+          insert_and_select_datatype :nvarchar_max
+        end
+
+      end unless sqlserver_2000?
+
+    end
+    
     context 'when shit happens' do
       
       should 'cope with nil or empty buffer' do
@@ -622,6 +644,15 @@ class ResultTest < TinyTds::TestCase
   def assert_followup_query
     result = @client.execute(@query1)
     assert_equal 1, result.each.first['one']
+  end
+  
+  def insert_and_select_datatype(datatype)
+    rollback_transaction(@client) do
+      @client.execute("DELETE FROM [datatypes] WHERE [#{datatype}] IS NOT NULL").do
+      id = @client.execute("INSERT INTO [datatypes] ([#{datatype}]) VALUES (N'#{@big_text}')").insert
+      found_text = find_value id, datatype
+      flunk "Large #{datatype} data with a length of #{@big_text.length} did not match found text with length of #{found_text.length}" unless @big_text == found_text
+    end
   end
   
 end

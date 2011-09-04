@@ -54,6 +54,8 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
  int return_value = INT_CONTINUE;
  int cancel = 0;
  switch(dberr) {
+   case 100: /* SYBEVERDOWN */
+     return INT_CANCEL;
    case SYBESMSG:
      return return_value;
    case SYBEICONVI:

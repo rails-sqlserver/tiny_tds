@@ -7,8 +7,10 @@ module TinyTds
       '100'     => 2,
       '42'      => 3,
       '70'      => 4,
+      '71'      => 5,
       '80'      => 5,
-      '90'      => 6  # TODO: untested
+      '72'      => 6,
+      '90'      => 6
     }.freeze
     
     TDS_VERSIONS_GETTERS = {
@@ -21,8 +23,8 @@ module TinyTds
       6  => {:name => 'DBTDS_4_9_5',   :description => '4.9.5 (NCR) SQL Server'},
       7  => {:name => 'DBTDS_5_0',     :description => '5.0 SQL Server'},
       8  => {:name => 'DBTDS_7_0',     :description => 'Microsoft SQL Server 7.0'},
-      9  => {:name => 'DBTDS_8_0',     :description => 'Microsoft SQL Server 2000'},
-      10 => {:name => 'DBTDS_9_0',     :description => 'Microsoft SQL Server 2005'}
+      9  => {:name => 'DBTDS_7_1',     :description => 'Microsoft SQL Server 2000'},
+      10 => {:name => 'DBTDS_7_2',     :description => 'Microsoft SQL Server 2005'}
     }.freeze
     
     @@default_query_options = {
@@ -35,15 +37,19 @@ module TinyTds
     
     attr_reader :query_options
     
-    def self.default_query_options
-      @@default_query_options
-    end
-    
-    # Most, if not all, iconv encoding names can be found by ruby. Just in case, you can 
-    # overide this method to return a string name that Encoding.find would work with. Default 
-    # is to return the passed encoding.
-    def self.transpose_iconv_encoding(encoding)
-      encoding
+    class << self
+      
+      def default_query_options
+        @@default_query_options
+      end
+
+      # Most, if not all, iconv encoding names can be found by ruby. Just in case, you can 
+      # overide this method to return a string name that Encoding.find would work with. Default 
+      # is to return the passed encoding.
+      def transpose_iconv_encoding(encoding)
+        encoding
+      end
+      
     end
 
 
@@ -52,7 +58,7 @@ module TinyTds
       raise ArgumentError, 'missing :host option if no :dataserver given' if opts[:dataserver].to_s.empty? && opts[:host].to_s.empty?
       @query_options = @@default_query_options.dup
       opts[:appname] ||= 'TinyTds'
-      opts[:tds_version] = TDS_VERSIONS_SETTERS[opts[:tds_version].to_s] || TDS_VERSIONS_SETTERS['80']
+      opts[:tds_lversion] = TDS_VERSIONS_SETTERS[opts[:tds_version].to_s] || TDS_VERSIONS_SETTERS['71']
       opts[:login_timeout] ||= 60
       opts[:timeout] ||= 5
       opts[:encoding] = (opts[:encoding].nil? || opts[:encoding].downcase == 'utf8') ? 'UTF-8' : opts[:encoding].upcase

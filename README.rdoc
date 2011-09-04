@@ -1,6 +1,6 @@
 = TinyTDS - A modern, simple and fast FreeTDS library for Ruby using DB-Library.
 
-The TinyTDS gem is meant to serve the extremely common use-case of connecting, querying and iterating over results to Microsoft SQL Server databases from ruby. Even though it uses FreeTDS's DB-Library, it is NOT meant to serve as direct 1:1 mapping of that complex C API.
+The TinyTDS gem is meant to serve the extremely common use-case of connecting, querying and iterating over results to Microsoft SQL Server databases from ruby. Even though it uses FreeTDS's DB-Library, it is NOT meant to serve as direct 1:1 mapping of that C API.
 
 The benefits are speed, automatic casting to ruby primitives, and proper encoding support. It converts all SQL Server datatypes to native ruby objects supporting :utc or :local time zones for time-like types. To date it is the only ruby client library that allows client encoding options, defaulting to UTF-8, while connecting to SQL Server. It also  properly encodes all string and binary data. The motivation for TinyTDS is to become the de-facto low level connection mode for the SQL Server adapter for ActiveRecord. For further details see the special thanks section at the bottom
 
@@ -11,11 +11,13 @@ The API is simple and consists of these classes:
 * TinyTds::Error - A wrapper for all FreeTDS exceptions.
 
 
+
 == New & Noteworthy
 
 * Works with FreeTDS 0.91
 * Tested on Windows using MiniPortile & RailsInstaller.
 * New :host/:port connection options. Removes need for freetds.conf file.
+
 
 
 == Install
@@ -28,9 +30,18 @@ Although we search for FreeTDS's libraries and headers, you may have to specify 
 
 
 
-== FreeTDS Compatibility
+== FreeTDS Compatibility & Configuration
 
-TinyTDS is developed for FreeTDS 0.82 & 0.91, that latest is recommended. It is tested with SQL Server 2000, 2005, 2008 and Azure using TDS Version 8.0. We utilize FreeTDS's db-lib client library. We compile against sybdb.h, undefine MSDBLIB and define SYBDBLIB which means that internally we conform to sybase API to db-lib. TinyTDS will work for both Sybase & Microsoft SQL Server. You do NOT need to compile FreeTDS with the "--enable-msdblib" option for our client to work properly. However, please make sure to compile FreeTDS with libiconv support for encodings to work at their best. Run "tsql -C" in your console and check for "iconv library: yes".
+TinyTDS is developed against FreeTDS 0.82 & 0.91, the latest is recommended. It is tested with SQL Server 2000, 2005, 2008 and Azure. Below are a few QA style notes about installing FreeTDS.
+
+* Do I need to install FreeTDS?
+  Yes
+
+
+
+ using TDS Version 7.1/8.0. We utilize FreeTDS's db-lib client library. We compile against sybdb.h, undefine MSDBLIB and define SYBDBLIB which means that internally we conform to sybase API to db-lib. TinyTDS will work for both Sybase & Microsoft SQL Server. You do NOT need to compile FreeTDS with the "--enable-msdblib" option for our client to work properly. However, please make sure to compile FreeTDS with libiconv support for encodings to work at their best. Run "tsql -C" in your console and check for "iconv library: yes".
+
+
 
 
 
@@ -216,21 +227,26 @@ Besides the standard query options, the result object can take one additional op
   result.each(:first => true) # => [{'id' => 24}]
 
 
+
 == Row Caching
 
 By default row caching is turned on because the SQL Server adapter for ActiveRecord would not work without it. I hope to find some time to create some performance patches for ActiveRecord that would allow it to take advantages of lazily created yielded rows from result objects. Currently only TinyTDS and the Mysql2 gem allow such a performance gain.
+
 
 
 == Using TinyTDS With Rails & The ActiveRecord SQL Server adapter.
 
 As of version 2.3.11 & 3.0.3 of the adapter, you can specify a :dblib mode in database.yml and use TinyTDS as the low level connection mode. The SQL Server adapter can be found using the link below. Also included is a direct link to the wiki article covering common questions when using TinyTDS as the low level connection mode for the adapter.
 
-http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/wiki/Using-TinyTds
+* ActiveRecord SQL Server Adapter: http://github.com/rails-sqlserver/activerecord-sqlserver-adapter
+* Using TinyTDS: http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/wiki/Using-TinyTds
+
 
 
 == Using TinyTDS with Azure
 
 TinyTDS is fully tested with the Azure platform. You must set the :azure => true connection option when connecting. This is needed to specify the default database name in the login packet since Azure has no notion of "USE [database]". You must use the latest FreeTDS 0.91. FreeTDS must be compiled with OpenSSL too.
+
 
 
 == Using MiniPortile
@@ -246,6 +262,7 @@ You too can use MiniPortile to build TinyTDS and build your own gems for your ow
   $ rake native gem
 
 
+
 == Development & Testing  
 
 We use bundler for development. Simply run "bundle install" then "rake" to build the gem and run the unit tests. The tests assume you have created a database named "tinytdstest" accessible by a database owner named "tinytds". Before running the test rake task, you may need to define a pair of environment variables that help the client connect to your specific FreeTDS database server name and which schema (2000, 2005, 2008 or azure) to use. For example:
@@ -259,12 +276,14 @@ If you do not want to use MiniPortile to compile a local project version of Free
   $ rake TINYTDS_SKIP_PORTS=true
 
 
+
 == Help & Support
 
 * Github Source: http://github.com/rails-sqlserver/tiny_tds
 * Github Issues: http://github.com/rails-sqlserver/tiny_tds/issues
 * Google Group: http://groups.google.com/group/rails-sqlserver-adapter
 * IRC Room: #rails-sqlserver on irc.freenode.net
+
 
 
 == TODO List
@@ -274,9 +293,11 @@ If you do not want to use MiniPortile to compile a local project version of Free
 * Allow #escape to accept all ruby primitives.
 
 
+
 == About Me
 
 My name is Ken Collins and I currently maintain the SQL Server adapter for ActiveRecord and wrote this library as my first cut into learning ruby C extensions. Hopefully it will help promote the power of ruby and the rails framework to those that have not yet discovered it. My blog is http://metaskills.net and I can be found on twitter as @metaskills. Enjoy!
+
 
 
 == Special Thanks
@@ -285,6 +306,7 @@ My name is Ken Collins and I currently maintain the SQL Server adapter for Activ
 * To the authors and contributors of the Mysql2 gem for inspiration. - http://github.com/brianmario/mysql2
 * Yehuda Katz for articulating ruby's need for proper encoding support. Especially in database drivers - http://yehudakatz.com/2010/05/05/ruby-1-9-encodings-a-primer-and-the-solution-for-rails/
 * Josh Clayton of Thoughtbot for writing about ruby C extensions. - http://robots.thoughtbot.com/post/1037240922/get-your-c-on
+
 
 
 == License

@@ -34,14 +34,15 @@ Although we search for FreeTDS's libraries and headers, you may have to specify 
 
 TinyTDS is developed against FreeTDS 0.82 & 0.91, the latest is recommended. It is tested with SQL Server 2000, 2005, 2008 and Azure. Below are a few QA style notes about installing FreeTDS.
 
-* Do I need to install FreeTDS?
-  Yes
+* <b>Do I need to install FreeTDS?</b> Yes! Somehow, someway, your are going to need FreeTDS for TinyTDS to compile against. You can avoid installing FreeTDS on your system by using our projects usage of rake-compiler and mini_portile to compile and package a native gem just for you. See the "Using MiniPortile" section below.
 
+* <b>OK, I am installing FreeTDS, how do I configure it?</b> Contrary to what most people think, you do not need to specially configure FreeTDS in any way for client libraries like TinyTDS to use it. About the only requirement is that you compile it with libiconv for proper encoding support. FreeTDS must also be compiled with OpenSSL (or the like) to use it with Azure. See the "Using TinyTDS with Azure" section below for more info.
 
+* <b>Do I need to configure "--with-tdsver" equal to anything?</b> No! This is only a default for clients/configs that do not specify what TDS version they want to use. You do not need to worry about it!
 
- using TDS Version 7.1/8.0. We utilize FreeTDS's db-lib client library. We compile against sybdb.h, undefine MSDBLIB and define SYBDBLIB which means that internally we conform to sybase API to db-lib. TinyTDS will work for both Sybase & Microsoft SQL Server. You do NOT need to compile FreeTDS with the "--enable-msdblib" option for our client to work properly. However, please make sure to compile FreeTDS with libiconv support for encodings to work at their best. Run "tsql -C" in your console and check for "iconv library: yes".
+* <b>But I want to use TDS version 7.2 for SQL Server 2005 and up!</b> TinyTDS uses TDS version 7.1 (previously named 8.0) and fully supports all the data types supported by FreeTDS, this includes varchar(max) and nvarchar(max). Technically compiling and using TDS version 7.2 with FreeTDS is not supported. But this does not mean those data types will not work. I know, it's confusing If you want to learn more, read this thread. http://lists.ibiblio.org/pipermail/freetds/2011q3/027306.html
 
-
+* <b>I want to configure FreeTDS using "--enable-msdblib" and/or "--enable-sybase-compat" so it works for my database. Cool?</b> It's a waste of time and totally moot! Client libraries like TinyTDS define their own C structure names where they diverge from Sybase to SQL Server. Technically we use the Sybase structures which does not mean we only work with that database vs SQL Server. These configs are just a low level default for C libraries that do not define what they want. So I repeat, you do not NEED to use any of these, nor will they hurt anything since we control what C structure names we use and this has no affect on what database you use!
 
 
 

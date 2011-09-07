@@ -58,7 +58,7 @@ module TinyTds
       raise ArgumentError, 'missing :host option if no :dataserver given' if opts[:dataserver].to_s.empty? && opts[:host].to_s.empty?
       @query_options = @@default_query_options.dup
       opts[:appname] ||= 'TinyTds'
-      opts[:tds_lversion] = TDS_VERSIONS_SETTERS[opts[:tds_version].to_s] || TDS_VERSIONS_SETTERS['71']
+      opts[:tds_version] = TDS_VERSIONS_SETTERS[opts[:tds_version].to_s] || TDS_VERSIONS_SETTERS['71']
       opts[:login_timeout] ||= 60
       opts[:timeout] ||= 5
       opts[:encoding] = (opts[:encoding].nil? || opts[:encoding].downcase == 'utf8') ? 'UTF-8' : opts[:encoding].upcase

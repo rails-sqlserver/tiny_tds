@@ -28,6 +28,7 @@ namespace :ports do
     recipe = $recipes[:libiconv]
     checkpoint = "ports/.#{recipe.name}.#{recipe.version}.#{recipe.host}.timestamp"
     unless File.exist?(checkpoint)
+      recipe.configure_options << "CFLAGS='-fPIC'"
       recipe.cook
       touch checkpoint
     end
@@ -42,7 +43,12 @@ namespace :ports do
       # recipe.configure_options << "--disable-debug"
       recipe.configure_options << '--sysconfdir="C:/Sites"' if recipe.host != ORIGINAL_HOST
       recipe.configure_options << "--disable-odbc"
-      recipe.configure_options << ENV['TINYTDS_FREETDS_082'] ? "--with-tdsver=8.0" : "--with-tdsver=7.1"
+      if ENV['TINYTDS_FREETDS_082']
+        recipe.configure_options << "--with-tdsver=8.0"
+      else
+        recipe.configure_options << "--with-tdsver=7.1"
+      end
+      recipe.configure_options << "CFLAGS='-fPIC'"
       recipe.cook
       touch checkpoint
     end

@@ -38,7 +38,7 @@ TinyTDS is developed against FreeTDS 0.82 & 0.91, the latest is recommended. It 
 
 * <b>OK, I am installing FreeTDS, how do I configure it?</b> Contrary to what most people think, you do not need to specially configure FreeTDS in any way for client libraries like TinyTDS to use it. About the only requirement is that you compile it with libiconv for proper encoding support. FreeTDS must also be compiled with OpenSSL (or the like) to use it with Azure. See the "Using TinyTDS with Azure" section below for more info.
 
-* <b>Do I need to configure "--with-tdsver" equal to anything?</b> No! This is only a default for clients/configs that do not specify what TDS version they want to use. You do not need to worry about it!
+* <b>Do I need to configure "--with-tdsver" equal to anything?</b> Maybe! Technically you should not have too. This is only a default for clients/configs that do not specify what TDS version they want to use. We are currently having issues with passing down a TDS version with the login bit. Till we get that fixed, if you are not using a freetds.conf or a TDSVER environment variable, the make sure to use 7.1 for FreeTDS 0.91 and 8.0 for FreeTDS 0.82.
 
 * <b>But I want to use TDS version 7.2 for SQL Server 2005 and up!</b> TinyTDS uses TDS version 7.1 (previously named 8.0) and fully supports all the data types supported by FreeTDS, this includes varchar(max) and nvarchar(max). Technically compiling and using TDS version 7.2 with FreeTDS is not supported. But this does not mean those data types will not work. I know, it's confusing If you want to learn more, read this thread. http://lists.ibiblio.org/pipermail/freetds/2011q3/027306.html
 

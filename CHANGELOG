@@ -1,6 +1,8 @@
 
 * 0.5.0 *
 
+* Add CFLAGS='-fPIC' for libtool. Fix TDS version configs in our ports file. Document. Fixes #45
+
 * Update our TDS version constants to reflect changed 8.0/9.0 to 7.1/7.2 DBLIB versions in FreeTDS 
   while making it backward compatible, again like FreeTDS. Even tho you can not configure FreeTDS with
   TDS version 7.2 or technically even use it, I added tests to prove that we correctly handle both

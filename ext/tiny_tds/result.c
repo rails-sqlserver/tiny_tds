@@ -237,9 +237,9 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
               min   = date_rec.dateminute,
               sec   = date_rec.datesecond,
               msec  = date_rec.datemsecond;
-          uint64_t seconds = (year*31557600ULL) + (month*2592000ULL) + (day*86400ULL) + (hour*3600ULL) + (min*60ULL) + sec;    
           if (year+month+day+hour+min+sec+msec != 0) {
             VALUE offset = (timezone == intern_local) ? rwrap->local_offset : opt_zero;
+            uint64_t seconds = (year*31557600ULL) + (month*2592000ULL) + (day*86400ULL) + (hour*3600ULL) + (min*60ULL) + sec;
             /* Use DateTime */
             if (seconds < TINY_TDS_MIN_TIME || seconds > TINY_TDS_MAX_TIME) {
               VALUE datetime_sec = INT2NUM(sec);

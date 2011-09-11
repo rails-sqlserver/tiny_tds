@@ -39,40 +39,77 @@ class SchemaTest < TinyTds::TestCase
       end
       
       should 'cast datetime' do
-        # 1753-01-01T00:00:00.000
-        v = find_value 61, :datetime
-        assert_instance_of DateTime, v, 'not in range of Time class'
-        assert_equal 1753, v.year
-        assert_equal 01, v.month
-        assert_equal 01, v.day
-        assert_equal 0, v.hour
-        assert_equal 0, v.min
-        assert_equal 0, v.sec
-        assert_equal 0, v.usec
-        # 9999-12-31T23:59:59.997
-        v = find_value 62, :datetime
-        assert_instance_of DateTime, v, 'not in range of Time class'
-        assert_equal 9999, v.year
-        assert_equal 12, v.month
-        assert_equal 31, v.day
-        assert_equal 23, v.hour
-        assert_equal 59, v.min
-        assert_equal 59, v.sec
-        assert_equal 997000, v.usec unless ruby186?
-        assert_equal local_offset, find_value(61, :datetime, :timezone => :local).offset
-        assert_equal 0, find_value(61, :datetime, :timezone => :utc).offset
-        # 2010-01-01T12:34:56.123
-        v = find_value 63, :datetime
-        assert_instance_of Time, v, 'in range of Time class'
-        assert_equal 2010, v.year
-        assert_equal 01, v.month
-        assert_equal 01, v.day
-        assert_equal 12, v.hour
-        assert_equal 34, v.min
-        assert_equal 56, v.sec
-        assert_equal 123000, v.usec
-        assert_equal utc_offset, find_value(63, :datetime, :timezone => :local).utc_offset
-        assert_equal 0, find_value(63, :datetime, :timezone => :utc).utc_offset
+        if ruby18? && 1.size == 4 #32 bit
+          # 1753-01-01T00:00:00.000
+          v = find_value 61, :datetime
+          assert_instance_of DateTime, v, 'not in range of Time class'
+          assert_equal 1753, v.year
+          assert_equal 01, v.month
+          assert_equal 01, v.day
+          assert_equal 0, v.hour
+          assert_equal 0, v.min
+          assert_equal 0, v.sec
+          assert_equal 0, v.usec
+          # 9999-12-31T23:59:59.997
+          v = find_value 62, :datetime
+          assert_instance_of DateTime, v, 'not in range of Time class'
+          assert_equal 9999, v.year
+          assert_equal 12, v.month
+          assert_equal 31, v.day
+          assert_equal 23, v.hour
+          assert_equal 59, v.min
+          assert_equal 59, v.sec
+          assert_equal 997000, v.usec unless ruby186?
+          assert_equal local_offset, find_value(62, :datetime, :timezone => :local).offset
+          assert_equal 0, find_value(62, :datetime, :timezone => :utc).offset
+          # 2010-01-01T12:34:56.123
+          v = find_value 63, :datetime
+          assert_instance_of Time, v, 'in range of Time class'
+          assert_equal 2010, v.year
+          assert_equal 01, v.month
+          assert_equal 01, v.day
+          assert_equal 12, v.hour
+          assert_equal 34, v.min
+          assert_equal 56, v.sec
+          assert_equal 123000, v.usec
+          assert_equal utc_offset, find_value(63, :datetime, :timezone => :local).utc_offset
+          assert_equal 0, find_value(63, :datetime, :timezone => :utc).utc_offset
+        else
+          # 1753-01-01T00:00:00.000
+          v = find_value 61, :datetime
+          assert_instance_of Time, v, 'not in range of Time class'
+          assert_equal 1753, v.year
+          assert_equal 01, v.month
+          assert_equal 01, v.day
+          assert_equal 0, v.hour
+          assert_equal 0, v.min
+          assert_equal 0, v.sec
+          assert_equal 0, v.usec
+          # 9999-12-31T23:59:59.997
+          v = find_value 62, :datetime
+          assert_instance_of Time, v, 'not in range of Time class'
+          assert_equal 9999, v.year
+          assert_equal 12, v.month
+          assert_equal 31, v.day
+          assert_equal 23, v.hour
+          assert_equal 59, v.min
+          assert_equal 59, v.sec
+          assert_equal 997000, v.usec unless ruby186?
+          assert_equal utc_offset, find_value(62, :datetime, :timezone => :local).utc_offset
+          assert_equal 0, find_value(62, :datetime, :timezone => :utc).utc_offset
+          # 2010-01-01T12:34:56.123
+          v = find_value 63, :datetime
+          assert_instance_of Time, v, 'in range of Time class'
+          assert_equal 2010, v.year
+          assert_equal 01, v.month
+          assert_equal 01, v.day
+          assert_equal 12, v.hour
+          assert_equal 34, v.min
+          assert_equal 56, v.sec
+          assert_equal 123000, v.usec
+          assert_equal utc_offset, find_value(63, :datetime, :timezone => :local).utc_offset
+          assert_equal 0, find_value(63, :datetime, :timezone => :utc).utc_offset
+        end
       end
       
       should 'cast decimal' do
@@ -146,28 +183,53 @@ class SchemaTest < TinyTds::TestCase
       end
       
       should 'cast smalldatetime' do
-        # 1901-01-01 15:45:00
-        v = find_value 231, :smalldatetime
-        assert_instance_of DateTime, v
-        assert_equal 1901, v.year
-        assert_equal 01, v.month
-        assert_equal 01, v.day
-        assert_equal 15, v.hour
-        assert_equal 45, v.min
-        assert_equal 00, v.sec
-        assert_equal local_offset, find_value(231, :smalldatetime, :timezone => :local).offset
-        assert_equal 0, find_value(231, :smalldatetime, :timezone => :utc).offset
-        # 2078-06-05 04:20:00
-        v = find_value 232, :smalldatetime
-        assert_instance_of DateTime, v
-        assert_equal 2078, v.year
-        assert_equal 06, v.month
-        assert_equal 05, v.day
-        assert_equal 04, v.hour
-        assert_equal 20, v.min
-        assert_equal 00, v.sec
-        assert_equal local_offset, find_value(232, :smalldatetime, :timezone => :local).offset
-        assert_equal 0, find_value(232, :smalldatetime, :timezone => :utc).offset
+        if ruby18? && 1.size == 4 #32 bit        
+          # 1901-01-01 15:45:00
+          v = find_value 231, :smalldatetime
+          assert_instance_of DateTime, v
+          assert_equal 1901, v.year
+          assert_equal 01, v.month
+          assert_equal 01, v.day
+          assert_equal 15, v.hour
+          assert_equal 45, v.min
+          assert_equal 00, v.sec
+          assert_equal local_offset, find_value(231, :smalldatetime, :timezone => :local).offset
+          assert_equal 0, find_value(231, :smalldatetime, :timezone => :utc).offset
+          # 2078-06-05 04:20:00
+          v = find_value 232, :smalldatetime
+          assert_instance_of DateTime, v
+          assert_equal 2078, v.year
+          assert_equal 06, v.month
+          assert_equal 05, v.day
+          assert_equal 04, v.hour
+          assert_equal 20, v.min
+          assert_equal 00, v.sec
+          assert_equal local_offset, find_value(232, :smalldatetime, :timezone => :local).offset
+          assert_equal 0, find_value(232, :smalldatetime, :timezone => :utc).offset
+        else
+          # 1901-01-01 15:45:00
+          v = find_value 231, :smalldatetime
+          assert_instance_of Time, v
+          assert_equal 1901, v.year
+          assert_equal 01, v.month
+          assert_equal 01, v.day
+          assert_equal 15, v.hour
+          assert_equal 45, v.min
+          assert_equal 00, v.sec
+          assert_equal Time.local(1901).utc_offset, find_value(231, :smalldatetime, :timezone => :local).utc_offset
+          assert_equal 0, find_value(231, :smalldatetime, :timezone => :utc).utc_offset
+          # 2078-06-05 04:20:00
+          v = find_value 232, :smalldatetime
+          assert_instance_of Time, v
+          assert_equal 2078, v.year
+          assert_equal 06, v.month
+          assert_equal 05, v.day
+          assert_equal 04, v.hour
+          assert_equal 20, v.min
+          assert_equal 00, v.sec
+          assert_equal Time.local(2078,6).utc_offset, find_value(232, :smalldatetime, :timezone => :local).utc_offset
+          assert_equal 0, find_value(232, :smalldatetime, :timezone => :utc).utc_offset
+        end
       end
       
       should 'cast smallint' do

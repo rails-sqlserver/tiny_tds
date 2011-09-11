@@ -127,6 +127,10 @@ module TinyTds
       RUBY_VERSION == '1.9.2'
     end
     
+    def ruby32bit?
+      1.size == 4
+    end
+    
     def rubyRbx?
       RUBY_DESCRIPTION =~ /rubinius/i
     end

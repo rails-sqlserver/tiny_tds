@@ -1,47 +1,44 @@
 
 #include <tiny_tds_ext.h>
 
+// TINY_TDS_MAX_TIME
+
 #if (SIZEOF_INT < SIZEOF_LONG) || defined(HAVE_RUBY_ENCODING_H)
-/* on 64bit platforms we can handle dates way outside 2038-01-19T03:14:07
- *
- * (10000*31557600) + (12*2592000) + (31*86400) + (11*3600) + (59*60) + 59
- */
-#define TINY_TDS_MAX_TIME 315607276799ULL
+  /* On 64bit platforms we can handle dates way outside 2038-01-19T03:14:07 */
+  /* (10000*31557600) + (12*2592000) + (31*86400) + (11*3600) + (59*60) + 59 */
+  #define TINY_TDS_MAX_TIME 315607276799ULL
 #else
-/**
- * On 32bit platforms the maximum date the Time class can handle is 2038-01-19T03:14:07
- * 2038 years + 1 month + 19 days + 3 hours + 14 minutes + 7 seconds = 64318634047 seconds
- *
- * (2038*31557600) + (1*2592000) + (19*86400) + (3*3600) + (14*60) + 7
- */
-#define TINY_TDS_MAX_TIME 64318634047ULL
+  /* On 32bit platforms the maximum date the Time class can handle is 2038-01-19T03:14:07 */
+  /* 2038 years + 1 month + 19 days + 3 hours + 14 minutes + 7 seconds = 64318634047 seconds */
+  /* (2038*31557600) + (1*2592000) + (19*86400) + (3*3600) + (14*60) + 7 */
+  #define TINY_TDS_MAX_TIME 64318634047ULL
 #endif
 
+
+// TINY_TDS_MIN_TIME
+
 #if defined(HAVE_RUBY_ENCODING_H)
-/* 0000-1-1 00:00:00 UTC
- *
- * (0*31557600) + (1*2592000) + (1*86400) + (0*3600) + (0*60) + 0
- */
-#define TINY_TDS_MIN_TIME 2678400ULL
-#elif SIZEOF_INT < SIZEOF_LONG // 64bit Ruby 1.8
-/* 0139-1-1 00:00:00 UTC
- *
- * (139*31557600) + (1*2592000) + (1*86400) + (0*3600) + (0*60) + 0
- */
-#define TINY_TDS_MIN_TIME 4389184800ULL
+  /* Ruby 1.9 */
+  /* 0000-1-1 00:00:00 UTC */
+  /* (0*31557600) + (1*2592000) + (1*86400) + (0*3600) + (0*60) + 0 */
+  #define TINY_TDS_MIN_TIME 2678400ULL
+#elif SIZEOF_INT < SIZEOF_LONG
+  /* 64bit Ruby 1.8 */
+  /* 0139-1-1 00:00:00 UTC */
+  /* (139*31557600) + (1*2592000) + (1*86400) + (0*3600) + (0*60) + 0 */
+  #define TINY_TDS_MIN_TIME 4389184800ULL
 #elif defined(NEGATIVE_TIME_T)
-/* 1901-12-13 20:45:52 UTC : The oldest time in 32-bit signed time_t.
- *
- * (1901*31557600) + (12*2592000) + (13*86400) + (20*3600) + (45*60) + 52
- */
-#define TINY_TDS_MIN_TIME 60023299552ULL
+  /* 1901-12-13 20:45:52 UTC : The oldest time in 32-bit signed time_t. */
+  /* (1901*31557600) + (12*2592000) + (13*86400) + (20*3600) + (45*60) + 52 */
+  #define TINY_TDS_MIN_TIME 60023299552ULL
 #else
-/* 1970-01-01 00:00:01 UTC : The Unix epoch - the oldest time in portable time_t.
- *
- * (1970*31557600) + (1*2592000) + (1*86400) + (0*3600) + (0*60) + 1
- */
-#define TINY_TDS_MIN_TIME 62171150401ULL
+  /* 1970-01-01 00:00:01 UTC : The Unix epoch - the oldest time in portable time_t. */
+  /* (1970*31557600) + (1*2592000) + (1*86400) + (0*3600) + (0*60) + 1 */
+  #define TINY_TDS_MIN_TIME 62171150401ULL
 #endif
+
+
+// File Types/Vars
 
 VALUE cTinyTdsResult;
 extern VALUE mTinyTds, cTinyTdsClient, cTinyTdsError;

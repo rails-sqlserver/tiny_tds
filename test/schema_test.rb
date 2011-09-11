@@ -39,7 +39,7 @@ class SchemaTest < TinyTds::TestCase
       end
       
       should 'cast datetime' do
-        if ruby18? && 1.size == 4 #32 bit
+        if ruby18? && ruby32bit?
           # 1753-01-01T00:00:00.000
           v = find_value 61, :datetime
           assert_instance_of DateTime, v, 'not in range of Time class'
@@ -183,7 +183,7 @@ class SchemaTest < TinyTds::TestCase
       end
       
       should 'cast smalldatetime' do
-        if ruby18? && 1.size == 4 #32 bit        
+        if ruby18? && ruby32bit?
           # 1901-01-01 15:45:00
           v = find_value 231, :smalldatetime
           assert_instance_of DateTime, v

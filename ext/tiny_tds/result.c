@@ -1,5 +1,6 @@
 
 #include <tiny_tds_ext.h>
+#include <stdint.h>
 
 // TINY_TDS_MAX_TIME
 

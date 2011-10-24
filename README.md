@@ -224,7 +224,7 @@ client.return_code  # => nil
 result = client.execute("EXEC tinytds_TestReturnCodes")
 result.return_code  # => 420
 client.return_code  # => 420
-```ruby
+```
 
 
 ## Query Options

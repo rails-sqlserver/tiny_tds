@@ -176,6 +176,7 @@ class ResultTest < TinyTds::TestCase
     end
   
     should 'return bigint for #insert when needed' do
+      return if sqlserver_azure? # We can not alter clustered index like this test does.
       rollback_transaction(@client) do
         seed = 9223372036854775805
         @client.execute("DELETE FROM [datatypes]").do

@@ -12,8 +12,6 @@ namespace :ports do
     # "0.82" => {:files => "http://ibiblio.org/pub/Linux/ALPHA/freetds/old/0.82/freetds-patched.tgz"},
     "0.91" => {:files => "http://ibiblio.org/pub/Linux/ALPHA/freetds/stable/freetds-0.91.tar.gz"} }
 
-  ORIGINAL_HOST = RbConfig::CONFIG["arch"]
-
   directory "ports"
 
   $recipes = {}
@@ -40,8 +38,7 @@ namespace :ports do
     recipe = $recipes[:freetds]
     checkpoint = "ports/.#{recipe.name}.#{recipe.version}.#{recipe.host}.timestamp"
     unless File.exist?(checkpoint)
-      # recipe.configure_options << "--disable-debug"
-      recipe.configure_options << '--sysconfdir="C:/Sites"' if recipe.host != ORIGINAL_HOST
+      recipe.configure_options << '--sysconfdir="C:/Sites"' if recipe.host =~ /mswin|mingw/i
       recipe.configure_options << "--disable-odbc"
       if ENV['TINYTDS_FREETDS_082']
         recipe.configure_options << "--with-tdsver=8.0"

@@ -1,6 +1,6 @@
 require 'mkmf'
 
-FREETDS_LIBRARIES = ['sybdb']
+FREETDS_LIBRARIES = ['iconv','sybdb']
 FREETDS_HEADERS = ['sybfront.h', 'sybdb.h']
 
 dir_config('iconv')
@@ -68,8 +68,6 @@ end
 def have_freetds?
   find_freetds_libraries_path && find_freetds_include_path
 end
-
-have_library("iconv")
 
 if enable_config("lookup", true)
   unless have_freetds?

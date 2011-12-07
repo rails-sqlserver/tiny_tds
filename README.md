@@ -288,7 +288,7 @@ $ rake native gem
 $ gem install pkg/tiny_tds-X.X.X-#{platform}.gem
 ```
 
-**Important:** You must not use rubygems version 1.3.7. You will almost certainly hit a *Don't know how to build task...* error when running the `rake native gem` command. Please update rubygems!
+**Important:** You must not use rubygems version 1.3.7. You will almost certainly hit a *Don't know how to build task...* error when running the `rake native gem` command. Please update rubygems! Here is a link on [how to upgrade or downgrade rubygems](http://rubygems.rubyforge.org/rubygems-update/UPGRADING_rdoc.html).
 
 
 ## Development & Testing  

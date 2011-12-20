@@ -59,10 +59,11 @@ module TinyTds
     end
     
     def connection_options(options={})
-      username = sqlserver_azure? ? ENV['TINYTDS_UNIT_AZURE_USER'] : 'tinytds'
-      password = sqlserver_azure? ? ENV['TINYTDS_UNIT_AZURE_PASS'] : ''
+      username = sqlserver_azure? ? ENV['TINYTDS_UNIT_AZURE_USER'] : ENV['TINYTDS_UNIT_USER'] || 'tinytds'
+      password = sqlserver_azure? ? ENV['TINYTDS_UNIT_AZURE_PASS'] : ENV['TINYTDS_UNIT_PASS'] || ''
       { :dataserver    => ENV['TINYTDS_UNIT_DATASERVER'],
         :host          => ENV['TINYTDS_UNIT_HOST'],
+        :port          => ENV['TINYTDS_UNIT_PORT'],
         :username      => username,
         :password      => password,
         :database      => 'tinytdstest',

@@ -307,6 +307,9 @@ If you do not want to use MiniPortile to compile a local project version of Free
 $ rake TINYTDS_SKIP_PORTS=true
 ```
 
+When testing on Sybase ASE, you can set the port on which the server is running, the test user password and you must use the sybase_ase schema:
+
+$ rake TINYTDS_UNIT_HOST=host.example.com TINYTDS_UNIT_PORT=5000 TINYTDS_UNIT_PASS=tinytds TINYTDS_SCHEMA=sybase_ase
 
 ## Help & Support
 

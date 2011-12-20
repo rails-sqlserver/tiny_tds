@@ -7,7 +7,11 @@ class ClientTest < TinyTds::TestCase
     setup do
       @client = new_connection
     end
-    
+
+    teardown do
+      @client.close
+    end
+
     should 'not be closed' do
       assert !@client.closed?
       assert @client.active?
@@ -46,7 +50,7 @@ class ClientTest < TinyTds::TestCase
     end
     
     should 'be able to use :host/:port connection' do
-      client = new_connection :dataserver => nil, :host => ENV['TINYTDS_UNIT_HOST'], :port => 1433
+      client = new_connection :dataserver => nil, :host => ENV['TINYTDS_UNIT_HOST'], :port => ENV['TINYTDS_UNIT_PORT'] || 1433
     end unless sqlserver_azure?
   
   end
@@ -136,7 +140,7 @@ class ClientTest < TinyTds::TestCase
         if sqlserver_azure?
           assert_match %r{server name cannot be determined}i, e.message, 'ignore if non-english test run'
         else
-          assert_equal 18456, e.db_error_number
+          assert_equal sybase_ase? ? 4002 : 18456, e.db_error_number
           assert_equal 14, e.severity
           assert_match %r{login failed}i, e.message, 'ignore if non-english test run'
         end

@@ -1,83 +1,79 @@
+ENV['RC_ARCHS'] = '' if RUBY_PLATFORM =~ /darwin/
+
+# :stopdoc:
+
 require 'mkmf'
 
-FREETDS_LIBRARIES = ['iconv','sybdb']
-FREETDS_HEADERS = ['sybfront.h', 'sybdb.h']
+# Shamelessly copied from nokogiri
+#
+LIBDIR     = Config::CONFIG['libdir']
+INCLUDEDIR = Config::CONFIG['includedir']
 
-dir_config('iconv')
-dir_config('freetds')
+$CFLAGS  << " #{ENV["CFLAGS"]}"
+$LDFLAGS << " #{ENV["LDFLAGS"]}"
+$LIBS    << " #{ENV["LIBS"]}"
 
-def root_paths
-  eop_regexp = /#{File::SEPARATOR}bin$/
-  paths = ENV['PATH']
-  paths = paths.gsub(File::ALT_SEPARATOR, File::SEPARATOR) if File::ALT_SEPARATOR
-  paths = paths.split(File::PATH_SEPARATOR)
-  bin_paths = paths.select{ |p| p =~ eop_regexp }
-  bin_paths.map{ |p| p.sub(eop_regexp,'') }.compact.reject{ |p| p.empty? }.uniq
-end
+if Config::CONFIG['target_os'] =~ /mswin32|mingw32/
+  lib_prefix = 'lib' unless Config::CONFIG['target_os'] =~ /mingw32/
 
-def have_freetds_libraries?(*libraries)
-  libraries.all? { |l| have_library(l) }
-end
+  # There's no default include/lib dir on Windows. Let's just add the Ruby ones
+  # and resort on the search path specified by INCLUDE and LIB environment
+  # variables
+  HEADER_DIRS = [INCLUDEDIR]
+  LIB_DIRS = [LIBDIR]
+  FREETDS_HEADER_DIRS = [File.join(INCLUDEDIR, "freetds"), INCLUDEDIR]
 
-def find_freetds_libraries_path
-  root_paths.detect do |path|
-    [['lib'],['lib','freetds']].detect do |lpaths|
-      dir = File.join path, *lpaths
-      message = "looking for library directory #{dir} ..."
-      if File.directory?(dir)
-        puts "#{message} yes"
-        if with_ldflags("#{$LDFLAGS} -L#{dir}".strip) { have_freetds_libraries?(*FREETDS_LIBRARIES) }
-          $LDFLAGS = "-L#{dir} #{$LDFLAGS}".strip
-          true
-        else
-          false
-        end
-      else
-        puts "#{message} no"
-        false
-      end
-    end
-  end
-end
-
-def have_freetds_headers?(*headers)
-  headers.all? { |h| have_header(h) }
-end
-
-def find_freetds_include_path
-  root_paths.detect do |path|
-    [['include'],['include','freetds']].detect do |ipaths|
-      dir = File.join path, *ipaths
-      message = "looking for include directory #{dir} ..."
-      if File.directory?(dir)
-        puts "#{message} yes"
-        if with_cppflags("#{$CPPFLAGS} -I#{dir}".strip) { have_freetds_headers?(*FREETDS_HEADERS) }
-          $CPPFLAGS = "-I#{dir} #{$CPPFLAGS}".strip
-          true
-        else
-          false
-        end
-      else
-        puts "#{message} no"
-        false
-      end
-    end
-  end
-end
-
-def have_freetds?
-  find_freetds_libraries_path && find_freetds_include_path
-end
-
-if enable_config("lookup", true)
-  unless have_freetds?
-    abort "-----\nCan not find FreeTDS's db-lib or include directory.\n-----"
-  end
 else
-  $LDFLAGS = ENV.fetch("LDFLAGS")
-  unless have_freetds_libraries?(*FREETDS_LIBRARIES) && have_freetds_headers?(*FREETDS_HEADERS)
-    abort "-----\nCan not find FreeTDS's db-lib or include directory.\n-----"
-  end
+  lib_prefix = ''
+
+  HEADER_DIRS = [
+    # First search /opt/local for macports
+    '/opt/local/include',
+
+    # Then search /usr/local for people that installed from source
+    '/usr/local/include',
+
+    # Check the ruby install locations
+    INCLUDEDIR,
+
+    # Finally fall back to /usr
+    '/usr/include'
+  ]
+
+  LIB_DIRS = [
+    # First search /opt/local for macports
+    '/opt/local/lib',
+
+    # Then search /usr/local for people that installed from source
+    '/usr/local/lib',
+
+    # Check the ruby install locations
+    LIBDIR,
+
+    # Finally fall back to /usr
+    '/usr/lib',
+  ]
+
+  FREETDS_HEADER_DIRS = [
+    '/opt/local/include/freetds',
+    '/usr/local/include/freetds',
+    File.join(INCLUDEDIR, 'freetds')
+  ] + HEADER_DIRS
 end
+
+dir_config('iconv',   HEADER_DIRS,         LIB_DIRS)
+dir_config('freetds', FREETDS_HEADER_DIRS, LIB_DIRS)
+
+def asplode(lib)
+  abort "-----\n#{lib} is missing.\n-----"
+end
+
+asplode 'libiconv' unless have_func('iconv_open', 'iconv.h') or have_library('iconv', 'iconv_open', 'iconv.h')
+asplode 'freetds'  unless have_header('sybfront.h') and have_header('sybdb.h')
+
+asplode 'freetds'  unless find_library("#{lib_prefix}sybdb", 'tdsdbopen')
+asplode 'freetds'  unless find_library("#{lib_prefix}ct",    'ct_bind')
 
 create_makefile('tiny_tds/tiny_tds')
+
+# :startdoc:

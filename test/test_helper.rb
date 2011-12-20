@@ -16,7 +16,7 @@ class DateTime
   end
 end
 
-TINYTDS_SCHEMAS = ['sqlserver_2000', 'sqlserver_2005', 'sqlserver_2008', 'sqlserver_azure'].freeze
+TINYTDS_SCHEMAS = ['sqlserver_2000', 'sqlserver_2005', 'sqlserver_2008', 'sqlserver_azure', 'sybase_ase'].freeze
 
 module TinyTds
   class TestCase < MiniTest::Spec
@@ -50,7 +50,9 @@ module TinyTds
     
     def new_connection(options={})
       client = TinyTds::Client.new(connection_options(options))
-      unless sqlserver_azure?
+      if sybase_ase?
+        client.execute("SET ANSINULL ON").do
+      elsif !sqlserver_azure?
         client.execute("SET ANSI_DEFAULTS ON").do
         client.execute("SET IMPLICIT_TRANSACTIONS OFF").do
         client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
@@ -59,10 +61,11 @@ module TinyTds
     end
     
     def connection_options(options={})
-      username = sqlserver_azure? ? ENV['TINYTDS_UNIT_AZURE_USER'] : 'tinytds'
-      password = sqlserver_azure? ? ENV['TINYTDS_UNIT_AZURE_PASS'] : ''
+      username = sqlserver_azure? ? ENV['TINYTDS_UNIT_AZURE_USER'] : ENV['TINYTDS_UNIT_USER'] || 'tinytds'
+      password = sqlserver_azure? ? ENV['TINYTDS_UNIT_AZURE_PASS'] : ENV['TINYTDS_UNIT_PASS'] || ''
       { :dataserver    => ENV['TINYTDS_UNIT_DATASERVER'],
         :host          => ENV['TINYTDS_UNIT_HOST'],
+        :port          => ENV['TINYTDS_UNIT_PORT'],
         :username      => username,
         :password      => password,
         :database      => 'tinytdstest',
@@ -139,6 +142,7 @@ module TinyTds
       loader = new_connection
       schema_file = File.expand_path File.join(File.dirname(__FILE__), 'schema', "#{current_schema}.sql")
       schema_sql = ruby18? ? File.read(schema_file) : File.open(schema_file,"rb:UTF-8") { |f|f.read }
+
       loader.execute(drop_sql).each
       loader.execute(schema_sql).cancel
       loader.execute(sp_sql).cancel
@@ -147,6 +151,19 @@ module TinyTds
     end
 
     def drop_sql
+      sybase_ase? ? drop_sql_sybase : drop_sql_microsoft
+    end
+
+    def drop_sql_sybase
+      %|IF EXISTS(
+          SELECT 1 FROM sysobjects WHERE type = 'U' AND name = 'datatypes'
+        ) DROP TABLE datatypes
+        IF EXISTS(
+          SELECT 1 FROM sysobjects WHERE type = 'P' AND name = 'tinytds_TestReturnCodes'
+        ) DROP PROCEDURE tinytds_TestReturnCodes|
+    end
+
+    def drop_sql_microsoft
       %|IF EXISTS (
           SELECT TABLE_NAME
           FROM INFORMATION_SCHEMA.TABLES 

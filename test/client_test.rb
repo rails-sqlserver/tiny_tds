@@ -7,7 +7,11 @@ class ClientTest < TinyTds::TestCase
     setup do
       @client = new_connection
     end
-    
+
+    teardown do
+      @client.close
+    end
+
     should 'not be closed' do
       assert !@client.closed?
       assert @client.active?

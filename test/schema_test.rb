@@ -7,8 +7,12 @@ class SchemaTest < TinyTds::TestCase
   
     setup do
       @@current_schema_loaded ||= load_current_schema
-      @client ||= new_connection
+      @client = new_connection
       @gif1px = ruby19? ? File.read('test/schema/1px.gif',:mode=>"rb:BINARY") : File.read('test/schema/1px.gif')
+    end
+
+    teardown do
+      @client.close
     end
   
     context 'for shared types' do

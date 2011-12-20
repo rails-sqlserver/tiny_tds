@@ -16,7 +16,7 @@ class DateTime
   end
 end
 
-TINYTDS_SCHEMAS = ['sqlserver_2000', 'sqlserver_2005', 'sqlserver_2008', 'sqlserver_azure'].freeze
+TINYTDS_SCHEMAS = ['sqlserver_2000', 'sqlserver_2005', 'sqlserver_2008', 'sqlserver_azure', 'sybase_ase'].freeze
 
 module TinyTds
   class TestCase < MiniTest::Spec
@@ -50,7 +50,9 @@ module TinyTds
     
     def new_connection(options={})
       client = TinyTds::Client.new(connection_options(options))
-      unless sqlserver_azure?
+      if sybase_ase?
+        client.execute("SET ANSINULL ON").do
+      elsif !sqlserver_azure?
         client.execute("SET ANSI_DEFAULTS ON").do
         client.execute("SET IMPLICIT_TRANSACTIONS OFF").do
         client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
@@ -148,6 +150,19 @@ module TinyTds
     end
 
     def drop_sql
+      sybase_ase? ? drop_sql_sybase : drop_sql_microsoft
+    end
+
+    def drop_sql_sybase
+      %|IF EXISTS(
+          SELECT 1 FROM sysobjects WHERE type = 'U' AND name = 'datatypes'
+        ) DROP TABLE datatypes
+        IF EXISTS(
+          SELECT 1 FROM sysobjects WHERE type = 'P' AND name = 'tinytds_TestReturnCodes'
+        ) DROP PROCEDURE tinytds_TestReturnCodes|
+    end
+
+    def drop_sql_microsoft
       %|IF EXISTS (
           SELECT TABLE_NAME
           FROM INFORMATION_SCHEMA.TABLES 

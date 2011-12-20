@@ -10,6 +10,10 @@ class ResultTest < TinyTds::TestCase
       @client = new_connection
       @query1 = 'SELECT 1 AS [one]'
     end
+
+    teardown do
+      @client.close
+    end
     
     should 'have included Enumerable' do
       assert TinyTds::Result.ancestors.include?(Enumerable)

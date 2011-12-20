@@ -372,13 +372,29 @@ class ResultTest < TinyTds::TestCase
         assert_equal data.last, result_sets.last[0]
       end
       
-      should 'from a stored procedure' do
-        results1, results2 = @client.execute("EXEC sp_helpconstraint '[datatypes]'").each
-        assert_equal [{"Object Name"=>"[datatypes]"}], results1
-        constraint_info = results2.first
-        assert constraint_info.key?("constraint_keys")
-        assert constraint_info.key?("constraint_type")
-        assert constraint_info.key?("constraint_name")
+      if sybase_ase?
+
+        should 'from a stored procedure' do
+          results1, results2 = @client.execute("EXEC sp_helpconstraint 'datatypes'").each
+
+          assert results1['name']      =~ /^datatypes_bit/
+          assert results1['defintion'] == 'DEFAULT  0'
+
+          assert results2['name']      =~ /^datatypes_id/
+          assert results2['defintion'] =~ /^PRIMARY KEY/
+        end
+
+      else
+
+        should 'from a stored procedure' do
+          results1, results2 = @client.execute("EXEC sp_helpconstraint 'datatypes'").each
+          assert_equal [{"Object Name"=>"[datatypes]"}], results1
+          constraint_info = results2.first
+          assert constraint_info.key?("constraint_keys")
+          assert constraint_info.key?("constraint_type")
+          assert constraint_info.key?("constraint_name")
+        end
+
       end
       
       context 'using :empty_sets TRUE' do
@@ -580,20 +596,36 @@ class ResultTest < TinyTds::TestCase
         assert_equal [], @client.execute('').each
       end
       
-      should 'not raise an error when severity is 10 or less' do
-        (1..10).to_a.each do |severity|
-          @client.execute("RAISERROR(N'Test #{severity} severity', #{severity}, 1)").do
+      if sybase_ase?
+
+        should 'not raise an error when severity is 10 or less' do
+          (1..10).to_a.each do |severity|
+            @client.execute("RAISERROR(N'Test #{severity} severity', #{severity}, 1)").do
+          end
         end
-      end
-      
-      should 'raise an error when severity is greater than 10' do
-        action = lambda { @client.execute("RAISERROR(N'Test 11 severity', 11, 1)").do }
-        assert_raise_tinytds_error(action) do |e|
-          assert_equal "Test 11 severity", e.message
-          assert_equal 11, e.severity
-          assert_equal 50000, e.db_error_number
+
+        should 'raise an error when severity is greater than 10' do
+          action = lambda { @client.execute("RAISERROR(N'Test 11 severity', 11, 1)").do }
+          assert_raise_tinytds_error(action) do |e|
+            assert_equal "Test 11 severity", e.message
+            assert_equal 11, e.severity
+            assert_equal 50000, e.db_error_number
+          end
         end
+
+      else
+
+        should 'raise an error' do
+          action = lambda { @client.execute("RAISERROR 99999 'Hello World'").do }
+          assert_raise_tinytds_error(action) do |e|
+            assert_equal "Hello World", e.message
+            assert_equal 16, e.severity # predefined on ASE
+            assert_equal 99999, e.db_error_number
+          end
+        end
+
       end
+
       
       should 'throw an error when you execute another query with other results pending' do
         result1 = @client.execute(@query1)

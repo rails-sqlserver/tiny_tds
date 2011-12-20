@@ -140,7 +140,7 @@ class ClientTest < TinyTds::TestCase
         if sqlserver_azure?
           assert_match %r{server name cannot be determined}i, e.message, 'ignore if non-english test run'
         else
-          assert_equal 18456, e.db_error_number
+          assert_equal sybase_ase? ? 4002 : 18456, e.db_error_number
           assert_equal 14, e.severity
           assert_match %r{login failed}i, e.message, 'ignore if non-english test run'
         end

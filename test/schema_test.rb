@@ -14,6 +14,25 @@ class SchemaTest < TinyTds::TestCase
     teardown do
       @client.close
     end
+
+    context 'not for sybase ASE' do
+
+      should 'cast ntext' do
+        assert_equal 'test ntext', find_value(181, :ntext)
+        assert_equal 'test ntext åå', find_value(182, :ntext)
+        assert_utf8_encoding find_value(182, :ntext)
+        # If this test fails, try setting the "text size" in your freetds.conf. See: http://www.freetds.org/faq.html#textdata
+        large_value = "x" * 5000
+        large_value_id = @client.execute("INSERT INTO [datatypes] ([ntext]) VALUES (N'#{large_value}')").insert
+        assert_equal large_value, find_value(large_value_id, :ntext)
+      end
+
+      should 'cast uniqueidentifier' do
+        assert_match %r|\w{8}-\w{4}-\w{4}-\w{4}-\w{12}|, find_value(311, :uniqueidentifier)
+        assert_utf8_encoding find_value(311, :uniqueidentifier)
+      end
+
+    end unless sybase_ase?
   
     context 'for shared types' do
       
@@ -155,16 +174,6 @@ class SchemaTest < TinyTds::TestCase
         assert_equal 'abc123    ', find_value(173, :nchar_10)
       end
       
-      should 'cast ntext' do
-        assert_equal 'test ntext', find_value(181, :ntext)
-        assert_equal 'test ntext åå', find_value(182, :ntext)
-        assert_utf8_encoding find_value(182, :ntext)
-        # If this test fails, try setting the "text size" in your freetds.conf. See: http://www.freetds.org/faq.html#textdata
-        large_value = "x" * 5000
-        large_value_id = @client.execute("INSERT INTO [datatypes] ([ntext]) VALUES (N'#{large_value}')").insert
-        assert_equal large_value, find_value(large_value_id, :ntext)
-      end
-      
       should 'cast numeric' do
         assert_instance_of BigDecimal, find_value(191, :numeric_18_0)
         assert_equal BigDecimal('191'), find_value(191, :numeric_18_0)
@@ -256,11 +265,6 @@ class SchemaTest < TinyTds::TestCase
       should 'cast tinyint' do
         assert_equal 0, find_value(301, :tinyint)
         assert_equal 255, find_value(302, :tinyint)
-      end
-      
-      should 'cast uniqueidentifier' do
-        assert_match %r|\w{8}-\w{4}-\w{4}-\w{4}-\w{12}|, find_value(311, :uniqueidentifier)
-        assert_utf8_encoding find_value(311, :uniqueidentifier)
       end
       
       should 'cast varbinary' do

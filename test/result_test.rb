@@ -569,7 +569,7 @@ class ResultTest < TinyTds::TestCase
           insert_and_select_datatype :nvarchar_max
         end
 
-      end unless sqlserver_2000?
+      end unless sqlserver_2000? || sybase_ase?
 
     end
     

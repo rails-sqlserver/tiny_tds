@@ -10,10 +10,6 @@ class ResultTest < TinyTds::TestCase
       @client = new_connection
       @query1 = 'SELECT 1 AS [one]'
     end
-
-    teardown do
-      @client.close
-    end
     
     should 'have included Enumerable' do
       assert TinyTds::Result.ancestors.include?(Enumerable)
@@ -372,31 +368,23 @@ class ResultTest < TinyTds::TestCase
         assert_equal data.last, result_sets.last[0]
       end
       
-      if sybase_ase?
-
-        should 'from a stored procedure' do
-          results1, results2 = @client.execute("EXEC sp_helpconstraint 'datatypes'").each
-
-          assert results1['name']      =~ /^datatypes_bit/
-          assert results1['defintion'] == 'DEFAULT  0'
-
-          assert results2['name']      =~ /^datatypes_id/
-          assert results2['defintion'] =~ /^PRIMARY KEY/
-        end
-
-      else
-
-        should 'from a stored procedure' do
-          results1, results2 = @client.execute("EXEC sp_helpconstraint 'datatypes'").each
+      should 'from a stored procedure' do
+        if sqlserver?
+          results1, results2 = @client.execute("EXEC sp_helpconstraint '[datatypes]'").each
           assert_equal [{"Object Name"=>"[datatypes]"}], results1
           constraint_info = results2.first
           assert constraint_info.key?("constraint_keys")
           assert constraint_info.key?("constraint_type")
           assert constraint_info.key?("constraint_name")
+        elsif sybase_ase?
+          results1, results2 = @client.execute("EXEC sp_helpconstraint 'datatypes'").each
+          assert results1['name']      =~ /^datatypes_bit/
+          assert results1['defintion'] == 'DEFAULT  0'
+          assert results2['name']      =~ /^datatypes_id/
+          assert results2['defintion'] =~ /^PRIMARY KEY/
         end
-
       end
-      
+
       context 'using :empty_sets TRUE' do
         
         setup do

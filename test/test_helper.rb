@@ -33,8 +33,15 @@ module TinyTds
         end
       end
       
+      def sqlserver?
+        current_schema =~ /sqlserver/
+      end
+      
     end
     
+    teardown do
+      @client.close if @client.is_a?(TinyTds::Client)
+    end
     
     protected
     
@@ -46,6 +53,10 @@ module TinyTds
     
     def current_schema
       self.class.current_schema
+    end
+    
+    def sqlserver?
+      self.class.sqlserver?
     end
     
     def new_connection(options={})

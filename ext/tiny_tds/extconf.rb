@@ -13,6 +13,24 @@ $CFLAGS  << " #{ENV["CFLAGS"]}"
 $LDFLAGS << " #{ENV["LDFLAGS"]}"
 $LIBS    << " #{ENV["LIBS"]}"
 
+SEARCHABLE_PATHS = begin
+  eop_regexp = /#{File::SEPARATOR}bin$/
+  paths = ENV['PATH']
+  paths = paths.gsub(File::ALT_SEPARATOR, File::SEPARATOR) if File::ALT_SEPARATOR
+  paths = paths.split(File::PATH_SEPARATOR)
+  bin_paths = paths.select{ |p| p =~ eop_regexp }
+  bin_paths.map{ |p| p.sub(eop_regexp,'') }.compact.reject{ |p| p.empty? }.uniq
+end
+
+def searchable_paths_with_directories(*directories)
+  SEARCHABLE_PATHS.map do |path|
+    directories.map do |paths|
+      dir = File.join path, *paths
+      File.directory?(dir) ? dir : nil
+    end.flatten.compact
+  end.flatten.compact
+end
+
 if Config::CONFIG['target_os'] =~ /mswin32|mingw32/
   lib_prefix = 'lib' unless Config::CONFIG['target_os'] =~ /mingw32/
 
@@ -54,15 +72,13 @@ else
     '/usr/lib',
   ]
 
-  FREETDS_HEADER_DIRS = [
-    '/opt/local/include/freetds',
-    '/usr/local/include/freetds',
-    File.join(INCLUDEDIR, 'freetds')
-  ] + HEADER_DIRS
 end
 
-dir_config('iconv',   HEADER_DIRS,         LIB_DIRS)
-dir_config('freetds', FREETDS_HEADER_DIRS, LIB_DIRS)
+FREETDS_HEADER_DIRS = (searchable_paths_with_directories(['include'],['include','freetds']) + HEADER_DIRS).uniq
+FREETDS_LIB_DIRS = (searchable_paths_with_directories(['lib'],['lib','freetds']) + LIB_DIRS).uniq
+
+dir_config('iconv',   FREETDS_HEADER_DIRS, FREETDS_LIB_DIRS)
+dir_config('freetds', FREETDS_HEADER_DIRS, FREETDS_LIB_DIRS)
 
 def asplode(lib)
   abort "-----\n#{lib} is missing.\n-----"

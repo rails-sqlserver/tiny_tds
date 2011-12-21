@@ -293,12 +293,14 @@ $ gem install pkg/tiny_tds-X.X.X-#{platform}.gem
 
 ## Development & Testing  
 
-We use bundler for development. Simply run `bundle install` then `rake` to build the gem and run the unit tests. The tests assume you have created a database named `tinytdstest` accessible by a database owner named `tinytds`. Before running the test rake task, you may need to define a pair of environment variables that help the client connect to your specific FreeTDS database server name and which schema (2000, 2005, 2008 or azure) to use. For example:
+We use bundler for development. Simply run `bundle install` then `rake` to build the gem and run the unit tests. The tests assume you have created a database named `tinytdstest` accessible by a database owner named `tinytds`. Before running the test rake task, you may need to define a pair of environment variables that help the client connect to your specific FreeTDS database server name and which schema (2000, 2005, 2008, Azure or Sybase ASE) to use. For example:
 
 ```
 $ rake TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2008
   or
 $ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_SCHEMA=sqlserver_azure
+  or
+$ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_UNIT_PORT=5000 TINYTDS_SCHEMA=sybase_ase
 ```
 
 If you do not want to use MiniPortile to compile a local project version of FreeTDS and instead use your local system version, use the `TINYTDS_SKIP_PORTS` environment variable. This will ignore any port tasks and will instead build and link to your system's FreeTDS installation as a normal gem install would.
@@ -307,9 +309,6 @@ If you do not want to use MiniPortile to compile a local project version of Free
 $ rake TINYTDS_SKIP_PORTS=true
 ```
 
-When testing on Sybase ASE, you can set the port on which the server is running, the test user password and you must use the sybase_ase schema:
-
-$ rake TINYTDS_UNIT_HOST=host.example.com TINYTDS_UNIT_PORT=5000 TINYTDS_UNIT_PASS=tinytds TINYTDS_SCHEMA=sybase_ase
 
 ## Help & Support
 
@@ -328,7 +327,7 @@ $ rake TINYTDS_UNIT_HOST=host.example.com TINYTDS_UNIT_PORT=5000 TINYTDS_UNIT_PA
 
 ## About Me
 
-My name is Ken Collins and I currently maintain the SQL Server adapter for ActiveRecord and wrote this library as my first cut into learning ruby C extensions. Hopefully it will help promote the power of ruby and the rails framework to those that have not yet discovered it. My blog is http://metaskills.net and I can be found on twitter as @metaskills. Enjoy!
+My name is Ken Collins and I currently maintain the SQL Server adapter for ActiveRecord and wrote this library as my first cut into learning ruby C extensions. Hopefully it will help promote the power of ruby and the Rails framework to those that have not yet discovered it. My blog is http://metaskills.net and I can be found on twitter as @metaskills. Enjoy!
 
 
 ## Special Thanks

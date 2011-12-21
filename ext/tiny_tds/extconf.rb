@@ -33,44 +33,33 @@ end
 
 if Config::CONFIG['target_os'] =~ /mswin32|mingw32/
   lib_prefix = 'lib' unless Config::CONFIG['target_os'] =~ /mingw32/
-
   # There's no default include/lib dir on Windows. Let's just add the Ruby ones
   # and resort on the search path specified by INCLUDE and LIB environment
   # variables
   HEADER_DIRS = [INCLUDEDIR]
   LIB_DIRS = [LIBDIR]
-
 else
   lib_prefix = ''
-
   HEADER_DIRS = [
     # First search /opt/local for macports
     '/opt/local/include',
-
     # Then search /usr/local for people that installed from source
     '/usr/local/include',
-
     # Check the ruby install locations
     INCLUDEDIR,
-
     # Finally fall back to /usr
     '/usr/include'
-  ]
-
+  ].reject{ |dir| File.directory?(dir) }
   LIB_DIRS = [
     # First search /opt/local for macports
     '/opt/local/lib',
-
     # Then search /usr/local for people that installed from source
     '/usr/local/lib',
-
     # Check the ruby install locations
     LIBDIR,
-
     # Finally fall back to /usr
     '/usr/lib',
-  ]
-
+  ].reject{ |dir| File.directory?(dir) }
 end
 
 FREETDS_HEADER_DIRS = (searchable_paths_with_directories(['include'],['include','freetds']) + HEADER_DIRS).uniq

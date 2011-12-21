@@ -39,7 +39,6 @@ if Config::CONFIG['target_os'] =~ /mswin32|mingw32/
   # variables
   HEADER_DIRS = [INCLUDEDIR]
   LIB_DIRS = [LIBDIR]
-  FREETDS_HEADER_DIRS = [File.join(INCLUDEDIR, "freetds"), INCLUDEDIR]
 
 else
   lib_prefix = ''
@@ -84,8 +83,8 @@ def asplode(lib)
   abort "-----\n#{lib} is missing.\n-----"
 end
 
-asplode 'libiconv' unless have_func('iconv_open', 'iconv.h') or have_library('iconv', 'iconv_open', 'iconv.h')
-asplode 'freetds'  unless have_header('sybfront.h') and have_header('sybdb.h')
+asplode 'libiconv' unless have_func('iconv_open', 'iconv.h') || have_library('iconv', 'iconv_open', 'iconv.h')
+asplode 'freetds'  unless have_header('sybfront.h') && have_header('sybdb.h')
 
 asplode 'freetds'  unless find_library("#{lib_prefix}sybdb", 'tdsdbopen')
 asplode 'freetds'  unless find_library("#{lib_prefix}ct",    'ct_bind')

@@ -42,8 +42,6 @@ end
 
 task :compile => ["ports:freetds"] unless ENV['TINYTDS_SKIP_PORTS']
 
-Dir["tasks/*.rake"].sort.each { |f| load f }
-
 Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
   ext.lib_dir = 'lib/tiny_tds'
   if RUBY_PLATFORM =~ /mswin|mingw/ then
@@ -53,11 +51,12 @@ Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
   else
     ext.cross_compile = true
     ext.cross_platform = ['i386-mingw32']
-    ext.cross_config_options << "--disable-lookup"
   end
 end
 
 task :build => [:clean, :compile]
 
 task :default => [:build, :test]
+
+Dir["tasks/*.rake"].sort.each { |f| load f }
 

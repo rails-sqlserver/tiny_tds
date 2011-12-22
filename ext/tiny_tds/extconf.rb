@@ -6,8 +6,8 @@ require 'mkmf'
 
 # Shamelessly copied from nokogiri
 #
-LIBDIR     = Config::CONFIG['libdir']
-INCLUDEDIR = Config::CONFIG['includedir']
+LIBDIR     = RbConfig::CONFIG['libdir']
+INCLUDEDIR = RbConfig::CONFIG['includedir']
 
 $CFLAGS  << " #{ENV["CFLAGS"]}"
 $LDFLAGS << " #{ENV["LDFLAGS"]}"
@@ -31,8 +31,8 @@ def searchable_paths_with_directories(*directories)
   end.flatten.compact
 end
 
-if Config::CONFIG['target_os'] =~ /mswin32|mingw32/
-  lib_prefix = 'lib' unless Config::CONFIG['target_os'] =~ /mingw32/
+if RbConfig::CONFIG['target_os'] =~ /mswin32|mingw32/
+  lib_prefix = 'lib' unless RbConfig::CONFIG['target_os'] =~ /mingw32/
   # There's no default include/lib dir on Windows. Let's just add the Ruby ones
   # and resort on the search path specified by INCLUDE and LIB environment
   # variables
@@ -49,7 +49,7 @@ else
     INCLUDEDIR,
     # Finally fall back to /usr
     '/usr/include'
-  ].reject{ |dir| File.directory?(dir) }
+  ].reject{ |dir| !File.directory?(dir) }
   LIB_DIRS = [
     # First search /opt/local for macports
     '/opt/local/lib',
@@ -59,7 +59,7 @@ else
     LIBDIR,
     # Finally fall back to /usr
     '/usr/lib',
-  ].reject{ |dir| File.directory?(dir) }
+  ].reject{ |dir| !File.directory?(dir) }
 end
 
 FREETDS_HEADER_DIRS = (searchable_paths_with_directories(['include'],['include','freetds']) + HEADER_DIRS).uniq

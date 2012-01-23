@@ -51,6 +51,7 @@ Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
   else
     ext.cross_compile = true
     ext.cross_platform = ['i386-mingw32']
+    ext.cross_config_options << "--disable-lookup"
   end
 end
 

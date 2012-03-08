@@ -33,7 +33,7 @@ Although we search for FreeTDS's libraries and headers, you may have to specify 
 
 TinyTDS is developed against FreeTDS 0.82 & 0.91, the latest is recommended. It is tested with SQL Server 2000, 2005, 2008 and Azure. Below are a few QA style notes about installing FreeTDS.
 
-* **Do I need to install FreeTDS?** Yes! Somehow, someway, your are going to need FreeTDS for TinyTDS to compile against. You can avoid installing FreeTDS on your system by using our projects usage of rake-compiler and mini_portile to compile and package a native gem just for you. See the "Using MiniPortile" section below.
+* **Do I need to install FreeTDS?** Yes! Somehow, someway, you are going to need FreeTDS for TinyTDS to compile against. You can avoid installing FreeTDS on your system by using our projects usage of rake-compiler and mini_portile to compile and package a native gem just for you. See the "Using MiniPortile" section below.
 
 * **OK, I am installing FreeTDS, how do I configure it?** Contrary to what most people think, you do not need to specially configure FreeTDS in any way for client libraries like TinyTDS to use it. About the only requirement is that you compile it with libiconv for proper encoding support. FreeTDS must also be compiled with OpenSSL (or the like) to use it with Azure. See the "Using TinyTDS with Azure" section below for more info.
 

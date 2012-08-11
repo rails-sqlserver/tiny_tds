@@ -1,4 +1,9 @@
 
+* 0.5.2 *
+
+* Move test system to real MiniTest::Spec. All tests pass on Azure too.
+
+
 * 0.5.1 *
 
 * Change how we configure with iconv, basically it is always needed. Fixes #11 & #69.

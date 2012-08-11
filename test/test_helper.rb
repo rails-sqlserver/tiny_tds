@@ -3,7 +3,7 @@ require 'rubygems'
 require 'bundler'
 Bundler.setup
 require 'tiny_tds'
-require 'mini_shoulda'
+require 'minitest/spec'
 require 'minitest/autorun'
 
 class DateTime
@@ -39,7 +39,7 @@ module TinyTds
       
     end
     
-    teardown do
+    after do
       @client.close if @client.is_a?(TinyTds::Client)
     end
     

@@ -2,18 +2,18 @@ require 'test_helper'
 
 class ClientTest < TinyTds::TestCase
   
-  context 'With valid credentials' do
+  describe 'With valid credentials' do
     
-    setup do
+    before do
       @client = new_connection
     end
 
-    should 'not be closed' do
+    it 'must not be closed' do
       assert !@client.closed?
       assert @client.active?
     end
     
-    should 'allow client connection to be closed' do
+    it 'allows client connection to be closed' do
       assert @client.close
       assert @client.closed?
       assert !@client.active?
@@ -23,21 +23,21 @@ class ClientTest < TinyTds::TestCase
       end
     end
     
-    should 'have a getters for the tds version information (brittle since conf takes precedence)' do
+    it 'has getters for the tds version information (brittle since conf takes precedence)' do
       assert_equal 9, @client.tds_version
       assert_equal 'DBTDS_7_1 - Microsoft SQL Server 2000', @client.tds_version_info
     end
     
-    should 'use UTF-8 client charset/encoding by default' do
+    it 'uses UTF-8 client charset/encoding by default' do
       assert_equal 'UTF-8', @client.charset
       assert_equal Encoding.find('UTF-8'), @client.encoding if ruby19?
     end
     
-    should 'have a #escape method used for quote strings' do
+    it 'has a #escape method used for quote strings' do
       assert_equal "''hello''", @client.escape("'hello'")
     end
     
-    should 'allow valid iconv character set' do
+    it 'allows valid iconv character set' do
       ['CP850', 'CP1252', 'ISO-8859-1'].each do |encoding|
         client = new_connection(:encoding => encoding)
         assert_equal encoding, client.charset
@@ -45,23 +45,23 @@ class ClientTest < TinyTds::TestCase
       end
     end
     
-    should 'be able to use :host/:port connection' do
+    it 'must be able to use :host/:port connection' do
       client = new_connection :dataserver => nil, :host => ENV['TINYTDS_UNIT_HOST'], :port => ENV['TINYTDS_UNIT_PORT'] || 1433
     end unless sqlserver_azure?
   
   end
   
-  context 'With in-valid options' do
+  describe 'With in-valid options' do
     
-    should 'raise an argument error when no :host given and :dataserver is blank' do
+    it 'raises an argument error when no :host given and :dataserver is blank' do
       assert_raises(ArgumentError) { new_connection :dataserver => nil, :host => nil }
     end
     
-    should 'raise an argument error when no :username is supplied' do
+    it 'raises an argument error when no :username is supplied' do
       assert_raises(ArgumentError) { TinyTds::Client.new :username => nil }
     end
     
-    should 'raise TinyTds exception with undefined :dataserver' do
+    it 'raises TinyTds exception with undefined :dataserver' do
       options = connection_options :login_timeout => 1, :dataserver => '127.0.0.2'
       action = lambda { new_connection(options) }
       assert_raise_tinytds_error(action) do |e|
@@ -72,7 +72,7 @@ class ClientTest < TinyTds::TestCase
       assert_new_connections_work
     end
     
-    should 'raise TinyTds exception with long query past :timeout option' do
+    it 'raises TinyTds exception with long query past :timeout option' do
       client = new_connection :timeout => 1
       action = lambda { client.execute("WaitFor Delay '00:00:02'").do }
       assert_raise_tinytds_error(action) do |e|
@@ -84,14 +84,14 @@ class ClientTest < TinyTds::TestCase
       assert_new_connections_work
     end
     
-    should 'not timeout per sql batch when not under transaction' do
+    it 'must not timeout per sql batch when not under transaction' do
       client = new_connection :timeout => 2
       client.execute("WaitFor Delay '00:00:01'").do
       client.execute("WaitFor Delay '00:00:01'").do
       client.execute("WaitFor Delay '00:00:01'").do
     end
     
-    should 'not timeout per sql batch when under transaction' do
+    it 'must not timeout per sql batch when under transaction' do
       client = new_connection :timeout => 2
       begin
         client.execute("BEGIN TRANSACTION").do
@@ -103,7 +103,8 @@ class ClientTest < TinyTds::TestCase
       end
     end
     
-    should_eventually 'run this test to prove we account for dropped connections' do
+    it 'must run this test to prove we account for dropped connections' do
+      skip
       begin
         client = new_connection :login_timeout => 2, :timeout => 2
         assert_client_works(client)
@@ -129,7 +130,7 @@ class ClientTest < TinyTds::TestCase
       end
     end
     
-    should 'raise TinyTds exception with wrong :username' do
+    it 'raises TinyTds exception with wrong :username' do
       options = connection_options :username => 'willnotwork'
       action = lambda { new_connection(options) }
       assert_raise_tinytds_error(action) do |e|
@@ -144,7 +145,7 @@ class ClientTest < TinyTds::TestCase
       assert_new_connections_work
     end
     
-    should 'fail miserably with unknown encoding option' do
+    it 'fails miserably with unknown encoding option' do
       options = connection_options :encoding => 'ISO-WTF'
       action = lambda { new_connection(options) }
       assert_raise_tinytds_error(action) do |e|

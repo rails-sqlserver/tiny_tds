@@ -604,11 +604,11 @@ class ResultTest < TinyTds::TestCase
       else
 
         should 'raise an error' do
-          action = lambda { @client.execute("RAISERROR 99999 'Hello World'").do }
+          action = lambda { @client.execute("RAISERROR (N'Hello World', 16, 1)").do }
           assert_raise_tinytds_error(action) do |e|
             assert_equal "Hello World", e.message
             assert_equal 16, e.severity # predefined on ASE
-            assert_equal 99999, e.db_error_number
+            assert_equal 50000, e.db_error_number
           end
         end
 

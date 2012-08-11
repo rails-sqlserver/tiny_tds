@@ -3,6 +3,8 @@
 
 * Move test system to real MiniTest::Spec. All tests pass on Azure too.
 
+* Raise and handle encoding errors on DB writes. Fixes #89.
+
 
 * 0.5.1 *
 

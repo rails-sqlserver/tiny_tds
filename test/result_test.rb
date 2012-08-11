@@ -610,10 +610,10 @@ class ResultTest < TinyTds::TestCase
             assert_equal 16, e.severity # predefined on ASE
             assert_equal 50000, e.db_error_number
           end
+          assert_followup_query
         end
 
       end
-
       
       it 'throws an error when you execute another query with other results pending' do
         result1 = @client.execute(@query1)
@@ -644,7 +644,29 @@ class ResultTest < TinyTds::TestCase
         end
         assert_followup_query
       end
-      
+
+      it 'must not error at all from reading non-convertable charcters and just use ? marks' do
+        @client = new_connection :encoding => 'ASCII'
+        @client.charset.must_equal 'ASCII'
+        find_value(202, :nvarchar_50).must_equal 'test nvarchar_50 ??'
+      end
+
+      it 'must error gracefully from writing non-convertable characters' do
+        @client = new_connection :encoding => 'ASCII'
+        @client.charset.must_equal 'ASCII'
+        rollback_transaction(@client) do
+          text = 'Test ✓'
+          @client.execute("DELETE FROM [datatypes] WHERE [nvarchar_50] IS NOT NULL").do
+          action = lambda { @client.execute("INSERT INTO [datatypes] ([nvarchar_50]) VALUES ('#{text}')").do }
+          assert_raise_tinytds_error(action) do |e|
+            e.message.must_match %r{Error converting characters into server's character set}i
+            e.severity.must_equal 4
+            e.db_error_number.must_equal 2402
+          end
+          assert_followup_query
+        end
+      end
+
       it 'errors gracefully with incorrect syntax in sp_executesql' do
         if @client.freetds_091_or_higer?
           action = lambda { @client.execute("EXEC sp_executesql N'this will not work'").each }

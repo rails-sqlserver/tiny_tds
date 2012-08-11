@@ -58,6 +58,9 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
      return INT_CANCEL;
    case SYBESMSG:
      return return_value;
+   case SYBEICONVO:
+     dbfreebuf(dbproc);
+     break;
    case SYBEICONVI:
      return INT_CANCEL;
    case SYBEFCON:

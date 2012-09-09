@@ -1,0 +1,372 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>TinyTDS by rails-sqlserver</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">TinyTDS</h1>
+        <p class="header">TinyTDS - A modern, simple and fast FreeTDS library for Ruby using DB-Library</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/rails-sqlserver/tiny_tds/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/rails-sqlserver/tiny_tds/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/rails-sqlserver/tiny_tds">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/rails-sqlserver">rails-sqlserver</a></p>
+
+
+      </header>
+      <section>
+        <h1>TinyTDS - A modern, simple and fast FreeTDS library for Ruby using DB-Library.</h1>
+
+<p>The TinyTDS gem is meant to serve the extremely common use-case of connecting, querying and iterating over results to Microsoft SQL Server databases from ruby. Even though it uses FreeTDS's DB-Library, it is NOT meant to serve as direct 1:1 mapping of that C API.</p>
+
+<p>The benefits are speed, automatic casting to ruby primitives, and proper encoding support. It converts all SQL Server datatypes to native ruby objects supporting :utc or :local time zones for time-like types. To date it is the only ruby client library that allows client encoding options, defaulting to UTF-8, while connecting to SQL Server. It also  properly encodes all string and binary data. The motivation for TinyTDS is to become the de-facto low level connection mode for the SQL Server adapter for ActiveRecord. For further details see the special thanks section at the bottom</p>
+
+<p>The API is simple and consists of these classes:</p>
+
+<ul>
+<li>TinyTds::Client - Your connection to the database.</li>
+<li>TinyTds::Result - Returned from issuing an #execute on the connection. It includes Enumerable.</li>
+<li>TinyTds::Error - A wrapper for all FreeTDS exceptions.</li>
+</ul><h2>New &amp; Noteworthy</h2>
+
+<ul>
+<li>Works with FreeTDS 0.91</li>
+<li>Tested on Windows using MiniPortile &amp; RailsInstaller.</li>
+<li>New :host/:port connection options. Removes need for freetds.conf file.</li>
+</ul><h2>Install</h2>
+
+<p>Installing with rubygems should just work. TinyTDS is tested on ruby version 1.8.6, 1.8.7, 1.9.1, 1.9.2, 1.9.3 as well as REE &amp; JRuby.</p>
+
+<pre><code>$ gem install tiny_tds
+</code></pre>
+
+<p>Although we search for FreeTDS's libraries and headers, you may have to specify include and lib directories using <code>--with-freetds-include=/some/local/include/freetds</code> and <code>--with-freetds-lib=/some/local/lib</code></p>
+
+<h2>FreeTDS Compatibility &amp; Configuration</h2>
+
+<p>TinyTDS is developed against FreeTDS 0.82 &amp; 0.91, the latest is recommended. It is tested with SQL Server 2000, 2005, 2008 and Azure. Below are a few QA style notes about installing FreeTDS.</p>
+
+<ul>
+<li><p><strong>Do I need to install FreeTDS?</strong> Yes! Somehow, someway, you are going to need FreeTDS for TinyTDS to compile against. You can avoid installing FreeTDS on your system by using our projects usage of rake-compiler and mini_portile to compile and package a native gem just for you. See the "Using MiniPortile" section below.</p></li>
+<li><p><strong>OK, I am installing FreeTDS, how do I configure it?</strong> Contrary to what most people think, you do not need to specially configure FreeTDS in any way for client libraries like TinyTDS to use it. About the only requirement is that you compile it with libiconv for proper encoding support. FreeTDS must also be compiled with OpenSSL (or the like) to use it with Azure. See the "Using TinyTDS with Azure" section below for more info.</p></li>
+<li><p><strong>Do I need to configure <code>--with-tdsver</code> equal to anything?</strong> Maybe! Technically you should not have too. This is only a default for clients/configs that do not specify what TDS version they want to use. We are currently having issues with passing down a TDS version with the login bit. Till we get that fixed, if you are not using a freetds.conf or a TDSVER environment variable, the make sure to use 7.1 for FreeTDS 0.91 and 8.0 for FreeTDS 0.82.</p></li>
+<li><p><strong>But I want to use TDS version 7.2 for SQL Server 2005 and up!</strong> TinyTDS uses TDS version 7.1 (previously named 8.0) and fully supports all the data types supported by FreeTDS, this includes <code>varchar(max)</code> and <code>nvarchar(max)</code>. Technically compiling and using TDS version 7.2 with FreeTDS is not supported. But this does not mean those data types will not work. I know, it's confusing If you want to learn more, read this thread. <a href="http://lists.ibiblio.org/pipermail/freetds/2011q3/027306.html">http://lists.ibiblio.org/pipermail/freetds/2011q3/027306.html</a></p></li>
+<li><p><strong>I want to configure FreeTDS using <code>--enable-msdblib</code> and/or <code>--enable-sybase-compat</code> so it works for my database. Cool?</strong> It's a waste of time and totally moot! Client libraries like TinyTDS define their own C structure names where they diverge from Sybase to SQL Server. Technically we use the Sybase structures which does not mean we only work with that database vs SQL Server. These configs are just a low level default for C libraries that do not define what they want. So I repeat, you do not NEED to use any of these, nor will they hurt anything since we control what C structure names we use and this has no affect on what database you use!</p></li>
+</ul><h2>Data Types</h2>
+
+<p>Our goal is to support every SQL Server data type and covert it to a logical ruby object. When dates or times are returned, they are instantiated to either <code>:utc</code> or <code>:local</code> time depending on the query options. Under ruby 1.9, all strings are encoded to the connection's encoding and all binary data types are associated to ruby's <code>ASCII-8BIT/BINARY</code> encoding.</p>
+
+<p>Below is a list of the data types we plan to support using future versions of FreeTDS. They are associated with SQL Server 2008. All unsupported data types are returned as properly encoded strings.</p>
+
+<ul>
+<li>[date]</li>
+<li>[datetime2]</li>
+<li>[datetimeoffset]</li>
+<li>[time]</li>
+</ul><h2>TinyTds::Client Usage</h2>
+
+<p>Connect to a database.</p>
+
+<div class="highlight"><pre><span class="n">client</span> <span class="o">=</span> <span class="no">TinyTds</span><span class="o">::</span><span class="no">Client</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">:username</span> <span class="o">=&gt;</span> <span class="s1">'sa'</span><span class="p">,</span> <span class="ss">:password</span> <span class="o">=&gt;</span> <span class="s1">'secret'</span><span class="p">,</span> <span class="ss">:host</span> <span class="o">=&gt;</span> <span class="s1">'mydb.host.net'</span><span class="p">)</span>
+</pre></div>
+
+<p>Creating a new client takes a hash of options. For valid iconv encoding options, see the output of <code>iconv -l</code>. Only a few have been tested and highly recommended to leave blank for the UTF-8 default.</p>
+
+<ul>
+<li>:username - The database server user.</li>
+<li>:password - The user password.</li>
+<li>:dataserver - Can be the name for your data server as defined in freetds.conf. Raw hostname or hostname:port will work here too. FreeTDS says that named instance like 'localhost\SQLEXPRESS' work too, but I highly suggest that you use the :host and :port options below. <a href="http://bit.ly/xAf2jm">Google how to find your host port if you are using named instances</a> or <a href="http://msdn.microsoft.com/en-us/library/ms181087.aspx">go here</a>.</li>
+<li>:host - Used if :dataserver blank. Can be an host name or IP.</li>
+<li>:port - Defaults to 1433. Only used if :host is used.</li>
+<li>:database - The default database to use.</li>
+<li>:appname - Short string seen in SQL Servers process/activity window.</li>
+<li>:tds_version - TDS version. Defaults to 71 (7.1) and is not recommended to change!</li>
+<li>:login_timeout - Seconds to wait for login. Default to 60 seconds.</li>
+<li>:timeout - Seconds to wait for a response to a SQL command. Default 5 seconds.</li>
+<li>:encoding - Any valid iconv value like CP1251 or ISO-8859-1. Default UTF-8.</li>
+<li>:azure - Pass true to signal that you are connecting to azure.</li>
+</ul><p>Use the <code>#active?</code> method to determine if a connection is good. The implementation of this method may change but it should always guarantee that a connection is good. Current it checks for either a closed or dead connection.</p>
+
+<div class="highlight"><pre><span class="n">client</span><span class="o">.</span><span class="n">dead?</span>    <span class="c1"># =&gt; false</span>
+<span class="n">client</span><span class="o">.</span><span class="n">closed?</span>  <span class="c1"># =&gt; false</span>
+<span class="n">client</span><span class="o">.</span><span class="n">active?</span>  <span class="c1"># =&gt; true</span>
+<span class="n">client</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"SQL TO A DEAD SERVER"</span><span class="p">)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">dead?</span>    <span class="c1"># =&gt; true</span>
+<span class="n">client</span><span class="o">.</span><span class="n">closed?</span>  <span class="c1"># =&gt; false</span>
+<span class="n">client</span><span class="o">.</span><span class="n">active?</span>  <span class="c1"># =&gt; false</span>
+<span class="n">client</span><span class="o">.</span><span class="n">close</span>
+<span class="n">client</span><span class="o">.</span><span class="n">closed?</span>  <span class="c1"># =&gt; true</span>
+<span class="n">client</span><span class="o">.</span><span class="n">active?</span>  <span class="c1"># =&gt; false</span>
+</pre></div>
+
+<p>Escape strings.</p>
+
+<div class="highlight"><pre><span class="n">client</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="s2">"How's It Going'"</span><span class="p">)</span> <span class="c1"># =&gt; "How''s It Going''"</span>
+</pre></div>
+
+<p>Send a SQL string to the database and return a TinyTds::Result object.</p>
+
+<div class="highlight"><pre><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"SELECT * FROM [datatypes]"</span><span class="p">)</span>
+</pre></div>
+
+<h2>TinyTds::Result Usage</h2>
+
+<p>A result object is returned by the client's execute command. It is important that you either return the data from the query, most likely with the #each method, or that you cancel the results before asking the client to execute another SQL batch. Failing to do so will yield an error.</p>
+
+<p>Calling #each on the result will lazily load each row from the database.</p>
+
+<div class="highlight"><pre><span class="n">result</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">row</span><span class="o">|</span>
+  <span class="c1"># By default each row is a hash.</span>
+  <span class="c1"># The keys are the fields, as you'd expect.</span>
+  <span class="c1"># The values are pre-built ruby primitives mapped from their corresponding types.</span>
+  <span class="c1"># Here's an leemer: http://is.gd/g61xo</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>A result object has a <code>#fields</code> accessor. It can be called before the result rows are iterated over. Even if no rows are returned, #fields will still return the column names you expected. Any SQL that does not return columned data will always return an empty array for <code>#fields</code>. It is important to remember that if you access the <code>#fields</code> before iterating over the results, the columns will always follow the default query option's <code>:symbolize_keys</code> setting at the client's level and will ignore the query options passed to each.</p>
+
+<div class="highlight"><pre><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"USE [tinytdstest]"</span><span class="p">)</span>
+<span class="n">result</span><span class="o">.</span><span class="n">fields</span> <span class="c1"># =&gt; []</span>
+<span class="n">result</span><span class="o">.</span><span class="n">do</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"SELECT [id] FROM [datatypes]"</span><span class="p">)</span>
+<span class="n">result</span><span class="o">.</span><span class="n">fields</span> <span class="c1"># =&gt; ["id"]</span>
+<span class="n">result</span><span class="o">.</span><span class="n">cancel</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"SELECT [id] FROM [datatypes]"</span><span class="p">)</span>
+<span class="n">result</span><span class="o">.</span><span class="n">each</span><span class="p">(</span><span class="ss">:symbolize_keys</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span>
+<span class="n">result</span><span class="o">.</span><span class="n">fields</span> <span class="c1"># =&gt; [:id]</span>
+</pre></div>
+
+<p>You can cancel a result object's data from being loading by the server.</p>
+
+<div class="highlight"><pre><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"SELECT * FROM [super_big_table]"</span><span class="p">)</span>
+<span class="n">result</span><span class="o">.</span><span class="n">cancel</span>
+</pre></div>
+
+<p>If the SQL executed by the client returns affected rows, you can easily find out how many.</p>
+
+<div class="highlight"><pre><span class="n">result</span><span class="o">.</span><span class="n">each</span>
+<span class="n">result</span><span class="o">.</span><span class="n">affected_rows</span> <span class="c1"># =&gt; 24</span>
+</pre></div>
+
+<p>This pattern is so common for UPDATE and DELETE statements that the #do method cancels any need for loading the result data and returns the <code>#affected_rows</code>.</p>
+
+<div class="highlight"><pre><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"DELETE FROM [datatypes]"</span><span class="p">)</span>
+<span class="n">result</span><span class="o">.</span><span class="n">do</span> <span class="c1"># =&gt; 72</span>
+</pre></div>
+
+<p>Likewise for <code>INSERT</code> statements, the #insert method cancels any need for loading the result data and executes a <code>SCOPE_IDENTITY()</code> for the primary key.</p>
+
+<div class="highlight"><pre><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"INSERT INTO [datatypes] ([xml]) VALUES ('&lt;html&gt;&lt;br/&gt;&lt;/html&gt;')"</span><span class="p">)</span>
+<span class="n">result</span><span class="o">.</span><span class="n">insert</span> <span class="c1"># =&gt; 420</span>
+</pre></div>
+
+<p>The result object can handle multiple result sets form batched SQL or stored procedures. It is critical to remember that when calling each with a block for the first time will return each "row" of each result set. Calling each a second time with a block will yield each "set".</p>
+
+<div class="highlight"><pre><span class="n">sql</span> <span class="o">=</span> <span class="o">[</span><span class="s2">"SELECT TOP (1) [id] FROM [datatypes]"</span><span class="p">,</span> 
+       <span class="s2">"SELECT TOP (2) [bigint] FROM [datatypes] WHERE [bigint] IS NOT NULL"</span><span class="o">].</span><span class="n">join</span><span class="p">(</span><span class="s1">' '</span><span class="p">)</span>
+
+<span class="n">set1</span><span class="p">,</span> <span class="n">set2</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span><span class="o">.</span><span class="n">each</span>
+<span class="n">set1</span> <span class="c1"># =&gt; [{"id"=&gt;11}]</span>
+<span class="n">set2</span> <span class="c1"># =&gt; [{"bigint"=&gt;-9223372036854775807}, {"bigint"=&gt;9223372036854775806}]</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>
+
+<span class="n">result</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">rowset</span><span class="o">|</span>
+  <span class="c1"># First time data loading, yields each row from each set.</span>
+  <span class="c1"># 1st: {"id"=&gt;11}</span>
+  <span class="c1"># 2nd: {"bigint"=&gt;-9223372036854775807}</span>
+  <span class="c1"># 3rd: {"bigint"=&gt;9223372036854775806}</span>
+<span class="k">end</span>
+
+<span class="n">result</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">rowset</span><span class="o">|</span>
+  <span class="c1"># Second time over (if columns cached), yields each set.</span>
+  <span class="c1"># 1st: [{"id"=&gt;11}]</span>
+  <span class="c1"># 2nd: [{"bigint"=&gt;-9223372036854775807}, {"bigint"=&gt;9223372036854775806}]</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>Use the <code>#sqlsent?</code> and <code>#canceled?</code> query methods on the client to determine if an active SQL batch still needs to be processed and or if data results were canceled from the last result object. These values reset to true and false respectively for the client at the start of each <code>#execute</code> and new result object. Or if all rows are processed normally, <code>#sqlsent?</code> will return false. To demonstrate, lets assume we have 100 rows in the result object.</p>
+
+<div class="highlight"><pre><span class="n">client</span><span class="o">.</span><span class="n">sqlsent?</span>   <span class="c1"># = false</span>
+<span class="n">client</span><span class="o">.</span><span class="n">canceled?</span>  <span class="c1"># = false</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"SELECT * FROM [super_big_table]"</span><span class="p">)</span>
+
+<span class="n">client</span><span class="o">.</span><span class="n">sqlsent?</span>   <span class="c1"># = true</span>
+<span class="n">client</span><span class="o">.</span><span class="n">canceled?</span>  <span class="c1"># = false</span>
+
+<span class="n">result</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">row</span><span class="o">|</span>
+  <span class="c1"># Assume we break after 20 rows with 80 still pending.</span>
+  <span class="k">break</span> <span class="k">if</span> <span class="n">row</span><span class="o">[</span><span class="s2">"id"</span><span class="o">]</span> <span class="o">&gt;</span> <span class="mi">20</span>
+<span class="k">end</span>
+
+<span class="n">client</span><span class="o">.</span><span class="n">sqlsent?</span>   <span class="c1"># = true</span>
+<span class="n">client</span><span class="o">.</span><span class="n">canceled?</span>  <span class="c1"># = false</span>
+
+<span class="n">result</span><span class="o">.</span><span class="n">cancel</span>
+
+<span class="n">client</span><span class="o">.</span><span class="n">sqlsent?</span>   <span class="c1"># = false</span>
+<span class="n">client</span><span class="o">.</span><span class="n">canceled?</span>  <span class="c1"># = true</span>
+</pre></div>
+
+<p>It is possible to get the return code after executing a stored procedure from either the result or client object.</p>
+
+<div class="highlight"><pre><span class="n">client</span><span class="o">.</span><span class="n">return_code</span>  <span class="c1"># =&gt; nil</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"EXEC tinytds_TestReturnCodes"</span><span class="p">)</span>
+<span class="n">result</span><span class="o">.</span><span class="n">return_code</span>  <span class="c1"># =&gt; 420</span>
+<span class="n">client</span><span class="o">.</span><span class="n">return_code</span>  <span class="c1"># =&gt; 420</span>
+</pre></div>
+
+<h2>Query Options</h2>
+
+<p>Every <code>TinyTds::Result</code> object can pass query options to the #each method. The defaults are defined and configurable by setting options in the <code>TinyTds::Client.default_query_options</code> hash. The default values are:</p>
+
+<ul>
+<li>:as =&gt; :hash - Object for each row yielded. Can be set to :array.</li>
+<li>:symbolize_keys =&gt; false - Row hash keys. Defaults to shared/frozen string keys.</li>
+<li>:cache_rows =&gt; true - Successive calls to #each returns the cached rows.</li>
+<li>:timezone =&gt; :local - Local to the ruby client or :utc for UTC.</li>
+<li>:empty_sets =&gt; true - Include empty results set in queries that return multiple result sets.</li>
+</ul><p>Each result gets a copy of the default options you specify at the client level and can be overridden by passing an options hash to the #each method. For example</p>
+
+<div class="highlight"><pre><span class="n">result</span><span class="o">.</span><span class="n">each</span><span class="p">(</span><span class="ss">:as</span> <span class="o">=&gt;</span> <span class="ss">:array</span><span class="p">,</span> <span class="ss">:cache_rows</span> <span class="o">=&gt;</span> <span class="kp">false</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">row</span><span class="o">|</span>
+  <span class="c1"># Each row is now an array of values ordered by #fields.</span>
+  <span class="c1"># Rows are yielded and forgotten about, freeing memory.</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>Besides the standard query options, the result object can take one additional option. Using <code>:first =&gt; true</code> will only load the first row of data and cancel all remaining results.</p>
+
+<div class="highlight"><pre><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"SELECT * FROM [super_big_table]"</span><span class="p">)</span>
+<span class="n">result</span><span class="o">.</span><span class="n">each</span><span class="p">(</span><span class="ss">:first</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">)</span> <span class="c1"># =&gt; [{'id' =&gt; 24}]</span>
+</pre></div>
+
+<h2>Row Caching</h2>
+
+<p>By default row caching is turned on because the SQL Server adapter for ActiveRecord would not work without it. I hope to find some time to create some performance patches for ActiveRecord that would allow it to take advantages of lazily created yielded rows from result objects. Currently only TinyTDS and the Mysql2 gem allow such a performance gain.</p>
+
+<h2>Encoding Error Handling</h2>
+
+<p>TinyTDS takes an opinionated stance on how we handle encoding errors. First, we treat errors differently on reads vs. writes. Our opinion is that if you are reading bad data due to your client's encoding option, you would rather just find <code>?</code>'marks in your strings vs being blocked with exceptions. This is how things wold work via ODBC or SMS. On the other hand, writes will raise an exception. In this case we raise the SYBEICONVO/2402 error message which has a description of <code>Error converting characters into server's character set. Some character(s) could not be converted.</code>. Even though the severity of this message is only a <code>4</code> and TinyTDS will automatically strip/ignore unknown characters, we feel you should know that you are inserting bad encodings. In this way, a transaction can be rolled back, etc. Remember, any database write that has bad characters due to the client encoding will still be written to the database, but it is up to you rollback said write if needed. Most ORMs like ActiveRecord handle this scenario just fine.</p>
+
+<h2>Using TinyTDS With Rails &amp; The ActiveRecord SQL Server adapter.</h2>
+
+<p>As of version 2.3.11 &amp; 3.0.3 of the adapter, you can specify a <code>:dblib</code> mode in database.yml and use TinyTDS as the low level connection mode, this is the default in versions 3.1 or higher. The SQL Server adapter can be found using the link below. Also included is a direct link to the wiki article covering common questions when using TinyTDS as the low level connection mode for the adapter.</p>
+
+<ul>
+<li>ActiveRecord SQL Server Adapter: <a href="http://github.com/rails-sqlserver/activerecord-sqlserver-adapter">http://github.com/rails-sqlserver/activerecord-sqlserver-adapter</a>
+</li>
+<li>Using TinyTDS: <a href="http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/wiki/Using-TinyTds">http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/wiki/Using-TinyTds</a>
+</li>
+</ul><h2>Using TinyTDS with Azure</h2>
+
+<p>TinyTDS is fully tested with the Azure platform. You must set the <code>:azure =&gt; true</code> connection option when connecting. This is needed to specify the default database name in the login packet since Azure has no notion of <code>USE [database]</code>. You must use the latest FreeTDS 0.91. FreeTDS must be compiled with OpenSSL too.</p>
+
+<p>IMPORTANT: Do not use <code>username@server.database.windows.net</code> for the username connection option! You must use the shorter <code>username@server</code> instead!</p>
+
+<h2>Using MiniPortile</h2>
+
+<p>MiniPortile is a minimalistic, simplistic and stupid implementation of a port/recipe system for developers. <a href="https://github.com/luislavena/mini_portile">https://github.com/luislavena/mini_portile</a></p>
+
+<p>The TinyTDS project uses MiniPortile so that we can easily install a local "project specific" version of FreeTDS and supporting libraries to link against when building a test version of TinyTDS. MiniPortile is a great tool that even allows us to build statically linked components that TinyTDS relies on. Hence this allows us to publish native gems for any platform. We use this feature for gems targeted at Windows.</p>
+
+<p>You too can use MiniPortile to build TinyTDS and build your own gems for your own package management needs. Here is a few simple steps that assume you have cloned a fresh copy of this repository. 1) Bundling will install all the development dependencies. 2) Running <code>rake compile</code> will basically download and install a supported version of FreeTDS in our <code>ports.rake</code> file and supporting libraries. These will all be installed into the projects tmp directory. 3) The final <code>rake native gem</code> command will build a native gem for your specific platform. 4) The native gem can be found in the <code>pkg</code> directory. The last command assumes "X" is version numbers and #{platform} will be your platform.</p>
+
+<pre><code>$ bundle install
+$ rake compile
+$ rake native gem
+$ gem install pkg/tiny_tds-X.X.X-#{platform}.gem
+</code></pre>
+
+<p><strong>Important:</strong> You must use rubygems version 1.7.2 or higher. You will almost certainly hit a <em>Don't know how to build task...</em> error when running the <code>rake native gem</code> command if you do not. Please update rubygems! Here is a link on <a href="http://rubygems.rubyforge.org/rubygems-update/UPGRADING_rdoc.html">how to upgrade or downgrade rubygems</a>.</p>
+
+<h2>Development &amp; Testing</h2>
+
+<p>We use bundler for development. Simply run <code>bundle install</code> then <code>rake</code> to build the gem and run the unit tests. The tests assume you have created a database named <code>tinytdstest</code> accessible by a database owner named <code>tinytds</code>. Before running the test rake task, you may need to define a pair of environment variables that help the client connect to your specific FreeTDS database server name and which schema (2000, 2005, 2008, Azure or Sybase ASE) to use. For example:</p>
+
+<pre><code>$ rake TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2008
+  or
+$ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_SCHEMA=sqlserver_azure
+  or
+$ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_UNIT_PORT=5000 TINYTDS_SCHEMA=sybase_ase
+</code></pre>
+
+<p>If you do not want to use MiniPortile to compile a local project version of FreeTDS and instead use your local system version, use the <code>TINYTDS_SKIP_PORTS</code> environment variable. This will ignore any port tasks and will instead build and link to your system's FreeTDS installation as a normal gem install would.</p>
+
+<pre><code>$ rake TINYTDS_SKIP_PORTS=true
+</code></pre>
+
+<h2>Help &amp; Support</h2>
+
+<ul>
+<li>Github Source: <a href="http://github.com/rails-sqlserver/tiny_tds">http://github.com/rails-sqlserver/tiny_tds</a>
+</li>
+<li>Github Issues: <a href="http://github.com/rails-sqlserver/tiny_tds/issues">http://github.com/rails-sqlserver/tiny_tds/issues</a>
+</li>
+<li>Google Group: <a href="http://groups.google.com/group/rails-sqlserver-adapter">http://groups.google.com/group/rails-sqlserver-adapter</a>
+</li>
+<li>IRC Room: #rails-sqlserver on irc.freenode.net</li>
+</ul><h2>TODO List</h2>
+
+<ul>
+<li>Include OpenSSL with Windows binaries for SQL Azure.</li>
+<li>Install an interrupt handler.</li>
+<li>Allow #escape to accept all ruby primitives.</li>
+</ul><h2>About Me</h2>
+
+<p>My name is Ken Collins and I currently maintain the SQL Server adapter for ActiveRecord and wrote this library as my first cut into learning ruby C extensions. Hopefully it will help promote the power of ruby and the Rails framework to those that have not yet discovered it. My blog is <a href="http://metaskills.net">http://metaskills.net</a> and I can be found on twitter as <a href="https://github.com/metaskills" class="user-mention">@metaskills</a>. Enjoy!</p>
+
+<h2>Special Thanks</h2>
+
+<ul>
+<li>Erik Bryn for joining the project and helping me thru a few tight spots. - <a href="http://github.com/ebryn">http://github.com/ebryn</a>
+</li>
+<li>To the authors and contributors of the Mysql2 gem for inspiration. - <a href="http://github.com/brianmario/mysql2">http://github.com/brianmario/mysql2</a>
+</li>
+<li>Yehuda Katz for articulating ruby's need for proper encoding support. Especially in database drivers - <a href="http://yehudakatz.com/2010/05/05/ruby-1-9-encodings-a-primer-and-the-solution-for-rails/">http://yehudakatz.com/2010/05/05/ruby-1-9-encodings-a-primer-and-the-solution-for-rails/</a>
+</li>
+<li>Josh Clayton of Thoughtbot for writing about ruby C extensions. - <a href="http://robots.thoughtbot.com/post/1037240922/get-your-c-on">http://robots.thoughtbot.com/post/1037240922/get-your-c-on</a>
+</li>
+</ul><h2>Donators</h2>
+
+<p>I am trying to save up for a Happy Hacking pro keyboard. Help me out via GitTip! <a href="https://www.gittip.com/metaskills/">https://www.gittip.com/metaskills/</a></p>
+
+<h2>License</h2>
+
+<p>TinyTDS is Copyright (c) 2010-2011 Ken Collins, <a href="mailto:ken@metaskills.net">ken@metaskills.net</a> and is distributed under the MIT license. Windows binaries contain precompiled versions of FreeTDS <a href="http://www.freetds.org/">http://www.freetds.org/</a> which is licensed under the GNU LGPL license at <a href="http://www.gnu.org/licenses/lgpl-2.0.html">http://www.gnu.org/licenses/lgpl-2.0.html</a></p>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		          <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-34687749-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>

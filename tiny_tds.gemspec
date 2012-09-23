@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.rdoc_options  = ['--charset=UTF-8']
   s.extensions    = ['ext/tiny_tds/extconf.rb']
   s.add_development_dependency 'rake',          '~> 0.9.2'
-  s.add_development_dependency 'mini_portile',  '0.2.2'
+  s.add_development_dependency 'mini_portile',  '0.3.0'
   s.add_development_dependency 'rake-compiler', '0.8.1'
   s.add_development_dependency 'activesupport', '~> 3.0'
   s.add_development_dependency 'minitest'

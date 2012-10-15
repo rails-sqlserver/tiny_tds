@@ -1,10 +1,10 @@
 # encoding: UTF-8
 require 'rake'
-require "rake/clean"
+require 'rake/clean'
 require 'rbconfig'
 require 'rake/testtask'
 require 'rake/extensiontask'
-require "rubygems/package_task"
+require 'rubygems/package_task'
 
 # My notes for cross compile native Windows gem.
 # 

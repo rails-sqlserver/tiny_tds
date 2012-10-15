@@ -1,6 +1,8 @@
 
 * 0.5.2 *
 
+* Always convert password option to string. Fixes #92.
+
 * Move test system to real MiniTest::Spec. All tests pass on Azure too.
 
 * Raise and handle encoding errors on DB writes. Fixes #89.

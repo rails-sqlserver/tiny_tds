@@ -31,7 +31,7 @@ Although we search for FreeTDS's libraries and headers, you may have to specify 
 
 ## FreeTDS Compatibility & Configuration
 
-TinyTDS is developed against FreeTDS 0.82 & 0.91, the latest is recommended. It is tested with SQL Server 2000, 2005, 2008 and Azure. Below are a few QA style notes about installing FreeTDS.
+TinyTDS is developed against FreeTDS 0.82 & 0.91, and 0.92 currents, the latest is recommended. It is tested with SQL Server 2000, 2005, 2008 and Azure. Below are a few QA style notes about installing FreeTDS.
 
 * **Do I need to install FreeTDS?** Yes! Somehow, someway, you are going to need FreeTDS for TinyTDS to compile against. You can avoid installing FreeTDS on your system by using our projects usage of rake-compiler and mini_portile to compile and package a native gem just for you. See the "Using MiniPortile" section below.
 
@@ -295,6 +295,18 @@ $ gem install pkg/tiny_tds-X.X.X-#{platform}.gem
 ```
 
 **Important:** You must use rubygems version 1.7.2 or higher. You will almost certainly hit a *Don't know how to build task...* error when running the `rake native gem` command if you do not. Please update rubygems! Here is a link on [how to upgrade or downgrade rubygems](http://rubygems.rubyforge.org/rubygems-update/UPGRADING_rdoc.html).
+
+It is also possible to build a specific version of FreeTDS for your own gem or development and testing using the `TINYTDS_FREETDS_VERSION` environment variable. Here are some exampbles of possible values.
+
+```
+$ rake TINYTDS_FREETDS_VERSION="0.82"
+$ rake TINYTDS_FREETDS_VERSION="0.91"
+$ rake TINYTDS_FREETDS_VERSION="0.91.49"
+$ rake TINYTDS_FREETDS_VERSION="0.92.405"
+$ rake TINYTDS_FREETDS_VERSION="current"
+```
+
+To find out more about the FreeTDS release system [visit this thread](http://lists.ibiblio.org/pipermail/freetds/2012q1/027756.html) on their mailing list. You can also browse thier FTP server [ftp://ftp.astron.com/pub/freetds/](ftp://ftp.astron.com/pub/freetds/) for version number strings.
 
 
 ## Development & Testing  

@@ -1,6 +1,5 @@
 require 'mini_portile'
 require 'rake/extensioncompiler'
-require File.expand_path('../mini_portile_ext.rb', __FILE__)
 
 namespace :ports do
   

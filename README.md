@@ -11,13 +11,6 @@ The API is simple and consists of these classes:
 * TinyTds::Error - A wrapper for all FreeTDS exceptions.
 
 
-## New & Noteworthy
-
-* Works with FreeTDS 0.91
-* Tested on Windows using MiniPortile & RailsInstaller.
-* New :host/:port connection options. Removes need for freetds.conf file.
-
-
 ## Install
 
 Installing with rubygems should just work. TinyTDS is tested on ruby version 1.8.6, 1.8.7, 1.9.1, 1.9.2, 1.9.3 as well as REE & JRuby.

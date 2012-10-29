@@ -54,8 +54,10 @@ module TinyTds
 
 
     def initialize(opts={})
-      opts[:password] = opts[:password].to_s
-      warn 'FreeTDS may have issues with passwords longer than 30 characters!' if opts[:password].length > 30
+      if opts[:password].present?
+        opts[:password].to_s!
+        warn 'FreeTDS may have issues with passwords longer than 30 characters!' if opts[:password].length > 30
+      end
       raise ArgumentError, 'missing :username option' if opts[:username].to_s.empty?
       raise ArgumentError, 'missing :host option if no :dataserver given' if opts[:dataserver].to_s.empty? && opts[:host].to_s.empty?
       @query_options = @@default_query_options.dup

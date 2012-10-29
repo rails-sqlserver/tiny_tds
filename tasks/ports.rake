@@ -41,13 +41,12 @@ namespace :ports do
     recipe = $recipes[:freetds]
     checkpoint = "ports/.#{recipe.name}.#{recipe.version}.#{recipe.host}.timestamp"
     unless File.exist?(checkpoint)
-      recipe.configure_options << '--sysconfdir="C:/Sites"' if recipe.host =~ /mswin|mingw/i
+      with_tdsver = ENV['TINYTDS_FREETDS_VERSION'] =~ /0\.8/ ? "--with-tdsver=8.0" : "--with-tdsver=7.1"
+      for_windows = recipe.host =~ /mswin|mingw/i
+      recipe.configure_options << '--sysconfdir="C:/Sites"' if for_windows
+      recipe.configure_options << '--enable-sspi' if for_windows
       recipe.configure_options << "--disable-odbc"
-      if ENV['TINYTDS_FREETDS_VERSION'] =~ /0\.8/
-        recipe.configure_options << "--with-tdsver=8.0"
-      else
-        recipe.configure_options << "--with-tdsver=7.1"
-      end
+      recipe.configure_options << with_tdsver
       recipe.configure_options << "CFLAGS='-fPIC'"
       recipe.cook
       touch checkpoint

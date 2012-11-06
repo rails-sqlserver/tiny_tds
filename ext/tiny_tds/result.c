@@ -91,11 +91,12 @@ static void rb_tinytds_result_free(void *ptr) {
   xfree(ptr);
 }
 
-VALUE rb_tinytds_new_result_obj(DBPROCESS *c) {
+VALUE rb_tinytds_new_result_obj(tinytds_client_wrapper *cwrap) {
   VALUE obj;
   tinytds_result_wrapper *rwrap;
   obj = Data_Make_Struct(cTinyTdsResult, tinytds_result_wrapper, rb_tinytds_result_mark, rb_tinytds_result_free, rwrap);
-  rwrap->client = c;
+  rwrap->cwrap = cwrap;
+  rwrap->client = cwrap->client;
   rwrap->local_offset = Qnil;
   rwrap->fields = rb_ary_new();
   rwrap->fields_processed = rb_ary_new();
@@ -467,7 +468,7 @@ static VALUE rb_tinytds_result_insert(VALUE self) {
   if (rwrap->client) {
     rb_tinytds_result_cancel_helper(rwrap->client);
     VALUE identity = Qnil;
-    dbcmd(rwrap->client, "SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident");
+    dbcmd(rwrap->client, rwrap->cwrap->identity_insert_sql);
     if (dbsqlexec(rwrap->client) != FAIL && dbresults(rwrap->client) != FAIL && DBROWS(rwrap->client) != FAIL) {
       while (dbnextrow(rwrap->client) != NO_MORE_ROWS) {
         int col = 1;

@@ -193,7 +193,7 @@ static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
     return Qfalse;
   }
   cwrap->userdata->dbsql_sent = 1;
-  VALUE result = rb_tinytds_new_result_obj(cwrap->client);
+  VALUE result = rb_tinytds_new_result_obj(cwrap);
   rb_iv_set(result, "@query_options", rb_funcall(rb_iv_get(self, "@query_options"), intern_dup, 0));
   GET_RESULT_WRAPPER(result);
   rwrap->local_offset = rb_funcall(cTinyTdsClient, intern_local_offset, 0);
@@ -235,6 +235,11 @@ static VALUE rb_tinytds_return_code(VALUE self) {
   } else {
     return Qnil;
   }
+}
+
+static VALUE rb_tinytds_identity_sql(VALUE self) {
+  GET_CLIENT_WRAPPER(self);
+  return rb_str_new2(cwrap->identity_insert_sql);
 }
 
 static VALUE rb_tinytds_freetds_nine_one_or_higher(VALUE self) {
@@ -304,6 +309,11 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
       VALUE transposed_encoding = rb_funcall(cTinyTdsClient, intern_transpose_iconv_encoding, 1, charset);
       cwrap->encoding = rb_enc_find(StringValuePtr(transposed_encoding));
     #endif
+
+    if (dbtds(cwrap->client) <= 7)
+      cwrap->identity_insert_sql = "SELECT CAST(@@IDENTITY AS bigint) AS Ident";
+    else
+      cwrap->identity_insert_sql = "SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident";
   }
   return self;
 }
@@ -326,6 +336,7 @@ void init_tinytds_client() {
   rb_define_method(cTinyTdsClient, "encoding", rb_tinytds_encoding, 0);
   rb_define_method(cTinyTdsClient, "escape", rb_tinytds_escape, 1);
   rb_define_method(cTinyTdsClient, "return_code", rb_tinytds_return_code, 0);
+  rb_define_method(cTinyTdsClient, "identity_sql", rb_tinytds_identity_sql, 0);
   rb_define_method(cTinyTdsClient, "freetds_091_or_higer?", rb_tinytds_freetds_nine_one_or_higher, 0);
   /* Define TinyTds::Client Protected Methods */
   rb_define_protected_method(cTinyTdsClient, "connect", rb_tinytds_connect, 1);

@@ -128,11 +128,8 @@ class ResultTest < TinyTds::TestCase
         afrows = @client.execute("SELECT @@ROWCOUNT AS AffectedRows").each.first['AffectedRows']
         assert_instance_of Fixnum, afrows
         @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
-        pk1 = @client.execute("SELECT SCOPE_IDENTITY() AS Ident").each.first['Ident']
-        assert_instance_of BigDecimal, pk1, 'native is numeric(38,0) for SCOPE_IDENTITY() function'
-        pk2 = @client.execute("SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident").each.first['Ident']
-        assert_instance_of Fixnum, pk2, 'we it be able to CAST to bigint'
-        assert_equal pk2, pk1.to_i, 'just making sure the 2 line up'
+        pk1 = @client.execute(@client.identity_sql).each.first['Ident']
+        assert_instance_of Fixnum, pk1, 'we it be able to CAST to bigint'
         @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
         afrows = @client.execute("SELECT @@ROWCOUNT AS AffectedRows").each.first['AffectedRows']
         assert_equal 1, afrows
@@ -164,12 +161,12 @@ class ResultTest < TinyTds::TestCase
       end
     end
     
-    it 'has an #insert method that cancels result rows and returns the SCOPE_IDENTITY() natively' do
+    it 'has an #insert method that cancels result rows and returns IDENTITY natively' do
       rollback_transaction(@client) do
         text = 'test scope identity rows native'
         @client.execute("DELETE FROM [datatypes] WHERE [varchar_50] = '#{text}'").do
         @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
-        sql_identity = @client.execute("SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident").each.first['Ident']
+        sql_identity = @client.execute(@client.identity_sql).each.first['Ident']
         native_identity = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").insert
         assert_equal sql_identity+1, native_identity
       end

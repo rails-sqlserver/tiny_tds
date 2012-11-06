@@ -25,8 +25,13 @@ class ClientTest < TinyTds::TestCase
     end
     
     it 'has getters for the tds version information (brittle since conf takes precedence)' do
-      assert_equal 9, @client.tds_version
-      assert_equal 'DBTDS_7_1 - Microsoft SQL Server 2000', @client.tds_version_info
+      if sybase_ase?
+        assert_equal 7, @client.tds_version # FIXME this depends on ENV['TINYTDS_UNIT_VERSION']
+        assert_equal 'DBTDS_5_0 - 5.0 SQL Server', @client.tds_version_info
+      else
+        assert_equal 9, @client.tds_version
+        assert_equal 'DBTDS_7_1 - Microsoft SQL Server 2000', @client.tds_version_info
+      end
     end
     
     it 'uses UTF-8 client charset/encoding by default' do
@@ -155,7 +160,7 @@ class ClientTest < TinyTds::TestCase
         assert_match %r{connection failed}i, e.message, 'ignore if non-english test run'
       end
       assert_new_connections_work
-    end
+    end unless sybase_ase?
   
   end
   

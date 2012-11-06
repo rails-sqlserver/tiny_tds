@@ -185,8 +185,14 @@ class ResultTest < TinyTds::TestCase
         identity = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('something')").insert
         assert_equal seed, identity
       end
-    end
-    
+    end unless sybase_ase?
+    # On Sybase, sp_helpindex cannot be used inside a transaction, as
+    #   The 'CREATE TABLE' command is not allowed within a multi-statement
+    #   transaction in the 'tempdb' database.
+    #
+    # ...and sp_helpindex creates a temporary table #spindtab
+    #
+
     it 'must be able to begin/commit transactions with raw sql' do
       rollback_transaction(@client) do
         @client.execute("BEGIN TRANSACTION").do
@@ -581,7 +587,7 @@ class ResultTest < TinyTds::TestCase
         assert_equal [], @client.execute('').each
       end
       
-      if sybase_ase?
+      if sqlserver?
 
         it 'must not raise an error when severity is 10 or less' do
           (1..10).to_a.each do |severity|
@@ -601,7 +607,7 @@ class ResultTest < TinyTds::TestCase
       else
 
         it 'raises an error' do
-          action = lambda { @client.execute("RAISERROR (N'Hello World', 16, 1)").do }
+          action = lambda { @client.execute("RAISERROR 50000 N'Hello World'").do }
           assert_raise_tinytds_error(action) do |e|
             assert_equal "Hello World", e.message
             assert_equal 16, e.severity # predefined on ASE
@@ -625,7 +631,8 @@ class ResultTest < TinyTds::TestCase
       it 'must error gracefully with bad table name' do
         action = lambda { @client.execute('SELECT * FROM [foobar]').each }
         assert_raise_tinytds_error(action) do |e|
-          assert_match %r|invalid object name.*foobar|i, e.message
+          pattern = sybase_ase? ? /foobar not found/ : %r|invalid object name.*foobar|i
+          assert_match pattern, e.message
           assert_equal 16, e.severity
           assert_equal 208, e.db_error_number
         end
@@ -676,7 +683,7 @@ class ResultTest < TinyTds::TestCase
         else
           skip 'FreeTDS 0.91 and higher can only pass this test.'
         end
-      end
+      end unless sybase_ase?
     
     end
 

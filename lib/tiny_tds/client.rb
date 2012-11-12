@@ -55,7 +55,7 @@ module TinyTds
 
     def initialize(opts={})
       if opts[:password] && opts[:password].to_s.strip != ''
-        opts[:password].to_s!
+        opts[:password] = opts[:password].to_s
         warn 'FreeTDS may have issues with passwords longer than 30 characters!' if opts[:password].length > 30
       end
       raise ArgumentError, 'missing :username option' if opts[:username].to_s.empty?

@@ -1,13 +1,3 @@
-commit cdf93abe5492ec706bca0db762be41526f343e92
-Author: Frediano Ziglio <freddy77@gmail.com>
-Date:   Sun Nov 4 10:17:34 2012 +0000
-
-    Fix sspi if Kerberos is used
-    
-    Authentication require more roud trips for Kerberos.
-
-diff --git a/src/tds/sspi.c b/src/tds/sspi.c
-index 680717a..077d58b 100644
 --- a/src/tds/sspi.c
 +++ b/src/tds/sspi.c
 @@ -172,8 +172,19 @@ tds_sspi_handle_next(TDSSOCKET * tds, struct tds_authentication * tds_auth, size

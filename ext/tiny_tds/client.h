@@ -20,6 +20,7 @@ typedef struct {
   short int closed;
   VALUE charset;
   tinytds_client_userdata *userdata;
+  const char *identity_insert_sql;
   #ifdef HAVE_RUBY_ENCODING_H
     rb_encoding *encoding;
   #endif

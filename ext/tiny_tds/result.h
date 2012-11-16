@@ -7,9 +7,10 @@
 #endif
 
 void init_tinytds_result();
-VALUE rb_tinytds_new_result_obj(DBPROCESS *c);
+VALUE rb_tinytds_new_result_obj(tinytds_client_wrapper *cwrap);
 
 typedef struct {
+  tinytds_client_wrapper *cwrap;
   DBPROCESS *client;
   VALUE local_offset;
   VALUE fields;

@@ -309,11 +309,11 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
       VALUE transposed_encoding = rb_funcall(cTinyTdsClient, intern_transpose_iconv_encoding, 1, charset);
       cwrap->encoding = rb_enc_find(StringValuePtr(transposed_encoding));
     #endif
-
-    if (dbtds(cwrap->client) <= 7)
+    if (dbtds(cwrap->client) <= 7) {
       cwrap->identity_insert_sql = "SELECT CAST(@@IDENTITY AS bigint) AS Ident";
-    else
+    } else {
       cwrap->identity_insert_sql = "SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident";
+    }
   }
   return self;
 }

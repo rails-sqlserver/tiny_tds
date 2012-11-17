@@ -100,7 +100,7 @@ INSERT INTO [datatypes] ([id], [nchar_10])          VALUES ( 171, N'1234567890' 
 INSERT INTO [datatypes] ([id], [nchar_10])          VALUES ( 172, N'123456åå' )
 INSERT INTO [datatypes] ([id], [nchar_10])          VALUES ( 173, N'abc123' )
 -- INSERT INTO [datatypes] ([id], [ntext])             VALUES ( 181, N'test ntext' )
--- INSERT INTO [datatypes] ([id], [ntext])             VALUES ( 182, N'test ntext' ) -- utf-8 chars in comments make sybase choke
+-- INSERT INTO [datatypes] ([id], [ntext])             VALUES ( 182, N'test ntext' ) -- Removed UTF-8 chars. They make sybase choke in comments.
 INSERT INTO [datatypes] ([id], [numeric_18_0])      VALUES ( 191, 191 )
 INSERT INTO [datatypes] ([id], [numeric_18_0])      VALUES ( 192, 123456789012345678 )
 INSERT INTO [datatypes] ([id], [numeric_36_2])      VALUES ( 193, 12345678901234567890.01 )
@@ -108,7 +108,7 @@ INSERT INTO [datatypes] ([id], [numeric_36_2])      VALUES ( 194, 123.46 )
 INSERT INTO [datatypes] ([id], [nvarchar_50])       VALUES ( 201, N'test nvarchar_50' )
 INSERT INTO [datatypes] ([id], [nvarchar_50])       VALUES ( 202, N'test nvarchar_50 åå' )
 -- INSERT INTO [datatypes] ([id], [nvarchar_max])      VALUES ( 211, N'test nvarchar_max' )
--- INSERT INTO [datatypes] ([id], [nvarchar_max])      VALUES ( 212, N'test nvarchar_max' ) -- see 182
+-- INSERT INTO [datatypes] ([id], [nvarchar_max])      VALUES ( 212, N'test nvarchar_max' ) -- Removed UTF-8 chars. They make sybase choke in comments.
 INSERT INTO [datatypes] ([id], [real])              VALUES ( 221, 123.45 )
 INSERT INTO [datatypes] ([id], [real])              VALUES ( 222, 0.0 )
 INSERT INTO [datatypes] ([id], [real])              VALUES ( 223, 0.00001 )

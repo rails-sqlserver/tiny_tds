@@ -26,7 +26,7 @@ class ClientTest < TinyTds::TestCase
     
     it 'has getters for the tds version information (brittle since conf takes precedence)' do
       if sybase_ase?
-        assert_equal 7, @client.tds_version # FIXME this depends on ENV['TINYTDS_UNIT_VERSION']
+        assert_equal 7, @client.tds_version
         assert_equal 'DBTDS_5_0 - 5.0 SQL Server', @client.tds_version_info
       else
         assert_equal 9, @client.tds_version

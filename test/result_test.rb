@@ -174,6 +174,9 @@ class ResultTest < TinyTds::TestCase
   
     it 'returns bigint for #insert when needed' do
       return if sqlserver_azure? # We can not alter clustered index like this test does.
+      return if sybase_ase?      # On Sybase, sp_helpindex cannot be used inside a transaction since it does a 
+                                 # 'CREATE TABLE' command is not allowed within a multi-statement transaction 
+                                 # and and sp_helpindex creates a temporary table #spindtab.
       rollback_transaction(@client) do
         seed = 9223372036854775805
         @client.execute("DELETE FROM [datatypes]").do
@@ -185,13 +188,7 @@ class ResultTest < TinyTds::TestCase
         identity = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('something')").insert
         assert_equal seed, identity
       end
-    end unless sybase_ase?
-    # On Sybase, sp_helpindex cannot be used inside a transaction, as
-    #   The 'CREATE TABLE' command is not allowed within a multi-statement
-    #   transaction in the 'tempdb' database.
-    #
-    # ...and sp_helpindex creates a temporary table #spindtab
-    #
+    end
 
     it 'must be able to begin/commit transactions with raw sql' do
       rollback_transaction(@client) do

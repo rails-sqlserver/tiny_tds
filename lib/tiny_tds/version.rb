@@ -1,3 +1,3 @@
 module TinyTds
-  VERSION = '0.5.2.rc3'
+  VERSION = '0.5.2.rc4'
 end

@@ -1,6 +1,8 @@
 
 * 0.5.2 *
 
+* Use proper SQL for returning IDENTITY with Sybase. Fixes #95.
+
 * Compile windows with `--enable-sspi`.
 
 * Allow MiniPortile to build any FreeTDS version we need. Fixes #76.

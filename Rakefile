@@ -8,9 +8,6 @@ require 'rubygems/package_task'
 
 # My notes for cross compile native Windows gem.
 # 
-# $ rake-compiler cross-ruby VERSION=1.8.7-p352
-# $ rake-compiler cross-ruby VERSION=1.9.2-p290
-# 
 # $ rbenv shell 1.8.7
 # $ git clean -x -d -f
 # $ bundle install

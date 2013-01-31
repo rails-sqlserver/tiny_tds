@@ -298,12 +298,10 @@ static VALUE rb_tinytds_result_fields(VALUE self) {
   VALUE fields_processed = rb_ary_entry(rwrap->fields_processed, rwrap->number_of_results);
   if ((dbsqlok_rc == SUCCEED) && (dbresults_rc == SUCCEED) && (fields_processed == Qnil)) {
     /* Default query options. */
-    int symbolize_keys = 0, empty_sets = 1;
+    int symbolize_keys = 0;
     VALUE qopts = rb_iv_get(self, "@query_options");
     if (rb_hash_aref(qopts, sym_symbolize_keys) == Qtrue)
        symbolize_keys = 1;
-    if (rb_hash_aref(qopts, sym_empty_sets) == Qfalse)
-      empty_sets = 0;
     /* Set number_of_fields count for this result set. */
     rwrap->number_of_fields = dbnumcols(rwrap->client);
     if (rwrap->number_of_fields > 0) {

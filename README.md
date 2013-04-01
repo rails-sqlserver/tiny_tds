@@ -111,7 +111,6 @@ result.each do |row|
   # By default each row is a hash.
   # The keys are the fields, as you'd expect.
   # The values are pre-built ruby primitives mapped from their corresponding types.
-  # Here's an leemer: http://is.gd/g61xo
 end
 ```
 

@@ -127,11 +127,24 @@ static RETCODE rb_tinytds_result_dbresults_retcode(VALUE self) {
   return db_rc;
 }
 
+static RETCODE nogvl_dbsqlok(DBPROCESS *client) {
+  GET_CLIENT_USERDATA(client);
+  int retcode = dbsqlok(client);
+  userdata->dbsqlok_sent = 1;
+  return retcode;
+}
+
+static void dbcancel_ubf(DBPROCESS *client) {
+  GET_CLIENT_USERDATA(client);
+  dbcancel(client);
+  userdata->dbcancel_sent = 1;
+  userdata->dbsql_sent = 0;
+}
+  
 static RETCODE rb_tinytds_result_ok_helper(DBPROCESS *client) {
   GET_CLIENT_USERDATA(client);
   if (userdata->dbsqlok_sent == 0) {
-    userdata->dbsqlok_retcode = dbsqlok(client);
-    userdata->dbsqlok_sent = 1;
+    userdata->dbsqlok_retcode = (RETCODE)rb_thread_blocking_region(nogvl_dbsqlok, client, dbcancel_ubf, client);
   }
   return userdata->dbsqlok_retcode;
 }
@@ -463,13 +476,19 @@ static VALUE rb_tinytds_result_return_code(VALUE self) {
   }
 }
 
+static RETCODE nogvl_dbsqlexec(DBPROCESS *client) {
+  return dbsqlexec(client);
+}
+
 static VALUE rb_tinytds_result_insert(VALUE self) {
   GET_RESULT_WRAPPER(self);
   if (rwrap->client) {
     rb_tinytds_result_cancel_helper(rwrap->client);
     VALUE identity = Qnil;
+    RETCODE dbsqlexec_rc = FAIL;
     dbcmd(rwrap->client, rwrap->cwrap->identity_insert_sql);
-    if (dbsqlexec(rwrap->client) != FAIL && dbresults(rwrap->client) != FAIL && DBROWS(rwrap->client) != FAIL) {
+    dbsqlexec_rc = (RETCODE)rb_thread_blocking_region(nogvl_dbsqlexec, rwrap->client, dbcancel_ubf, rwrap->client);
+    if (dbsqlexec_rc != FAIL && dbresults(rwrap->client) != FAIL && DBROWS(rwrap->client) != FAIL) {
       while (dbnextrow(rwrap->client) != NO_MORE_ROWS) {
         int col = 1;
         BYTE *data = dbdata(rwrap->client, col);

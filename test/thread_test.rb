@@ -10,6 +10,7 @@ class ThreadTest < TinyTds::TestCase
 
     before do
       @logger = Logger.new $stdout
+      @logger.level = Logger::WARN
       @poolsize = 4
       @numthreads = 10
       @query = "waitfor delay '00:00:01'"

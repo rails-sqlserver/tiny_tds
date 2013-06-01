@@ -160,7 +160,7 @@ result.insert # => 420
 The result object can handle multiple result sets form batched SQL or stored procedures. It is critical to remember that when calling each with a block for the first time will return each "row" of each result set. Calling each a second time with a block will yield each "set".
 
 ```ruby
-sql = ["SELECT TOP (1) [id] FROM [datatypes]", 
+sql = ["SELECT TOP (1) [id] FROM [datatypes]",
        "SELECT TOP (2) [bigint] FROM [datatypes] WHERE [bigint] IS NOT NULL"].join(' ')
 
 set1, set2 = client.execute(sql).each
@@ -277,7 +277,7 @@ MiniPortile is a minimalistic, simplistic and stupid implementation of a port/re
 
 The TinyTDS project uses MiniPortile so that we can easily install a local "project specific" version of FreeTDS and supporting libraries to link against when building a test version of TinyTDS. MiniPortile is a great tool that even allows us to build statically linked components that TinyTDS relies on. Hence this allows us to publish native gems for any platform. We use this feature for gems targeted at Windows.
 
-You too can use MiniPortile to build TinyTDS and build your own gems for your own package management needs. Here is a few simple steps that assume you have cloned a fresh copy of this repository. 1) Bundling will install all the development dependencies. 2) Running `rake compile` will basically download and install a supported version of FreeTDS in our `ports.rake` file and supporting libraries. These will all be installed into the projects tmp directory. 3) The final `rake native gem` command will build a native gem for your specific platform. 4) The native gem can be found in the `pkg` directory. The last command assumes "X" is version numbers and #{platform} will be your platform.
+You too can use MiniPortile to build TinyTDS and build your own gems for your own package management needs. Here is a few simple steps that assume you have cloned a fresh copy of this repository. 1) Bundling will install all the development dependencies. 2) Running `rake compile` will basically download and install a supported version of FreeTDS in our `ports.rake` file and supporting libraries. These will all be installed into the projects tmp directory. 3) The final `rake native gem` command will build a native gem for your specific platform. 4) The native gem can be found in the `pkg` directory. The last command assumes "X" is version numbers and #{platform} will be your platform. Note that if you're using Windows make sure you are running these rake tasks with a Unix-style command line tool like [MSYS](http://www.mingw.org/wiki/MSYS).
 
 ```
 $ bundle install
@@ -301,7 +301,7 @@ $ rake TINYTDS_FREETDS_VERSION="current"
 To find out more about the FreeTDS release system [visit this thread](http://lists.ibiblio.org/pipermail/freetds/2012q1/027756.html) on their mailing list. You can also browse thier FTP server [ftp://ftp.astron.com/pub/freetds/](ftp://ftp.astron.com/pub/freetds/) for version number strings.
 
 
-## Development & Testing  
+## Development & Testing
 
 We use bundler for development. Simply run `bundle install` then `rake` to build the gem and run the unit tests. The tests assume you have created a database named `tinytdstest` accessible by a database owner named `tinytds`. Before running the test rake task, you may need to define a pair of environment variables that help the client connect to your specific FreeTDS database server name and which schema (2000, 2005, 2008, Azure or Sybase ASE) to use. For example:
 

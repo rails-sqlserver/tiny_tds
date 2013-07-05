@@ -1,4 +1,3 @@
-
 #include <tiny_tds_ext.h>
 #include <errno.h>
 
@@ -66,6 +65,7 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
    case SYBEFCON:
    case SYBESOCK:
    case SYBECONN:
+   case SYBEREAD:
      return_value = INT_EXIT;
      break;
    case SYBESEOF: {
@@ -91,9 +91,6 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
      cancel = 1;
      break;
    }
-   case SYBEREAD:
-     cancel = 1;
-     break;
  }
  rb_tinytds_raise_error(dbproc, cancel, dberrstr, source, severity, dberr, oserr);
  return return_value;

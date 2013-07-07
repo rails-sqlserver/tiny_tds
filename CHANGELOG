@@ -1,6 +1,8 @@
 
 * 0.6.0 *
 
+* Implement misc rb_thread_blocking_region support. Fixes #121. Thanks @lepfhty.
+
 * Test FreeTDS v0.91.89 patch release.
 
 * Fix lost connection handling. Fixes #124. Thanks @krzcho.

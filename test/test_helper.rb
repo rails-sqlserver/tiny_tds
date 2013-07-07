@@ -3,7 +3,6 @@ require 'rubygems'
 require 'bundler'
 Bundler.setup
 require 'tiny_tds'
-require 'minitest/spec'
 require 'minitest/autorun'
 
 class DateTime

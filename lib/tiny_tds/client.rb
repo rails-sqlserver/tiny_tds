@@ -1,6 +1,9 @@
 module TinyTds
   class Client
     
+    # From sybdb.h comments:
+    # DBVERSION_xxx are used with dbsetversion()
+    # 
     TDS_VERSIONS_SETTERS = {
       'unknown' => 0,
       '46'      => 1,
@@ -12,19 +15,23 @@ module TinyTds
       '72'      => 6,
       '90'      => 6
     }.freeze
-    
+
+    # From sybdb.h comments:
+    # DBTDS_xxx are returned by DBTDS()
+    # The integer values of the constants are poorly chosen.
+    # 
     TDS_VERSIONS_GETTERS = {
-      0  => {:name => 'DBTDS_UNKNOWN', :description => 'Unknown'},
-      1  => {:name => 'DBTDS_2_0',     :description => 'Pre 4.0 SQL Server'},
-      2  => {:name => 'DBTDS_3_4',     :description => 'Microsoft SQL Server (3.0)'},
-      3  => {:name => 'DBTDS_4_0',     :description => '4.0 SQL Server'},
-      4  => {:name => 'DBTDS_4_2',     :description => '4.2 SQL Server'},
-      5  => {:name => 'DBTDS_4_6',     :description => '2.0 OpenServer and 4.6 SQL Server.'},
-      6  => {:name => 'DBTDS_4_9_5',   :description => '4.9.5 (NCR) SQL Server'},
-      7  => {:name => 'DBTDS_5_0',     :description => '5.0 SQL Server'},
-      8  => {:name => 'DBTDS_7_0',     :description => 'Microsoft SQL Server 7.0'},
-      9  => {:name => 'DBTDS_7_1',     :description => 'Microsoft SQL Server 2000'},
-      10 => {:name => 'DBTDS_7_2',     :description => 'Microsoft SQL Server 2005'}
+      0  => {:name => 'DBTDS_UNKNOWN',        :description => 'Unknown'},
+      1  => {:name => 'DBTDS_2_0',            :description => 'Pre 4.0 SQL Server'},
+      2  => {:name => 'DBTDS_3_4',            :description => 'Microsoft SQL Server (3.0)'},
+      3  => {:name => 'DBTDS_4_0',            :description => '4.0 SQL Server'},
+      4  => {:name => 'DBTDS_4_2',            :description => '4.2 SQL Server'},
+      5  => {:name => 'DBTDS_4_6',            :description => '2.0 OpenServer and 4.6 SQL Server.'},
+      6  => {:name => 'DBTDS_4_9_5',          :description => '4.9.5 (NCR) SQL Server'},
+      7  => {:name => 'DBTDS_5_0',            :description => '5.0 SQL Server'},
+      8  => {:name => 'DBTDS_7_0',            :description => 'Microsoft SQL Server 7.0'},
+      9  => {:name => 'DBTDS_7_1/DBTDS_8_0',  :description => 'Microsoft SQL Server 2000'},
+      10 => {:name => 'DBTDS_7_2/DBTDS_9_0',  :description => 'Microsoft SQL Server 2005'}
     }.freeze
     
     @@default_query_options = {

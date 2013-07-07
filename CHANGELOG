@@ -1,6 +1,8 @@
 
 * 0.6.0 *
 
+* Use dbsetversion() vs. dbsetlversion. Fixes #62.
+
 * Remove Ruby 1.8 and 32-bit support.
 
 * Implement misc rb_thread_blocking_region support. Fixes #121. Thanks @lepfhty.

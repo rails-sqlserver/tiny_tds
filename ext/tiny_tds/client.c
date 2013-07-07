@@ -270,8 +270,6 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
     dbsetlpwd(cwrap->login, StringValuePtr(pass));
   if (!NIL_P(app))
     dbsetlapp(cwrap->login, StringValuePtr(app));
-  if (!NIL_P(version))
-    dbsetlversion(cwrap->login, NUM2INT(version));
   if (!NIL_P(ltimeout))
     dbsetlogintime(NUM2INT(ltimeout));
   if (!NIL_P(timeout))
@@ -289,6 +287,8 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   if (cwrap->client) {
     cwrap->closed = 0;
     cwrap->charset = charset;
+    if (!NIL_P(version))
+      dbsetversion(NUM2INT(version));
     dbsetuserdata(cwrap->client, (BYTE*)cwrap->userdata);
     cwrap->userdata->closed = 0;
     if (!NIL_P(database) && (azure != Qtrue)) {

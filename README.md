@@ -214,6 +214,7 @@ It is possible to get the return code after executing a stored procedure from ei
 client.return_code  # => nil
 
 result = client.execute("EXEC tinytds_TestReturnCodes")
+result.do
 result.return_code  # => 420
 client.return_code  # => 420
 ```

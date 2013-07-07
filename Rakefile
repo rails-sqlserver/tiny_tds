@@ -8,13 +8,12 @@ require 'rubygems/package_task'
 
 # My notes for cross compile native Windows gem.
 # 
-# $ rbenv shell 1.8.7
 # $ git clean -x -d -f
 # $ bundle install
 # $ unalias rake-compiler && unalias rake
 # $ rake compile
-# $ rake cross compile RUBY_CC_VERSION=1.8.7:1.9.3
-# $ rake cross native gem RUBY_CC_VERSION=1.8.7:1.9.3
+# $ rake cross compile RUBY_CC_VERSION=1.9.3
+# $ rake cross native gem RUBY_CC_VERSION=1.9.3
 
 def test_libs
   ['lib','test']

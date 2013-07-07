@@ -1,17 +1,11 @@
 # encoding: UTF-8
-require 'rubygems'
-require 'bundler'
-Bundler.setup
+require 'bundler' ; Bundler.require :development, :test
 require 'tiny_tds'
 require 'minitest/autorun'
 
 class DateTime
   def usec
-    if RUBY_VERSION >= '1.9'
-      (sec_fraction * 1_000_000).to_i
-    else
-      (sec_fraction * 60 * 60 * 24 * (10**6)).to_i
-    end
+    (sec_fraction * 1_000_000).to_i
   end
 end
 
@@ -117,31 +111,11 @@ module TinyTds
     end
     
     def assert_binary_encoding(value)
-      assert_equal Encoding.find('BINARY'), value.encoding if ruby19?
+      assert_equal Encoding.find('BINARY'), value.encoding
     end
     
     def assert_utf8_encoding(value)
-      assert_equal Encoding.find('UTF-8'), value.encoding if ruby19?
-    end
-    
-    def ruby18?
-      RUBY_VERSION < '1.9'
-    end
-    
-    def ruby186?
-      RUBY_VERSION == '1.8.6'
-    end
-    
-    def ruby19?
-      RUBY_VERSION >= '1.9'
-    end
-    
-    def ruby192?
-      RUBY_VERSION == '1.9.2'
-    end
-    
-    def ruby32bit?
-      1.size == 4
+      assert_equal Encoding.find('UTF-8'), value.encoding
     end
     
     def rubyRbx?
@@ -151,8 +125,7 @@ module TinyTds
     def load_current_schema
       loader = new_connection
       schema_file = File.expand_path File.join(File.dirname(__FILE__), 'schema', "#{current_schema}.sql")
-      schema_sql = ruby18? ? File.read(schema_file) : File.open(schema_file,"rb:UTF-8") { |f|f.read }
-
+      schema_sql = File.open(schema_file,"rb:UTF-8") { |f|f.read }
       loader.execute(drop_sql).each
       loader.execute(schema_sql).cancel
       loader.execute(sp_sql).cancel

@@ -36,7 +36,7 @@ class ClientTest < TinyTds::TestCase
     
     it 'uses UTF-8 client charset/encoding by default' do
       assert_equal 'UTF-8', @client.charset
-      assert_equal Encoding.find('UTF-8'), @client.encoding if ruby19?
+      assert_equal Encoding.find('UTF-8'), @client.encoding
     end
     
     it 'has a #escape method used for quote strings' do
@@ -47,7 +47,7 @@ class ClientTest < TinyTds::TestCase
       ['CP850', 'CP1252', 'ISO-8859-1'].each do |encoding|
         client = new_connection(:encoding => encoding)
         assert_equal encoding, client.charset
-        assert_equal Encoding.find(encoding), client.encoding if ruby19?
+        assert_equal Encoding.find(encoding), client.encoding
       end
     end
     

@@ -194,9 +194,7 @@ static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
   rb_iv_set(result, "@query_options", rb_funcall(rb_iv_get(self, "@query_options"), intern_dup, 0));
   GET_RESULT_WRAPPER(result);
   rwrap->local_offset = rb_funcall(cTinyTdsClient, intern_local_offset, 0);
-  #ifdef HAVE_RUBY_ENCODING_H
-    rwrap->encoding = cwrap->encoding;
-  #endif
+  rwrap->encoding = cwrap->encoding;
   return result;  
 }
 
@@ -207,20 +205,14 @@ static VALUE rb_tinytds_charset(VALUE self) {
 
 static VALUE rb_tinytds_encoding(VALUE self) {
   GET_CLIENT_WRAPPER(self);
-  #ifdef HAVE_RUBY_ENCODING_H
-    return rb_enc_from_encoding(cwrap->encoding);
-  #else
-    return Qnil;
-  #endif
+  return rb_enc_from_encoding(cwrap->encoding);
 }
 
 static VALUE rb_tinytds_escape(VALUE self, VALUE string) {
   Check_Type(string, T_STRING);
   GET_CLIENT_WRAPPER(self);
   VALUE new_string = rb_funcall(string, intern_gsub, 2, opt_escape_regex, opt_escape_dblquote);
-  #ifdef HAVE_RUBY_ENCODING_H
-    rb_enc_associate(new_string, cwrap->encoding);
-  #endif
+  rb_enc_associate(new_string, cwrap->encoding);
   return new_string;
 }
 
@@ -302,10 +294,8 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
     if (!NIL_P(database) && (azure != Qtrue)) {
       dbuse(cwrap->client, StringValuePtr(database));
     }
-    #ifdef HAVE_RUBY_ENCODING_H
-      VALUE transposed_encoding = rb_funcall(cTinyTdsClient, intern_transpose_iconv_encoding, 1, charset);
-      cwrap->encoding = rb_enc_find(StringValuePtr(transposed_encoding));
-    #endif
+    VALUE transposed_encoding = rb_funcall(cTinyTdsClient, intern_transpose_iconv_encoding, 1, charset);
+    cwrap->encoding = rb_enc_find(StringValuePtr(transposed_encoding));
     if (dbtds(cwrap->client) <= 7) {
       cwrap->identity_insert_sql = "SELECT CAST(@@IDENTITY AS bigint) AS Ident";
     } else {

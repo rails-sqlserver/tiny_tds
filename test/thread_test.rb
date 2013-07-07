@@ -1,8 +1,6 @@
-require 'benchmark'
-require 'connection_pool'
-require 'logger'
-require 'tiny_tds'
 require 'test_helper'
+require 'logger'
+require 'benchmark'
 
 class ThreadTest < TinyTds::TestCase
 

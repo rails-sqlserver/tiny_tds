@@ -16,9 +16,7 @@ typedef struct {
   VALUE fields;
   VALUE fields_processed;
   VALUE results;
-  #ifdef HAVE_RUBY_ENCODING_H
-    rb_encoding *encoding;
-  #endif
+  rb_encoding *encoding;
   VALUE dbresults_retcodes;
   unsigned int number_of_results;
   unsigned int number_of_fields;

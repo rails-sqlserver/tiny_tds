@@ -5,12 +5,9 @@
 #define SYBDBLIB
 
 #include <ruby.h>
+#include <ruby/encoding.h>
 #include <sybfront.h>
 #include <sybdb.h>
-
-#ifdef HAVE_RUBY_ENCODING_H
-#include <ruby/encoding.h>
-#endif
 
 #include <client.h>
 #include <result.h>

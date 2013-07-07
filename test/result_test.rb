@@ -74,6 +74,15 @@ class ResultTest < TinyTds::TestCase
       assert_instance_of Array, row
       assert_equal [:one], result.fields
     end
+
+    it 'allows sql concat + to work' do
+      rollback_transaction(@client) do
+        @client.execute("DELETE FROM [datatypes]").do
+        @client.execute("INSERT INTO [datatypes] ([char_10], [varchar_50]) VALUES ('1', '2')").do
+        result = @client.execute("SELECT TOP (1) [char_10] + 'test' + [varchar_50] AS [test] FROM [datatypes]").each.first['test']
+        result.must_equal "1         test2"
+      end
+    end
     
     it 'must be able to turn :cache_rows option off' do
       result = @client.execute(@query1)

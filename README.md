@@ -293,7 +293,7 @@ It is also possible to build a specific version of FreeTDS for your own gem or d
 ```
 $ rake TINYTDS_FREETDS_VERSION="0.82"
 $ rake TINYTDS_FREETDS_VERSION="0.91"
-$ rake TINYTDS_FREETDS_VERSION="0.91.49"
+$ rake TINYTDS_FREETDS_VERSION="0.91.89"
 $ rake TINYTDS_FREETDS_VERSION="0.92.405"
 $ rake TINYTDS_FREETDS_VERSION="current"
 ```

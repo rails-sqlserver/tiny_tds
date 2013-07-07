@@ -1,6 +1,10 @@
 
 * 0.6.0 *
 
+* Test FreeTDS v0.91.89 patch release.
+
+* Fix lost connection handling. Fixes #124. Thanks @krzcho.
+
 * Remove unused variable. Fixes #103. Thanks @jeremyevans.
 
 * Remove need to specify username for Windows Authentication.

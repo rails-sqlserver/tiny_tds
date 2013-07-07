@@ -23,7 +23,11 @@ namespace :ports do
 
   $recipes[:freetds] = MiniPortile.new "freetds", FREETDS_VERSION
   $recipes[:freetds].files << FREETDS_VERSION_INFO[FREETDS_VERSION][:files]
-  $recipes[:freetds].patch_files << File.expand_path(File.join('..', '..', 'ext', 'patch', 'sspi_w_kerberos.diff'), __FILE__) if $recipes[:freetds].respond_to?(:patch_files)
+  if $recipes[:freetds].respond_to?(:patch_files)
+    if FREETDS_VERSION == "0.91"
+      $recipes[:freetds].patch_files << File.expand_path(File.join('..', '..', 'ext', 'patch', 'sspi_w_kerberos.diff'), __FILE__) 
+    end
+  end
 
   desc "Compile libiconv support library"
   task :libiconv => ["ports"] do

@@ -1,6 +1,8 @@
 
 * 0.6.0 *
 
+* Remove unused variable. Fixes #103. Thanks @jeremyevans.
+
 * Remove need to specify username for Windows Authentication.
 
 * Use proper SQL for returning IDENTITY with Sybase. Fixes #95.

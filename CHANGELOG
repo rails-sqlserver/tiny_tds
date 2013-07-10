@@ -1,4 +1,9 @@
 
+* 0.6.1 *
+
+Use both dbsetversion() vs. dbsetlversion. Partially reverts #62.
+
+
 * 0.6.0 *
 
 * Use dbsetversion() vs. dbsetlversion. Fixes #62.

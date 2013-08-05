@@ -38,6 +38,20 @@ class ThreadTest < TinyTds::TestCase
       assert x > mintime, "#{x} is not slower than #{mintime} seconds"
     end
 
+    it 'should not crash on error in parallel' do
+      threads = []
+      @numthreads.times do |i|
+        start = Time.new
+        threads << Thread.new do
+          @pool.with do |client|
+            result = client.execute "select dbname()"
+            result.each { |r| puts r }
+          end
+        end
+      end
+      threads.each { |t| t.join }
+    end
+
   end
 
 end

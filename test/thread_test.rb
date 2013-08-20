@@ -44,12 +44,18 @@ class ThreadTest < TinyTds::TestCase
         start = Time.new
         threads << Thread.new do
           @pool.with do |client|
-            result = client.execute "select dbname()"
-            result.each { |r| puts r }
+            begin
+              result = client.execute "select dbname()"
+              result.each { |r| puts r }
+            rescue Exception => e
+              # We are throwing an error on purpose here since 0.6.1 would
+              # segfault on errors thrown in threads
+            end
           end
         end
       end
       threads.each { |t| t.join }
+      assert true
     end
 
   end

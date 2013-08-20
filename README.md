@@ -13,7 +13,7 @@ The API is simple and consists of these classes:
 
 ## Install
 
-Installing with rubygems should just work. TinyTDS is tested on ruby version 1.9 and upward. Older versions are tested with 1.8.x. We also test everynow and then on JRuby and RBX.
+Installing with rubygems should just work. TinyTDS is currently tested on Ruby version 1.9.3 and upward. Older versions are tested with Ruby 1.8 and lower versions of Ruby 1.9. If you are using Ruby 1.8 or your Ruby is 32-bit, please use v0.6.0.rc1 or lower. The v0.6.0 release and higher are only compatible with Ruby 1.9.3 (or higher) with 64-bit support.
 
 ```
 $ gem install tiny_tds

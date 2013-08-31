@@ -24,7 +24,7 @@ VALUE opt_escape_regex, opt_escape_dblquote;
 
 // Lib Backend (Helpers)
 
-static VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, char *error, char *source, int severity, int dberr, int oserr) {
+VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, char *error, char *source, int severity, int dberr, int oserr) {
   GET_CLIENT_USERDATA(dbproc);
   if (cancel && !dbdead(dbproc) && userdata && !userdata->closed) { 
     userdata->dbsqlok_sent = 1;
@@ -92,14 +92,54 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
      break;
    }
  }
- rb_tinytds_raise_error(dbproc, cancel, dberrstr, source, severity, dberr, oserr);
+ /*
+ When in non-blocking mode we need to store the exception data to throw it
+ once the blocking call returns, otherwise we will segfault ruby since part
+ of the contract of the ruby non-blocking indicator is that you do not call
+ any of the ruby C API.
+ */
+ if (userdata && userdata->nonblocking) {
+   /*
+   If we've already captured an error message, don't overwrite it. This is
+   here because FreeTDS sends a generic "General SQL Server error" message
+   that will overwrite the real message. This is not normally a problem
+   because a ruby exception is normally thrown and we bail before the
+   generic message can be sent.
+   */
+   if (!userdata->nonblocking_error.is_set) {
+     userdata->nonblocking_error.cancel = cancel;
+     strcpy(userdata->nonblocking_error.error, dberrstr);
+     strcpy(userdata->nonblocking_error.source, source);
+     userdata->nonblocking_error.severity = severity;
+     userdata->nonblocking_error.dberr = dberr;
+     userdata->nonblocking_error.oserr = oserr;
+     userdata->nonblocking_error.is_set = 1;
+   }
+ } else {
+   rb_tinytds_raise_error(dbproc, cancel, dberrstr, source, severity, dberr, oserr);
+ }
  return return_value;
 }
 
 int tinytds_msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line) {
   static char *source = "message";
-  if (severity > 10)
-    rb_tinytds_raise_error(dbproc, 1, msgtext, source, severity, msgno, msgstate);
+  GET_CLIENT_USERDATA(dbproc);
+  if (severity > 10) {
+    // See tinytds_err_handler() for info about why we do this
+    if (userdata && userdata->nonblocking) {
+      if (!userdata->nonblocking_error.is_set) {
+        userdata->nonblocking_error.cancel = 1;
+        strcpy(userdata->nonblocking_error.error, msgtext);
+        strcpy(userdata->nonblocking_error.source, source);
+        userdata->nonblocking_error.severity = severity;
+        userdata->nonblocking_error.dberr = msgno;
+        userdata->nonblocking_error.oserr = msgstate;
+        userdata->nonblocking_error.is_set = 1;
+      }
+    } else {
+      rb_tinytds_raise_error(dbproc, 1, msgtext, source, severity, msgno, msgstate);
+    }
+  }
   return 0;
 }
 
@@ -108,6 +148,8 @@ static void rb_tinytds_client_reset_userdata(tinytds_client_userdata *userdata) 
   userdata->dbsql_sent = 0;
   userdata->dbsqlok_sent = 0;
   userdata->dbcancel_sent = 0;
+  userdata->nonblocking = 0;
+  userdata->nonblocking_error.is_set = 0;
 }
 
 static void rb_tinytds_client_mark(void *ptr) {

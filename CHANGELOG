@@ -13,7 +13,7 @@ Use both dbsetversion() vs. dbsetlversion. Partially reverts #62.
 
 * Use dbsetversion() vs. dbsetlversion. Fixes #62.
 
-* Remove Ruby 1.8 and 32-bit support.
+* Remove Ruby 1.8 support.
 
 * Implement misc rb_thread_blocking_region support. Fixes #121. Thanks @lepfhty.
 

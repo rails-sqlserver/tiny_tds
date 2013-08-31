@@ -6,15 +6,6 @@ require 'rake/testtask'
 require 'rake/extensiontask'
 require 'rubygems/package_task'
 
-# My notes for cross compile native Windows gem.
-# 
-# $ git clean -x -d -f
-# $ bundle install
-# $ unalias rake-compiler && unalias rake
-# $ rake compile
-# $ rake cross compile RUBY_CC_VERSION=1.9.3
-# $ rake cross native gem RUBY_CC_VERSION=1.9.3
-
 def test_libs
   ['lib','test']
 end
@@ -23,9 +14,7 @@ def test_files
   Dir.glob("test/**/*_test.rb").sort
 end
 
-def gemspec
-  @clean_gemspec ||= eval(File.read(File.expand_path('../tiny_tds.gemspec', __FILE__)))
-end
+gemspec = Gem::Specification::load(File.expand_path('../tiny_tds.gemspec', __FILE__))
 
 Rake::TestTask.new do |t|
   t.libs = test_libs
@@ -48,7 +37,7 @@ Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
     ext.lib_dir = "lib/tiny_tds/#{$1}"
   else
     ext.cross_compile = true
-    ext.cross_platform = ['i386-mingw32']
+    ext.cross_platform = ['x86-mingw32', 'x64-mingw32']
     ext.cross_config_options << "--disable-lookup"
   end
 end

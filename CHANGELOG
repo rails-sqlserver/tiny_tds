@@ -5,6 +5,8 @@
 
 * Allow Support for 31+ Character Usernames/Passwords. Fixes #134. Thanks @wbond.
 
+* Stronger Global VM Lock support for nonblocking connections. Fixes #133. Thanks @wbond.
+
 
 * 0.6.1 *
 

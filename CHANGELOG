@@ -3,6 +3,8 @@
 
 * Support an optional environment variable to find FreeTDS. Fixes #128.
 
+* Allow Support for 31+ Character Usernames/Passwords. Fixes #134. Thanks @wbond.
+
 
 * 0.6.1 *
 

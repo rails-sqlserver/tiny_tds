@@ -38,6 +38,26 @@ class ThreadTest < TinyTds::TestCase
       assert x > mintime, "#{x} is not slower than #{mintime} seconds"
     end
 
+    it 'should not crash on error in parallel' do
+      threads = []
+      @numthreads.times do |i|
+        start = Time.new
+        threads << Thread.new do
+          @pool.with do |client|
+            begin
+              result = client.execute "select dbname()"
+              result.each { |r| puts r }
+            rescue Exception => e
+              # We are throwing an error on purpose here since 0.6.1 would
+              # segfault on errors thrown in threads
+            end
+          end
+        end
+      end
+      threads.each { |t| t.join }
+      assert true
+    end
+
   end
 
 end

@@ -79,35 +79,73 @@ VALUE rb_tinytds_new_result_obj(tinytds_client_wrapper *cwrap) {
 
 #define NOGVL_DBCALL(_dbfunction, _client) ( \
   (RETCODE)rb_thread_blocking_region( \
-    (rb_blocking_function_t*)nogvl_ ## _dbfunction, _client, \
+    (rb_blocking_function_t*)_dbfunction, _client, \
     (rb_unblock_function_t*)dbcancel_ubf, _client ) \
 )
-
-static RETCODE nogvl_dbsqlok(DBPROCESS *client) {
-  int retcode = FAIL;
-  GET_CLIENT_USERDATA(client);
-  retcode = dbsqlok(client);
-  userdata->dbsqlok_sent = 1;
-  return retcode;
-}
-
-static RETCODE nogvl_dbsqlexec(DBPROCESS *client) {
-  return dbsqlexec(client);
-}
-
-static RETCODE nogvl_dbresults(DBPROCESS *client) {
-  return dbresults(client);
-}
-
-static RETCODE nogvl_dbnextrow(DBPROCESS * client) {
-  return dbnextrow(client);
-}
 
 static void dbcancel_ubf(DBPROCESS *client) {
   GET_CLIENT_USERDATA(client);
   dbcancel(client);
   userdata->dbcancel_sent = 1;
   userdata->dbsql_sent = 0;
+}
+
+static void nogvl_setup(DBPROCESS *client) {
+  GET_CLIENT_USERDATA(client);
+  userdata->nonblocking = 1;
+}
+
+static void nogvl_cleanup(DBPROCESS *client) {
+  GET_CLIENT_USERDATA(client);
+  userdata->nonblocking = 0;
+  /*
+  Now that the blocking operation is done, we can finally throw any
+  exceptions based on errors from SQL Server.
+  */
+  if (userdata->nonblocking_error.is_set) {
+    userdata->nonblocking_error.is_set = 0;
+    rb_tinytds_raise_error(client,
+      userdata->nonblocking_error.cancel,
+      &userdata->nonblocking_error.error,
+      &userdata->nonblocking_error.source,
+      userdata->nonblocking_error.severity,
+      userdata->nonblocking_error.dberr,
+      userdata->nonblocking_error.oserr);
+  }
+}
+
+static RETCODE nogvl_dbsqlok(DBPROCESS *client) {
+  int retcode = FAIL;
+  GET_CLIENT_USERDATA(client);
+  nogvl_setup(client);
+  retcode = NOGVL_DBCALL(dbsqlok, client);
+  nogvl_cleanup(client);
+  userdata->dbsqlok_sent = 1;
+  return retcode;
+}
+
+static RETCODE nogvl_dbsqlexec(DBPROCESS *client) {
+  int retcode = FAIL;
+  nogvl_setup(client);
+  retcode = NOGVL_DBCALL(dbsqlexec, client);
+  nogvl_cleanup(client);
+  return retcode;
+}
+
+static RETCODE nogvl_dbresults(DBPROCESS *client) {
+  int retcode = FAIL;
+  nogvl_setup(client);
+  retcode = NOGVL_DBCALL(dbresults, client);
+  nogvl_cleanup(client);
+  return retcode;
+}
+
+static RETCODE nogvl_dbnextrow(DBPROCESS * client) {
+  int retcode = FAIL;
+  nogvl_setup(client);
+  retcode = NOGVL_DBCALL(dbnextrow, client);
+  nogvl_cleanup(client);
+  return retcode;
 }
 
 // Lib Backend (Helpers)
@@ -118,7 +156,7 @@ static RETCODE rb_tinytds_result_dbresults_retcode(VALUE self) {
   RETCODE db_rc;
   ruby_rc = rb_ary_entry(rwrap->dbresults_retcodes, rwrap->number_of_results);
   if (NIL_P(ruby_rc)) {
-    db_rc = NOGVL_DBCALL(dbresults, rwrap->client);
+    db_rc = nogvl_dbresults(rwrap->client);
     ruby_rc = INT2FIX(db_rc);
     rb_ary_store(rwrap->dbresults_retcodes, rwrap->number_of_results, ruby_rc);
   } else {
@@ -130,7 +168,7 @@ static RETCODE rb_tinytds_result_dbresults_retcode(VALUE self) {
 static RETCODE rb_tinytds_result_ok_helper(DBPROCESS *client) {
   GET_CLIENT_USERDATA(client);
   if (userdata->dbsqlok_sent == 0) {
-    userdata->dbsqlok_retcode = NOGVL_DBCALL(dbsqlok, client);
+    userdata->dbsqlok_retcode = nogvl_dbsqlok(client);
   }
   return userdata->dbsqlok_retcode;
 }
@@ -373,7 +411,7 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
         /* Create rows for this result set. */
         unsigned long rowi = 0;
         VALUE result = rb_ary_new();
-        while (NOGVL_DBCALL(dbnextrow, rwrap->client) != NO_MORE_ROWS) {
+        while (nogvl_dbnextrow(rwrap->client) != NO_MORE_ROWS) {
           VALUE row = rb_tinytds_result_fetch_row(self, timezone, symbolize_keys, as_array);
           if (cache_rows)
             rb_ary_store(result, rowi, row);
@@ -406,7 +444,7 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
       } else {
         // If we do not find results, side step the rb_tinytds_result_dbresults_retcode helper and 
         // manually populate its memoized array while nullifing any memoized fields too before loop.
-        dbresults_rc = NOGVL_DBCALL(dbresults, rwrap->client);
+        dbresults_rc = nogvl_dbresults(rwrap->client);
         rb_ary_store(rwrap->dbresults_retcodes, rwrap->number_of_results, INT2FIX(dbresults_rc));
         rb_ary_store(rwrap->fields_processed, rwrap->number_of_results, Qnil);
       }
@@ -466,10 +504,10 @@ static VALUE rb_tinytds_result_insert(VALUE self) {
     rb_tinytds_result_cancel_helper(rwrap->client);
     VALUE identity = Qnil;
     dbcmd(rwrap->client, rwrap->cwrap->identity_insert_sql);
-    if (NOGVL_DBCALL(dbsqlexec, rwrap->client) != FAIL
-      && NOGVL_DBCALL(dbresults, rwrap->client) != FAIL
+    if (nogvl_dbsqlexec(rwrap->client) != FAIL
+      && nogvl_dbresults(rwrap->client) != FAIL
       && DBROWS(rwrap->client) != FAIL) {
-      while (NOGVL_DBCALL(dbnextrow, rwrap->client) != NO_MORE_ROWS) {
+      while (nogvl_dbnextrow(rwrap->client) != NO_MORE_ROWS) {
         int col = 1;
         BYTE *data = dbdata(rwrap->client, col);
         DBINT data_len = dbdatlen(rwrap->client, col);

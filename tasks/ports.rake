@@ -5,7 +5,7 @@ namespace :ports do
   
   # If your using 0.82, you may have to make a conf file to get it to work. For example:
   # $ export FREETDSCONF='/opt/local/etc/freetds/freetds.conf'
-  ICONV_VERSION = "1.13.1"
+  ICONV_VERSION = "1.14"
   FREETDS_VERSION = ENV['TINYTDS_FREETDS_VERSION'] || "0.91"
   FREETDS_VERSION_INFO = Hash.new { |h,k|
     h[k] = {:files => "ftp://ftp.astron.com/pub/freetds/stable/freetds-#{k}.tar.gz"}

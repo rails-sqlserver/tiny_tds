@@ -264,14 +264,14 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   dbmsghandle(tinytds_msg_handler);
   GET_CLIENT_WRAPPER(self);
   cwrap->login = dblogin();
+  if (!NIL_P(version))
+    dbsetlversion(cwrap->login, NUM2INT(version));
   if (!NIL_P(user))
     dbsetluser(cwrap->login, StringValuePtr(user));
   if (!NIL_P(pass))
     dbsetlpwd(cwrap->login, StringValuePtr(pass));
   if (!NIL_P(app))
     dbsetlapp(cwrap->login, StringValuePtr(app));
-  if (!NIL_P(version))
-    dbsetlversion(cwrap->login, NUM2INT(version));
   if (!NIL_P(ltimeout))
     dbsetlogintime(NUM2INT(ltimeout));
   if (!NIL_P(timeout))

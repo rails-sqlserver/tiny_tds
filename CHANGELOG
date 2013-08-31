@@ -1,4 +1,9 @@
 
+* 0.6.2 *
+
+* Support an optional environment variable to find FreeTDS. Fixes #128.
+
+
 * 0.6.1 *
 
 Use both dbsetversion() vs. dbsetlversion. Partially reverts #62.

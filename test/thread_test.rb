@@ -57,6 +57,38 @@ class ThreadTest < TinyTds::TestCase
       assert true
     end
 
+    it 'should cancel when hitting timeout in thread' do
+      exception = false
+
+      thread = Thread.new do
+        @pool.with do |client|
+          begin
+            # The default query timeout is 5, so this will last longer than that
+            result = client.execute "waitfor delay '00:00:07'; select db_name()"
+            result.each { |r| puts r }
+          rescue TinyTds::Error => e
+            if e.message == 'Adaptive Server connection timed out'
+              exception = true
+            end
+          end
+        end
+      end
+
+      timer_thread = Thread.new do
+        # Sleep until after the timeout (of 5) should have been reached
+        sleep(6)
+        if not exception
+          thread.kill
+          raise "Timeout passed without query timing out"
+        end
+      end
+
+      thread.join
+      timer_thread.join
+
+      assert exception
+    end
+
   end
 
 end

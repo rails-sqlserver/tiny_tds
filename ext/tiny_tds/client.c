@@ -115,6 +115,10 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
      userdata->nonblocking_error.oserr = oserr;
      userdata->nonblocking_error.is_set = 1;
    }
+   if (cancel && !dbdead(dbproc) && !userdata->closed) {
+     dbcancel(dbproc);
+     userdata->dbcancel_sent = 1;
+   }
  } else {
    rb_tinytds_raise_error(dbproc, cancel, dberrstr, source, severity, dberr, oserr);
  }
@@ -135,6 +139,10 @@ int tinytds_msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severi
         userdata->nonblocking_error.dberr = msgno;
         userdata->nonblocking_error.oserr = msgstate;
         userdata->nonblocking_error.is_set = 1;
+      }
+      if (!dbdead(dbproc) && !userdata->closed) {
+        dbcancel(dbproc);
+        userdata->dbcancel_sent = 1;
       }
     } else {
       rb_tinytds_raise_error(dbproc, 1, msgtext, source, severity, msgno, msgstate);

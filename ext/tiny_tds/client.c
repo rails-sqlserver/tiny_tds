@@ -48,81 +48,81 @@ VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, char *error, char *s
 // Lib Backend (Memory Management & Handlers)
 
 int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr) { 
- static char *source = "error";
- GET_CLIENT_USERDATA(dbproc);
- int return_value = INT_CONTINUE;
- int cancel = 0;
- switch(dberr) {
-   case 100: /* SYBEVERDOWN */
-     return INT_CANCEL;
-   case SYBESMSG:
-     return return_value;
-   case SYBEICONVO:
-     dbfreebuf(dbproc);
-     break;
-   case SYBEICONVI:
-     return INT_CANCEL;
-   case SYBEFCON:
-   case SYBESOCK:
-   case SYBECONN:
-   case SYBEREAD:
-     return_value = INT_EXIT;
-     break;
-   case SYBESEOF: {
-     if (userdata && userdata->timing_out)
-       return_value = INT_TIMEOUT;
-     return INT_CANCEL;
-     break;
-   }
-   case SYBETIME: {
-     if (userdata) {
-       if (userdata->timing_out) {
-         return INT_CONTINUE;
-       } else {
-         userdata->timing_out = 1;
-       }
-     }
-     cancel = 1;
-     break;
-   }
-   case SYBEWRIT: {
-     if (userdata && (userdata->dbsqlok_sent || userdata->dbcancel_sent))
-       return INT_CANCEL;
-     cancel = 1;
-     break;
-   }
- }
- /*
- When in non-blocking mode we need to store the exception data to throw it
- once the blocking call returns, otherwise we will segfault ruby since part
- of the contract of the ruby non-blocking indicator is that you do not call
- any of the ruby C API.
- */
- if (userdata && userdata->nonblocking) {
-   /*
-   If we've already captured an error message, don't overwrite it. This is
-   here because FreeTDS sends a generic "General SQL Server error" message
-   that will overwrite the real message. This is not normally a problem
-   because a ruby exception is normally thrown and we bail before the
-   generic message can be sent.
-   */
-   if (!userdata->nonblocking_error.is_set) {
-     userdata->nonblocking_error.cancel = cancel;
-     strcpy(userdata->nonblocking_error.error, dberrstr);
-     strcpy(userdata->nonblocking_error.source, source);
-     userdata->nonblocking_error.severity = severity;
-     userdata->nonblocking_error.dberr = dberr;
-     userdata->nonblocking_error.oserr = oserr;
-     userdata->nonblocking_error.is_set = 1;
-   }
-   if (cancel && !dbdead(dbproc) && !userdata->closed) {
-     dbcancel(dbproc);
-     userdata->dbcancel_sent = 1;
-   }
- } else {
-   rb_tinytds_raise_error(dbproc, cancel, dberrstr, source, severity, dberr, oserr);
- }
- return return_value;
+  static char *source = "error";
+  GET_CLIENT_USERDATA(dbproc);
+  int return_value = INT_CONTINUE;
+  int cancel = 0;
+  switch(dberr) {
+    case 100: /* SYBEVERDOWN */
+      return INT_CANCEL;
+    case SYBESMSG:
+      return return_value;
+    case SYBEICONVO:
+      dbfreebuf(dbproc);
+      break;
+    case SYBEICONVI:
+      return INT_CANCEL;
+    case SYBEFCON:
+    case SYBESOCK:
+    case SYBECONN:
+    case SYBEREAD:
+      return_value = INT_EXIT;
+      break;
+    case SYBESEOF: {
+      if (userdata && userdata->timing_out)
+        return_value = INT_TIMEOUT;
+      return INT_CANCEL;
+      break;
+    }
+    case SYBETIME: {
+      if (userdata) {
+        if (userdata->timing_out) {
+          return INT_CONTINUE;
+        } else {
+          userdata->timing_out = 1;
+        }
+      }
+      cancel = 1;
+      break;
+    }
+    case SYBEWRIT: {
+      if (userdata && (userdata->dbsqlok_sent || userdata->dbcancel_sent))
+        return INT_CANCEL;
+      cancel = 1;
+      break;
+    }
+  }
+  /*
+  When in non-blocking mode we need to store the exception data to throw it
+  once the blocking call returns, otherwise we will segfault ruby since part
+  of the contract of the ruby non-blocking indicator is that you do not call
+  any of the ruby C API.
+  */
+  if (userdata && userdata->nonblocking) {
+    /*
+    If we've already captured an error message, don't overwrite it. This is
+    here because FreeTDS sends a generic "General SQL Server error" message
+    that will overwrite the real message. This is not normally a problem
+    because a ruby exception is normally thrown and we bail before the
+    generic message can be sent.
+    */
+    if (!userdata->nonblocking_error.is_set) {
+      userdata->nonblocking_error.cancel = cancel;
+      strcpy(userdata->nonblocking_error.error, dberrstr);
+      strcpy(userdata->nonblocking_error.source, source);
+      userdata->nonblocking_error.severity = severity;
+      userdata->nonblocking_error.dberr = dberr;
+      userdata->nonblocking_error.oserr = oserr;
+      userdata->nonblocking_error.is_set = 1;
+    }
+    if (cancel && !dbdead(dbproc) && !userdata->closed) {
+      dbcancel(dbproc);
+      userdata->dbcancel_sent = 1;
+    }
+  } else {
+    rb_tinytds_raise_error(dbproc, cancel, dberrstr, source, severity, dberr, oserr);
+  }
+  return return_value;
 }
 
 int tinytds_msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line) {
@@ -407,5 +407,3 @@ void init_tinytds_client() {
   rb_global_variable(&opt_escape_regex);
   rb_global_variable(&opt_escape_dblquote);
 }
-
-

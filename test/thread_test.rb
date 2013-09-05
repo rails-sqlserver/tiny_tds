@@ -41,7 +41,6 @@ class ThreadTest < TinyTds::TestCase
     it 'should not crash on error in parallel' do
       threads = []
       @numthreads.times do |i|
-        start = Time.new
         threads << Thread.new do
           @pool.with do |client|
             begin

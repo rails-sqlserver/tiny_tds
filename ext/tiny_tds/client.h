@@ -23,6 +23,7 @@ typedef struct {
   short int dbcancel_sent;
   short int nonblocking;
   tinytds_errordata nonblocking_error;
+  short int continue_on_timeout; 
 } tinytds_client_userdata;
 
 typedef struct {

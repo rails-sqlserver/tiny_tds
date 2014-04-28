@@ -75,6 +75,12 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
      break;
    }
    case SYBETIME: {
+     if (userdata && !userdata->continue_on_timeout) {
+       cancel = 1;
+       return_value = INT_CANCEL;
+       break;
+     }
+
      if (userdata) {
        if (userdata->timing_out) {
          return INT_CONTINUE;
@@ -90,6 +96,13 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
        return INT_CANCEL;
      cancel = 1;
      break;
+   }
+   case SYBEDDNE: {
+     if (userdata && !userdata->continue_on_timeout) {
+       return_value = INT_CANCEL;
+       cancel = 1;
+       break;
+     }
    }
  }
  /*
@@ -180,6 +193,7 @@ static VALUE allocate(VALUE klass) {
   cwrap->charset = Qnil;
   cwrap->userdata = malloc(sizeof(tinytds_client_userdata));
   cwrap->userdata->closed = 1;
+  cwrap->userdata->continue_on_timeout = 1;
   rb_tinytds_client_reset_userdata(cwrap->userdata);  
   return obj;
 }
@@ -323,6 +337,7 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   if (!NIL_P(database) && (azure == Qtrue)) {
     #ifdef DBSETLDBNAME
       DBSETLDBNAME(cwrap->login, StringValuePtr(database));
+      cwrap->userdata->continue_on_timeout = 0; // Send INT_CANCEL on timeout with Azure
     #else
       rb_warn("TinyTds: Azure connections not supported in this version of FreeTDS.\n");
     #endif

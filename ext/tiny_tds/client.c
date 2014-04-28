@@ -76,7 +76,8 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
    }
    case SYBETIME: {
      if (userdata && !userdata->continue_on_timeout) {
-       return_value = INT_EXIT;
+       cancel = 1;
+       return_value = INT_CANCEL;
        break;
      }
 
@@ -95,6 +96,13 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
        return INT_CANCEL;
      cancel = 1;
      break;
+   }
+   case SYBEDDNE: {
+     if (userdata && !userdata->continue_on_timeout) {
+       return_value = INT_CANCEL;
+       cancel = 1;
+       break;
+     }
    }
  }
  /*

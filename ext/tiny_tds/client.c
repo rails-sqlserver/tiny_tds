@@ -337,7 +337,7 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   if (!NIL_P(database) && (azure == Qtrue)) {
     #ifdef DBSETLDBNAME
       DBSETLDBNAME(cwrap->login, StringValuePtr(database));
-      cwrap->userdata->continue_on_timeout = 0; // Send INT_EXIT on timeout with Azure
+      cwrap->userdata->continue_on_timeout = 0; // Send INT_CANCEL on timeout with Azure
     #else
       rb_warn("TinyTds: Azure connections not supported in this version of FreeTDS.\n");
     #endif

@@ -1,0 +1,11 @@
+--- a/src/dblib/dblib.c
++++ b/src/dblib/dblib.c
+@@ -765,7 +765,7 @@ dbsetlname(LOGINREC * login, const char *value, int which)
+ 		return FAIL;
+ 	}
+ 
+-	if (TDS_MAX_LOGIN_STR_SZ < strlen(value)) {
++	if (login->tds_login->tds_version < 0x700 && TDS_MAX_LOGIN_STR_SZ < strlen(value)) {
+ 		dbperror(NULL, SYBENTLL, 0);
+ 		return FAIL;
+ 	}

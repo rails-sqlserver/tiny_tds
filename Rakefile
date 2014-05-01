@@ -75,3 +75,36 @@ Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
     ext.cross_config_options << config_opts
   end
 end
+
+desc "Checks out rake-compiler-dev-box and sets up the cross-compiling box. This can a long time."
+task 'cross-compile:setup' do
+  # Make sure we have the command-line programs we need
+  sh 'command', '-v', 'git'
+  sh 'command', '-v', 'vagrant'
+
+  sh 'git', 'clone', 'https://github.com/tjschuck/rake-compiler-dev-box.git'
+  Dir.chdir 'rake-compiler-dev-box'
+  sh 'patch -p1 < ../compile/rake-compiler-dev-box.patch'
+
+  sh 'vagrant', 'up'
+end
+
+desc "Invokes the cross-compiler to generate gems for windows"
+task 'cross-compile' do
+  build_dir = './rake-compiler-dev-box/tiny_tds/'
+  if not Dir.exists?(build_dir)
+    Dir.mkdir build_dir
+  end
+  # Copy the current version of tiny_tds into the box directory
+  Dir.entries('./').each do |entry|
+    next if ['.', '..', 'rake-compiler-dev-box', '.git'].include?(entry)
+    cp_r entry, build_dir
+  end
+  Dir.chdir './rake-compiler-dev-box'
+  sh 'vagrant ssh -c "package_win32_fat_binary tiny_tds"'
+end
+
+desc "Cleans up all of the compiled ports, gems and tmp files from cross-compile"
+task 'cross-compile:clean' do
+  rm_r './rake-compiler-dev-box/tiny_tds'
+end

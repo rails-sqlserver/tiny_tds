@@ -302,6 +302,31 @@ $ rake TINYTDS_FREETDS_VERSION="current"
 To find out more about the FreeTDS release system [visit this thread](http://lists.ibiblio.org/pipermail/freetds/2012q1/027756.html) on their mailing list. You can also browse thier FTP server [ftp://ftp.astron.com/pub/freetds/](ftp://ftp.astron.com/pub/freetds/) for version number strings.
 
 
+## Compiling Gems for Windows
+
+For the convenience of Windows users, TinyTDS ships pre-compiled for Ruby 1.9.3, 2.0 and 2.1 on Windows. In order to generate these gems, [rake-compiler-dev-box](https://github.com/tjschuck/rake-compiler-dev-box) is used. This project provides a [Vagrant](http://www.vagrantup.com/) box with rvm, cross-compilers and a number of different versions of ruby.
+
+There are a handful of rake tasks that are part of TinyTDS that make cross-compiling simple. Ensure that you have VirtualBox, Vagrant and git installed, and then run the following to download the box and perform initial setup:
+
+```
+$ rake cross-compile:setup
+```
+
+Once the setup is complete, run the following rake task to compile the gem for Windows. The first time this will take a while since the `rake-compiler` gem will need to compile a few different versions of ruby:
+
+```
+$ rake cross-compile
+```
+
+The compiled gems will exist in `./rake-compile-dev-box/tiny_tds/pkg/`.
+
+If you want to clean up the dependent ports, temp files and resulting gems, run:
+
+```
+$ rake cross-compile:clean
+```
+
+
 ## Development & Testing
 
 We use bundler for development. Simply run `bundle install` then `rake` to build the gem and run the unit tests. The tests assume you have created a database named `tinytdstest` accessible by a database owner named `tinytds`. Before running the test rake task, you may need to define a pair of environment variables that help the client connect to your specific FreeTDS database server name and which schema (2000, 2005, 2008, Azure or Sybase ASE) to use. For example:

@@ -97,8 +97,8 @@ task 'cross-compile' do
   end
   # Copy the current version of tiny_tds into the box directory
   Dir.entries('./').each do |entry|
-    next if ['.', '..', 'rake-compiler-dev-box', '.git'].include?(entry)
-    cp_r entry, build_dir
+    next if ['.', '..', 'rake-compiler-dev-box'].include?(entry)
+    cp_r entry, build_dir, :remove_destination => true
   end
   Dir.chdir './rake-compiler-dev-box'
   sh 'vagrant ssh -c "package_win32_fat_binary tiny_tds"'

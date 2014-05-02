@@ -76,11 +76,11 @@ Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
   end
 end
 
-desc "Checks out rake-compiler-dev-box and sets up the cross-compiling box. This can a long time."
+desc "Checks out rake-compiler-dev-box and sets up the cross-compiling box. This can take a long time."
 task 'cross-compile:setup' do
   # Make sure we have the command-line programs we need
-  sh 'command', '-v', 'git'
-  sh 'command', '-v', 'vagrant'
+  sh 'git', '--version'
+  sh 'vagrant', '-v'
 
   sh 'git', 'clone', 'https://github.com/tjschuck/rake-compiler-dev-box.git'
   Dir.chdir 'rake-compiler-dev-box'

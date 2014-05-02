@@ -82,9 +82,13 @@ task 'cross-compile:setup' do
   sh 'git', '--version'
   sh 'vagrant', '-v'
 
-  sh 'git', 'clone', 'https://github.com/tjschuck/rake-compiler-dev-box.git'
-  Dir.chdir 'rake-compiler-dev-box'
-  sh 'patch -p1 < ../compile/rake-compiler-dev-box.patch'
+  if Dir.exists? 'rake-compiler-dev-box'
+    Dir.chdir 'rake-compiler-dev-box'
+  else
+    sh 'git', 'clone', 'https://github.com/tjschuck/rake-compiler-dev-box.git'
+    Dir.chdir 'rake-compiler-dev-box'
+    sh 'patch -p1 < ../compile/rake-compiler-dev-box.patch'
+  end
 
   sh 'vagrant', 'up'
 end

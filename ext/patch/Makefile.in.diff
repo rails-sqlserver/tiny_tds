@@ -1,0 +1,29 @@
+--- a/Makefile.in	2011-08-17 18:57:36.000000000 -0700
++++ b/Makefile.in	2014-05-02 10:27:01.275813000 -0700
+@@ -772,13 +772,6 @@
+ 
+ 
+ install-data-local:
+-	$(mkinstalldirs) $(ETC)
+-	if test ! -f $(ETC)/freetds.conf; then \
+-		$(INSTALL_DATA) $(srcdir)/freetds.conf $(ETC)/freetds.conf; \
+-	fi
+-	if test ! -f $(ETC)/locales.conf; then \
+-		$(INSTALL_DATA) $(srcdir)/locales.conf $(ETC)/locales.conf; \
+-	fi
+ 
+ clean-local:
+ 	find . \( -name \*.test_output -o -name \*.bb -o -name \*.bbg -o -name \*.da -o -name \*.gc\* \) -exec rm -f {} \;
+--- a/src/pool/Makefile.in	2011-08-17 18:57:36.000000000 -0700
++++ b/src/pool/Makefile.in	2014-05-02 10:32:39.628347600 -0700
+@@ -574,10 +574,6 @@
+ 
+ 
+ install-data-local:
+-	$(mkinstalldirs) $(ETC)
+-	if test ! -f $(ETC)/pool.conf; then \
+-		$(INSTALL_DATA) $(srcdir)/pool.conf $(ETC)/pool.conf; \
+-	fi
+ 
+ # Tell versions [3.59,3.63) of GNU make to not export all variables.
+ # Otherwise a system limit (for SysV at least) may be exceeded.

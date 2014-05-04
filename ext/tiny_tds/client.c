@@ -50,48 +50,44 @@ VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, char *error, char *s
 int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr) { 
   static char *source = "error";
   GET_CLIENT_USERDATA(dbproc);
-  int return_value = INT_CONTINUE;
+
+  /* Everything should cancel by default */
+  int return_value = INT_CANCEL;
   int cancel = 0;
+
+  /* These error codes are documented in include/sybdb.h in FreeTDS */
   switch(dberr) {
-    case 100: /* SYBEVERDOWN */
-      return INT_CANCEL;
-    case SYBESMSG:
+
+    /* We don't want to raise these as a ruby exception for various reasons */
+    case 100: /* SYBEVERDOWN, indicating the connection can only be v7.1 */
+    case SYBESEOF: /* Usually accompanied by another more useful error */
+    case SYBESMSG: /* Generic "check messages from server" error */
+    case SYBEICONVI: /* Just return ?s to the client, as explained in readme */
       return return_value;
+
     case SYBEICONVO:
       dbfreebuf(dbproc);
       break;
-    case SYBEICONVI:
-      return INT_CANCEL;
-    case SYBEFCON:
-    case SYBESOCK:
-    case SYBECONN:
-    case SYBEREAD:
-      return_value = INT_EXIT;
+
+    case SYBETIME:
+      /*
+      SYBETIME is the only error that can send INT_TIMEOUT or INT_CONTINUE,
+      but we don't ever want to automatically retry. Instead have the app
+      decide what to do.
+      */
+      return_value = INT_TIMEOUT;
+      cancel = 1;
       break;
-    case SYBESEOF: {
-      if (userdata && userdata->timing_out)
-        return_value = INT_TIMEOUT;
-      return INT_CANCEL;
-      break;
-    }
-    case SYBETIME: {
-      if (userdata) {
-        if (userdata->timing_out) {
-          return INT_CONTINUE;
-        } else {
-          userdata->timing_out = 1;
-        }
+
+    case SYBEWRIT:
+      /* Write errors may happen after we abort a statement */
+      if (userdata && (userdata->dbsqlok_sent || userdata->dbcancel_sent)) {
+        return return_value;
       }
       cancel = 1;
       break;
-    }
-    case SYBEWRIT: {
-      if (userdata && (userdata->dbsqlok_sent || userdata->dbcancel_sent))
-        return INT_CANCEL;
-      cancel = 1;
-      break;
-    }
   }
+
   /*
   When in non-blocking mode we need to store the exception data to throw it
   once the blocking call returns, otherwise we will segfault ruby since part
@@ -99,6 +95,11 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
   any of the ruby C API.
   */
   if (userdata && userdata->nonblocking) {
+    if (cancel && !dbdead(dbproc) && !userdata->closed) {
+      dbcancel(dbproc);
+      userdata->dbcancel_sent = 1;
+    }
+
     /*
     If we've already captured an error message, don't overwrite it. This is
     here because FreeTDS sends a generic "General SQL Server error" message
@@ -115,13 +116,11 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
       userdata->nonblocking_error.oserr = oserr;
       userdata->nonblocking_error.is_set = 1;
     }
-    if (cancel && !dbdead(dbproc) && !userdata->closed) {
-      dbcancel(dbproc);
-      userdata->dbcancel_sent = 1;
-    }
+
   } else {
     rb_tinytds_raise_error(dbproc, cancel, dberrstr, source, severity, dberr, oserr);
   }
+
   return return_value;
 }
 

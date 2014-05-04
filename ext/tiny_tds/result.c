@@ -173,11 +173,23 @@ static RETCODE rb_tinytds_result_ok_helper(DBPROCESS *client) {
   return userdata->dbsqlok_retcode;
 }
 
-static void rb_tinytds_result_cancel_helper(DBPROCESS *client) {
+static void rb_tinytds_result_exec_helper(DBPROCESS *client) {
   GET_CLIENT_USERDATA(client);
   RETCODE dbsqlok_rc = rb_tinytds_result_ok_helper(client);
   if (dbsqlok_rc == SUCCEED) {
-    while (nogvl_dbresults(client) == SUCCEED);
+    /*
+    This is to just process each result set. Commands such as backup and
+    restore are not done when the first result set is returned, so we need to
+    exhaust the result sets before it is complete.
+    */
+    while (nogvl_dbresults(client) == SUCCEED) {
+      /*
+      If we don't loop through each row for calls to TinyTds::Result.do that
+      actually do return result sets, we will trigger error 20019 about trying
+      to execute a new command with pending results. Oh well.
+      */
+      while (dbnextrow(client) != NO_MORE_ROWS);
+    }
   }
   dbcancel(client);
   userdata->dbcancel_sent = 1;
@@ -467,15 +479,19 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
 static VALUE rb_tinytds_result_cancel(VALUE self) {
   GET_RESULT_WRAPPER(self);
   GET_CLIENT_USERDATA(rwrap->client);
-  if (rwrap->client && !userdata->dbcancel_sent)
-    rb_tinytds_result_cancel_helper(rwrap->client);
+  if (rwrap->client && !userdata->dbcancel_sent) {
+    RETCODE dbsqlok_rc = rb_tinytds_result_ok_helper(rwrap->client);
+    dbcancel(rwrap->client);
+    userdata->dbcancel_sent = 1;
+    userdata->dbsql_sent = 0;
+  }
   return Qtrue;
 }
 
 static VALUE rb_tinytds_result_do(VALUE self) {
   GET_RESULT_WRAPPER(self);
   if (rwrap->client) {
-    rb_tinytds_result_cancel_helper(rwrap->client);
+    rb_tinytds_result_exec_helper(rwrap->client);
     return LONG2NUM((long)dbcount(rwrap->client));
   } else {
     return Qnil;
@@ -504,7 +520,7 @@ static VALUE rb_tinytds_result_return_code(VALUE self) {
 static VALUE rb_tinytds_result_insert(VALUE self) {
   GET_RESULT_WRAPPER(self);
   if (rwrap->client) {
-    rb_tinytds_result_cancel_helper(rwrap->client);
+    rb_tinytds_result_exec_helper(rwrap->client);
     VALUE identity = Qnil;
     dbcmd(rwrap->client, rwrap->cwrap->identity_insert_sql);
     if (nogvl_dbsqlexec(rwrap->client) != FAIL

@@ -549,7 +549,23 @@ class ResultTest < TinyTds::TestCase
       end
       
     end
-    
+
+    describe 'Complex query with multiple results sets but no actual results' do
+      it 'must not cancel the query until complete' do
+        @client.execute("
+          BACKUP DATABASE tinytdstest
+          TO DISK = 'C:\\Users\\Public\\tinytdstest.bak'
+        ").do
+      end
+
+      after do
+        begin
+          File.delete 'C:\\Users\\Public\\tinytdstest.bak'
+        rescue
+        end
+      end
+    end
+
     describe 'when casting to native ruby values' do
     
       it 'returns fixnum for 1' do

@@ -87,7 +87,6 @@ static void dbcancel_ubf(DBPROCESS *client) {
   GET_CLIENT_USERDATA(client);
   dbcancel(client);
   userdata->dbcancel_sent = 1;
-  userdata->dbsql_sent = 0;
 }
 
 static void nogvl_setup(DBPROCESS *client) {

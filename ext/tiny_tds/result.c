@@ -19,7 +19,7 @@ extern VALUE mTinyTds, cTinyTdsClient, cTinyTdsError;
 VALUE cBigDecimal, cDate, cDateTime;
 VALUE opt_decimal_zero, opt_float_zero, opt_one, opt_zero, opt_four, opt_19hdr, opt_tenk, opt_onemil;
 int   opt_ruby_186;
-static ID intern_new, intern_utc, intern_local, intern_localtime, intern_merge, 
+static ID intern_new, intern_utc, intern_local, intern_localtime, intern_merge,
           intern_civil, intern_new_offset, intern_plus, intern_divide, intern_Rational;
 static ID sym_symbolize_keys, sym_as, sym_array, sym_cache_rows, sym_first, sym_timezone, sym_local, sym_utc, sym_empty_sets;
 
@@ -172,9 +172,24 @@ static RETCODE rb_tinytds_result_ok_helper(DBPROCESS *client) {
   return userdata->dbsqlok_retcode;
 }
 
-static void rb_tinytds_result_cancel_helper(DBPROCESS *client) {
+static void rb_tinytds_result_exec_helper(DBPROCESS *client) {
   GET_CLIENT_USERDATA(client);
-  rb_tinytds_result_ok_helper(client);
+  RETCODE dbsqlok_rc = rb_tinytds_result_ok_helper(client);
+  if (dbsqlok_rc == SUCCEED) {
+    /*
+    This is to just process each result set. Commands such as backup and
+    restore are not done when the first result set is returned, so we need to
+    exhaust the result sets before it is complete.
+    */
+    while (nogvl_dbresults(client) == SUCCEED) {
+      /*
+      If we don't loop through each row for calls to TinyTds::Result.do that
+      actually do return result sets, we will trigger error 20019 about trying
+      to execute a new command with pending results. Oh well.
+      */
+      while (dbnextrow(client) != NO_MORE_ROWS);
+    }
+  }
   dbcancel(client);
   userdata->dbcancel_sent = 1;
   userdata->dbsql_sent = 0;
@@ -212,7 +227,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
           val = *(int *)data ? Qtrue : Qfalse;
           break;
         case SYBNUMERIC:
-        case SYBDECIMAL: { 
+        case SYBDECIMAL: {
           DBTYPEINFO *data_info = dbcoltypeinfo(rwrap->client, col);
           int data_slength = (int)data_info->precision + (int)data_info->scale + 1;
           char converted_decimal[data_slength];
@@ -441,7 +456,7 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
         dbresults_rc = rb_tinytds_result_dbresults_retcode(self);
         rb_ary_store(rwrap->fields_processed, rwrap->number_of_results, Qnil);
       } else {
-        // If we do not find results, side step the rb_tinytds_result_dbresults_retcode helper and 
+        // If we do not find results, side step the rb_tinytds_result_dbresults_retcode helper and
         // manually populate its memoized array while nullifing any memoized fields too before loop.
         dbresults_rc = nogvl_dbresults(rwrap->client);
         rb_ary_store(rwrap->dbresults_retcodes, rwrap->number_of_results, INT2FIX(dbresults_rc));
@@ -463,15 +478,19 @@ static VALUE rb_tinytds_result_each(int argc, VALUE * argv, VALUE self) {
 static VALUE rb_tinytds_result_cancel(VALUE self) {
   GET_RESULT_WRAPPER(self);
   GET_CLIENT_USERDATA(rwrap->client);
-  if (rwrap->client && !userdata->dbcancel_sent)
-    rb_tinytds_result_cancel_helper(rwrap->client);
+  if (rwrap->client && !userdata->dbcancel_sent) {
+    RETCODE dbsqlok_rc = rb_tinytds_result_ok_helper(rwrap->client);
+    dbcancel(rwrap->client);
+    userdata->dbcancel_sent = 1;
+    userdata->dbsql_sent = 0;
+  }
   return Qtrue;
 }
 
 static VALUE rb_tinytds_result_do(VALUE self) {
   GET_RESULT_WRAPPER(self);
   if (rwrap->client) {
-    rb_tinytds_result_cancel_helper(rwrap->client);
+    rb_tinytds_result_exec_helper(rwrap->client);
     return LONG2NUM((long)dbcount(rwrap->client));
   } else {
     return Qnil;
@@ -500,7 +519,7 @@ static VALUE rb_tinytds_result_return_code(VALUE self) {
 static VALUE rb_tinytds_result_insert(VALUE self) {
   GET_RESULT_WRAPPER(self);
   if (rwrap->client) {
-    rb_tinytds_result_cancel_helper(rwrap->client);
+    rb_tinytds_result_exec_helper(rwrap->client);
     VALUE identity = Qnil;
     dbcmd(rwrap->client, rwrap->cwrap->identity_insert_sql);
     if (nogvl_dbsqlexec(rwrap->client) != FAIL

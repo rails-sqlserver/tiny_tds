@@ -381,5 +381,5 @@ I am trying to save up for a Happy Hacking pro keyboard. Help me out via GitTip!
 
 ## License
 
-TinyTDS is Copyright (c) 2010-2011 Ken Collins, <ken@metaskills.net> and is distributed under the MIT license. Windows binaries contain precompiled versions of FreeTDS <http://www.freetds.org/> which is licensed under the GNU LGPL license at <http://www.gnu.org/licenses/lgpl-2.0.html>
+TinyTDS is Copyright (c) 2010-2014 Ken Collins, <ken@metaskills.net> and Will Bond (Veracross LLC) <wbond@breuer.com>. It is distributed under the MIT license. Windows binaries contain precompiled versions of FreeTDS <http://www.freetds.org/> which is licensed under the GNU LGPL license at <http://www.gnu.org/licenses/lgpl-2.0.html>
 

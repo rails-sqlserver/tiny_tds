@@ -7,6 +7,11 @@
 
 * Stronger Global VM Lock support for nonblocking connections. Fixes #133. Thanks @wbond.
 
+* Timeout fix for working with Azure SQL. Fixes #138.
+
+* Correctly handle requests that return multiple results sets via `.do`, such
+  as backups and restores. Fixes #150.
+
 
 * 0.6.1 *
 

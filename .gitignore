@@ -17,3 +17,7 @@ misc
 *.gem
 ports
 rake-compiler-dev-box/
+
+# IDE
+*.iml
+.idea/

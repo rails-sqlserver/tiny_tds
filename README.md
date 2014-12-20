@@ -54,7 +54,7 @@ Below is a list of the data types we plan to support using future versions of Fr
 Connect to a database.
 
 ```ruby
-client = TinyTds::Client.new(:username => 'sa', :password => 'secret', :host => 'mydb.host.net')
+client = TinyTds::Client.new username: 'sa', password: 'secret', host: 'mydb.host.net'
 ```
 
 Creating a new client takes a hash of options. For valid iconv encoding options, see the output of `iconv -l`. Only a few have been tested and highly recommended to leave blank for the UTF-8 default.
@@ -342,7 +342,7 @@ $ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_UNIT_PORT=5000 TINYTDS_SCHEMA=syb
 If you do not want to use MiniPortile to compile a local project version of FreeTDS and instead use your local system version, use the `TINYTDS_SKIP_PORTS` environment variable. This will ignore any port tasks and will instead build and link to your system's FreeTDS installation as a normal gem install would.
 
 ```
-$ rake TINYTDS_SKIP_PORTS=true
+$ rake TINYTDS_SKIP_PORTS=1
 ```
 
 

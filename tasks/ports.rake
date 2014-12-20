@@ -5,11 +5,11 @@ require 'mini_portile'
 ICONV_VERSION = "1.14"
 FREETDS_VERSION = ENV['TINYTDS_FREETDS_VERSION'] || "0.91"
 FREETDS_VERSION_INFO = Hash.new { |h,k|
-  h[k] = {:files => "ftp://ftp.astron.com/pub/freetds/stable/freetds-#{k}.tar.gz"}
+  h[k] = {:files => "ftp://ftp.freetds.org/pub/freetds/stable/freetds-#{k}.tar.gz"}
 }.merge({
-  "0.82" => {:files => "ftp://ftp.astron.com/pub/freetds/old/0.82/freetds-0.82.tar.gz"},
-  "0.91" => {:files => "ftp://ftp.astron.com/pub/freetds/stable/freetds-0.91.tar.gz"},
-  "current" => {:files => "ftp://ftp.astron.com/pub/freetds/current/freetds-current.tgz"}
+  "0.82" => {:files => "ftp://ftp.freetds.org/pub/freetds/old/0.82/freetds-0.82.tar.gz"},
+  "0.91" => {:files => "ftp://ftp.freetds.org/pub/freetds/stable/freetds-0.91.103.tar.gz"},
+  "current" => {:files => "ftp://ftp.freetds.org/pub/freetds/current/freetds-current.tgz"}
 })
 
 # all ports depends on this directory to exist
@@ -27,6 +27,7 @@ def define_libiconv_recipe(platform, host)
       recipe.configure_options << "CFLAGS='-fPIC'"
       recipe.cook
       touch checkpoint
+      recipe.activate
     end
   end
   recipe
@@ -57,6 +58,7 @@ def define_freetds_recipe(platform, host, libiconv)
       recipe.configure_options << with_tdsver
       recipe.cook
       touch checkpoint
+      recipe.activate
     end
   end
   recipe

@@ -24,7 +24,7 @@ Although we search for FreeTDS's libraries and headers, you may have to specify 
 
 ## FreeTDS Compatibility & Configuration
 
-TinyTDS is developed against FreeTDS 0.82 & 0.91, and 0.92 currents, the latest is recommended. It is tested with SQL Server 2000, 2005, 2008 and Azure. Below are a few QA style notes about installing FreeTDS.
+TinyTDS is developed against FreeTDS 0.82 & 0.91, and 0.92 currents, the latest is recommended. It is tested with SQL Server 2000, 2005, 2008, 2014, and Azure. Below are a few QA style notes about installing FreeTDS.
 
 * **Do I need to install FreeTDS?** Yes! Somehow, someway, you are going to need FreeTDS for TinyTDS to compile against. You can avoid installing FreeTDS on your system by using our projects usage of rake-compiler and mini_portile to compile and package a native gem just for you. See the "Using MiniPortile" section below.
 
@@ -41,7 +41,7 @@ TinyTDS is developed against FreeTDS 0.82 & 0.91, and 0.92 currents, the latest 
 
 Our goal is to support every SQL Server data type and covert it to a logical ruby object. When dates or times are returned, they are instantiated to either `:utc` or `:local` time depending on the query options. Under ruby 1.9, all strings are encoded to the connection's encoding and all binary data types are associated to ruby's `ASCII-8BIT/BINARY` encoding.
 
-Below is a list of the data types we plan to support using future versions of FreeTDS. They are associated with SQL Server 2008. All unsupported data types are returned as properly encoded strings.
+Below is a list of the data types we plan to support using future versions of FreeTDS. They are associated with SQL Server 2008 and up. All unsupported data types are returned as properly encoded strings.
 
 * [date]
 * [datetime2]
@@ -329,9 +329,11 @@ $ rake cross-compile:clean
 
 ## Development & Testing
 
-We use bundler for development. Simply run `bundle install` then `rake` to build the gem and run the unit tests. The tests assume you have created a database named `tinytdstest` accessible by a database owner named `tinytds`. Before running the test rake task, you may need to define a pair of environment variables that help the client connect to your specific FreeTDS database server name and which schema (2000, 2005, 2008, Azure or Sybase ASE) to use. For example:
+We use bundler for development. Simply run `bundle install` then `rake` to build the gem and run the unit tests. The tests assume you have created a database named `tinytdstest` accessible by a database owner named `tinytds`. Before running the test rake task, you may need to define a pair of environment variables that help the client connect to your specific FreeTDS database server name and which schema (2000, 2005, 2008, 2014, Azure or Sybase ASE) to use. For example:
 
 ```
+$ rake TINYTDS_UNIT_DATASERVER=mydbserver
+  or
 $ rake TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2008
   or
 $ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_SCHEMA=sqlserver_azure

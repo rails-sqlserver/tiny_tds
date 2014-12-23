@@ -9,49 +9,49 @@ class DateTime
   end
 end
 
-TINYTDS_SCHEMAS = ['sqlserver_2000', 'sqlserver_2005', 'sqlserver_2008', 'sqlserver_azure', 'sybase_ase'].freeze
+TINYTDS_SCHEMAS = ['sqlserver_2000', 'sqlserver_2005', 'sqlserver_2008', 'sqlserver_2014', 'sqlserver_azure', 'sybase_ase'].freeze
 
 module TinyTds
   class TestCase < MiniTest::Spec
-    
+
     class << self
-      
+
       def current_schema
-        ENV['TINYTDS_SCHEMA'] || 'sqlserver_2008'
+        ENV['TINYTDS_SCHEMA'] || 'sqlserver_2014'
       end
-      
+
       TINYTDS_SCHEMAS.each do |schema|
         define_method "#{schema}?" do
           schema == self.current_schema
         end
       end
-      
+
       def sqlserver?
         current_schema =~ /sqlserver/
       end
-      
+
     end
-    
+
     after do
       @client.close if @client.is_a?(TinyTds::Client)
     end
-    
+
     protected
-    
+
     TINYTDS_SCHEMAS.each do |schema|
       define_method "#{schema}?" do
         schema == self.class.current_schema
       end
     end
-    
+
     def current_schema
       self.class.current_schema
     end
-    
+
     def sqlserver?
       self.class.sqlserver?
     end
-    
+
     def new_connection(options={})
       client = TinyTds::Client.new(connection_options(options))
       if sybase_ase?
@@ -63,7 +63,7 @@ module TinyTds
       end
       client
     end
-    
+
     def connection_options(options={})
       username = sqlserver_azure? ? ENV['TINYTDS_UNIT_AZURE_USER'] : ENV['TINYTDS_UNIT_USER'] || 'tinytds'
       password = sqlserver_azure? ? ENV['TINYTDS_UNIT_AZURE_PASS'] : ENV['TINYTDS_UNIT_PASS'] || ''
@@ -80,16 +80,16 @@ module TinyTds
         :azure         => sqlserver_azure?
       }.merge(options)
     end
-    
+
     def assert_client_works(client)
       client.execute("SELECT 'client_works' as [client_works]").each.must_equal [{'client_works' => 'client_works'}]
     end
-    
+
     def assert_new_connections_work
       client = new_connection
       client.execute("SELECT 'new_connections_work' as [new_connections_work]").each
     end
-    
+
     def assert_raise_tinytds_error(action)
       error_raised = false
       begin
@@ -100,29 +100,29 @@ module TinyTds
       assert error_raised, 'expected a TinyTds::Error but none happened'
       yield e
     end
-    
+
     def inspect_tinytds_exception
       begin
         yield
       rescue TinyTds::Error => e
-        props = { :source => e.source, :message => e.message, :severity => e.severity, 
+        props = { :source => e.source, :message => e.message, :severity => e.severity,
                   :db_error_number => e.db_error_number, :os_error_number => e.os_error_number }
         raise "TinyTds::Error - #{props.inspect}"
       end
     end
-    
+
     def assert_binary_encoding(value)
       assert_equal Encoding.find('BINARY'), value.encoding
     end
-    
+
     def assert_utf8_encoding(value)
       assert_equal Encoding.find('UTF-8'), value.encoding
     end
-    
+
     def rubyRbx?
       RUBY_DESCRIPTION =~ /rubinius/i
     end
-    
+
     def load_current_schema
       loader = new_connection
       schema_file = File.expand_path File.join(File.dirname(__FILE__), 'schema', "#{current_schema}.sql")
@@ -150,17 +150,17 @@ module TinyTds
     def drop_sql_microsoft
       %|IF EXISTS (
           SELECT TABLE_NAME
-          FROM INFORMATION_SCHEMA.TABLES 
-          WHERE TABLE_CATALOG = 'tinytdstest' 
-          AND TABLE_TYPE = 'BASE TABLE' 
+          FROM INFORMATION_SCHEMA.TABLES
+          WHERE TABLE_CATALOG = 'tinytdstest'
+          AND TABLE_TYPE = 'BASE TABLE'
           AND TABLE_NAME = 'datatypes'
         ) DROP TABLE [datatypes]
         IF EXISTS (
-          SELECT name FROM sysobjects 
+          SELECT name FROM sysobjects
           WHERE name = 'tinytds_TestReturnCodes' AND type = 'P'
         ) DROP PROCEDURE tinytds_TestReturnCodes|
     end
-    
+
     def sp_sql
       %|CREATE PROCEDURE tinytds_TestReturnCodes
         AS
@@ -173,23 +173,23 @@ module TinyTds
       sql = "SELECT [#{column}] FROM [datatypes] WHERE [id] = #{id}"
       @client.execute(sql).each(query_options).first[column.to_s]
     end
-    
+
     def local_offset
       TinyTds::Client.local_offset
     end
-    
+
     def utc_offset
       ::Time.local(2010).utc_offset
     end
-    
+
     def rollback_transaction(client)
       client.execute("BEGIN TRANSACTION").do
       yield
     ensure
       client.execute("ROLLBACK TRANSACTION").do
     end
-    
-    
+
+
   end
 end
 

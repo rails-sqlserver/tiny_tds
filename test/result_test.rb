@@ -2,24 +2,24 @@
 require 'test_helper'
 
 class ResultTest < TinyTds::TestCase
-  
+
   describe 'Basic query and result' do
-  
+
     before do
       @@current_schema_loaded ||= load_current_schema
       @client = new_connection
       @query1 = 'SELECT 1 AS [one]'
     end
-    
+
     it 'has included Enumerable' do
       assert TinyTds::Result.ancestors.include?(Enumerable)
     end
-    
+
     it 'responds to #each' do
       result = @client.execute(@query1)
       assert result.respond_to?(:each)
     end
-    
+
     it 'returns all results for #each with no block' do
       result = @client.execute(@query1)
       data = result.each
@@ -28,7 +28,7 @@ class ResultTest < TinyTds::TestCase
       assert_equal 1, data.size
       assert_instance_of Hash, row, 'hash is the default query option'
     end
-    
+
     it 'returns all results for #each with a block yielding a row at a time' do
       result = @client.execute(@query1)
       data = result.each do |row|
@@ -36,7 +36,7 @@ class ResultTest < TinyTds::TestCase
       end
       assert_instance_of Array, data
     end
-    
+
     it 'allows successive calls to each returning the same data' do
       result = @client.execute(@query1)
       data = result.each
@@ -44,7 +44,7 @@ class ResultTest < TinyTds::TestCase
       assert_equal data.object_id, result.each.object_id
       assert_equal data.first.object_id, result.each.first.object_id
     end
-    
+
     it 'returns hashes with string keys' do
       result = @client.execute(@query1)
       row = result.each(:as => :hash, :symbolize_keys => false).first
@@ -52,7 +52,7 @@ class ResultTest < TinyTds::TestCase
       assert_equal ['one'], row.keys
       assert_equal ['one'], result.fields
     end
-    
+
     it 'returns hashes with symbol keys' do
       result = @client.execute(@query1)
       row = result.each(:as => :hash, :symbolize_keys => true).first
@@ -60,14 +60,14 @@ class ResultTest < TinyTds::TestCase
       assert_equal [:one], row.keys
       assert_equal [:one], result.fields
     end
-    
+
     it 'returns arrays with string fields' do
       result = @client.execute(@query1)
       row = result.each(:as => :array, :symbolize_keys => false).first
       assert_instance_of Array, row
       assert_equal ['one'], result.fields
     end
-    
+
     it 'returns arrays with symbol fields' do
       result = @client.execute(@query1)
       row = result.each(:as => :array, :symbolize_keys => true).first
@@ -83,7 +83,7 @@ class ResultTest < TinyTds::TestCase
         result.must_equal "1         test2"
       end
     end
-    
+
     it 'must be able to turn :cache_rows option off' do
       result = @client.execute(@query1)
       local = []
@@ -94,7 +94,7 @@ class ResultTest < TinyTds::TestCase
       assert_equal [], result.each, 'should not have been cached'
       assert_equal ['one'], result.fields, 'should still cache field names'
     end
-    
+
     it 'must be able to get the first result row only' do
       load_current_schema
       big_query = "SELECT [id] FROM [datatypes]"
@@ -103,12 +103,12 @@ class ResultTest < TinyTds::TestCase
       assert many.size > 1
       assert one.size == 1
     end
-    
+
     it 'copes with no results when using first option' do
       data = @client.execute("SELECT [id] FROM [datatypes] WHERE [id] = -1").each(:first => true)
       assert_equal [], data
     end
-    
+
     it 'must delete, insert and find data' do
       rollback_transaction(@client) do
         text = 'test insert and delete'
@@ -119,7 +119,7 @@ class ResultTest < TinyTds::TestCase
         assert_equal text, row['varchar_50']
       end
     end
-        
+
     it 'must insert and find unicode data' do
       rollback_transaction(@client) do
         text = '✓'
@@ -129,7 +129,7 @@ class ResultTest < TinyTds::TestCase
         assert_equal text, row['nvarchar_50']
       end
     end
-    
+
     it 'must delete and update with affected rows support and insert with identity support in native sql' do
       rollback_transaction(@client) do
         text = 'test affected rows sql'
@@ -144,7 +144,7 @@ class ResultTest < TinyTds::TestCase
         assert_equal 1, afrows
       end
     end
-    
+
     it 'has a #do method that cancels result rows and returns affected rows natively' do
       rollback_transaction(@client) do
         text = 'test affected rows native'
@@ -157,7 +157,7 @@ class ResultTest < TinyTds::TestCase
         assert_equal 1, updated_rows, 'should have updated row for one above' unless sqlserver_2000? # Will report -1
       end
     end
-    
+
     it 'allows native affected rows using #do to work under transaction' do
       rollback_transaction(@client) do
         text = 'test affected rows native in transaction'
@@ -169,7 +169,7 @@ class ResultTest < TinyTds::TestCase
         assert_equal 1, updated_rows, 'should have updated row for one above' unless sqlserver_2000? # Will report -1
       end
     end
-    
+
     it 'has an #insert method that cancels result rows and returns IDENTITY natively' do
       rollback_transaction(@client) do
         text = 'test scope identity rows native'
@@ -180,11 +180,11 @@ class ResultTest < TinyTds::TestCase
         assert_equal sql_identity+1, native_identity
       end
     end
-  
+
     it 'returns bigint for #insert when needed' do
       return if sqlserver_azure? # We can not alter clustered index like this test does.
-      return if sybase_ase?      # On Sybase, sp_helpindex cannot be used inside a transaction since it does a 
-                                 # 'CREATE TABLE' command is not allowed within a multi-statement transaction 
+      return if sybase_ase?      # On Sybase, sp_helpindex cannot be used inside a transaction since it does a
+                                 # 'CREATE TABLE' command is not allowed within a multi-statement transaction
                                  # and and sp_helpindex creates a temporary table #spindtab.
       rollback_transaction(@client) do
         seed = 9223372036854775805
@@ -208,7 +208,7 @@ class ResultTest < TinyTds::TestCase
         assert_equal 0, count
       end
     end
-    
+
     it 'must be able to begin/rollback transactions with raw sql' do
       load_current_schema
       @client.execute("BEGIN TRANSACTION").do
@@ -217,21 +217,21 @@ class ResultTest < TinyTds::TestCase
       count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").each.first['count']
       0.wont_equal count
     end
-    
+
     it 'has a #fields accessor with logic default and valid outcome' do
       result = @client.execute(@query1)
       result.fields.must_equal ['one']
       result.each
       result.fields.must_equal ['one']
     end
-    
+
     it 'always returns an array for fields for all sql' do
       result = @client.execute("USE [tinytdstest]")
       result.fields.must_equal []
       result.do
       result.fields.must_equal []
     end
-    
+
     it 'returns fields even when no results are found' do
       no_results_query = "SELECT [id], [varchar_50] FROM [datatypes] WHERE [varchar_50] = 'NOTFOUND'"
       # Fields before each.
@@ -244,19 +244,19 @@ class ResultTest < TinyTds::TestCase
       result.each
       result.fields.must_equal ['id','varchar_50']
     end
-    
+
     it 'allows the result to be canceled before reading' do
       result = @client.execute(@query1)
       result.cancel
       @client.execute(@query1).each
     end
-    
+
     it 'works in tandem with the client when needing to find out if client has sql sent and result is canceled or not' do
       # Default state.
       @client = TinyTds::Client.new(connection_options)
       @client.sqlsent?.must_equal false
       @client.canceled?.must_equal false
-      # With active result before and after cancel. 
+      # With active result before and after cancel.
       result = @client.execute(@query1)
       @client.sqlsent?.must_equal true
       @client.canceled?.must_equal false
@@ -280,7 +280,7 @@ class ResultTest < TinyTds::TestCase
       assert count > 10, 'since we want to cancel early for test'
       result = @client.execute("SELECT [id] FROM [datatypes]")
       index = 0
-      result.each do |row| 
+      result.each do |row|
         break if index > 10
         index += 1
       end
@@ -304,12 +304,12 @@ class ResultTest < TinyTds::TestCase
       @client.sqlsent?.must_equal false
       @client.canceled?.must_equal true
     end
-    
+
     it 'use same string object for hash keys' do
       data = @client.execute("SELECT [id], [bigint] FROM [datatypes]").each
       assert_equal data.first.keys.map{ |r| r.object_id }, data.last.keys.map{ |r| r.object_id }
     end
-    
+
     it 'has properly encoded column names with symbol keys' do
       col_name = "öäüß"
       @client.execute("DROP TABLE [test_encoding]").do rescue nil
@@ -322,7 +322,7 @@ class ResultTest < TinyTds::TestCase
       assert_instance_of Symbol, row.keys.first
       assert_equal col_name.to_sym, row.keys.first
     end unless sqlserver_azure?
-    
+
     it 'allows #return_code to work with stored procedures and reset per sql batch' do
       assert_nil @client.return_code
       result = @client.execute("EXEC tinytds_TestReturnCodes")
@@ -334,13 +334,13 @@ class ResultTest < TinyTds::TestCase
       assert_nil @client.return_code
       assert_nil result.return_code
     end
-    
+
     describe 'with multiple result sets' do
-  
+
       before do
         @empty_select  = "SELECT 1 AS [rs1] WHERE 1 = 0"
         @double_select = "SELECT 1 AS [rs1]
-                          SELECT 2 AS [rs2]" 
+                          SELECT 2 AS [rs2]"
         @triple_select_1st_empty = "SELECT 1 AS [rs1] WHERE 1 = 0
                                     SELECT 2 AS [rs2]
                                     SELECT 3 AS [rs3]"
@@ -351,7 +351,7 @@ class ResultTest < TinyTds::TestCase
                                     SELECT 2 AS [rs2]
                                     SELECT 3 AS [rs3] WHERE 1 = 0"
       end
-      
+
       it 'handles a command buffer with double selects' do
         result = @client.execute(@double_select)
         result_sets = result.each
@@ -369,14 +369,14 @@ class ResultTest < TinyTds::TestCase
         assert_equal [['rs1'], ['rs2']], result.fields
         assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
       end
-      
+
       it 'yields each row for each result set' do
         data = []
         result_sets = @client.execute(@double_select).each { |row| data << row }
         assert_equal data.first, result_sets.first[0]
         assert_equal data.last, result_sets.last[0]
       end
-      
+
       it 'works from a stored procedure' do
         if sqlserver?
           results1, results2 = @client.execute("EXEC sp_helpconstraint '[datatypes]'").each
@@ -395,23 +395,23 @@ class ResultTest < TinyTds::TestCase
       end
 
       describe 'using :empty_sets TRUE' do
-        
+
         before do
           @old_query_option_value = TinyTds::Client.default_query_options[:empty_sets]
           TinyTds::Client.default_query_options[:empty_sets] = true
           @client = new_connection
         end
-        
+
         after do
           TinyTds::Client.default_query_options[:empty_sets] = @old_query_option_value
         end
-        
+
         it 'handles a basic empty result set' do
           result = @client.execute(@empty_select)
           assert_equal [], result.each
           assert_equal ['rs1'], result.fields
         end
-  
+
         it 'includes empty result sets by default - using 1st empty buffer' do
           result = @client.execute(@triple_select_1st_empty)
           result_sets = result.each
@@ -431,7 +431,7 @@ class ResultTest < TinyTds::TestCase
           assert_equal [['rs1'], ['rs2'], ['rs3']], result.fields
           assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
         end
-  
+
         it 'includes empty result sets by default - using 2nd empty buffer' do
           result = @client.execute(@triple_select_2nd_empty)
           result_sets = result.each
@@ -451,7 +451,7 @@ class ResultTest < TinyTds::TestCase
           assert_equal [['rs1'], ['rs2'], ['rs3']], result.fields
           assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
         end
-  
+
         it 'includes empty result sets by default - using 3rd empty buffer' do
           result = @client.execute(@triple_select_3rd_empty)
           result_sets = result.each
@@ -471,27 +471,27 @@ class ResultTest < TinyTds::TestCase
           assert_equal [['rs1'], ['rs2'], ['rs3']], result.fields
           assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
         end
-  
+
       end
-      
+
       describe 'using :empty_sets FALSE' do
-        
+
         before do
           @old_query_option_value = TinyTds::Client.default_query_options[:empty_sets]
           TinyTds::Client.default_query_options[:empty_sets] = false
           @client = new_connection
         end
-        
+
         after do
           TinyTds::Client.default_query_options[:empty_sets] = @old_query_option_value
         end
-        
+
         it 'handles a basic empty result set' do
           result = @client.execute(@empty_select)
           assert_equal [], result.each
           assert_equal ['rs1'], result.fields
         end
-        
+
         it 'must not include empty result sets by default - using 1st empty buffer' do
           result = @client.execute(@triple_select_1st_empty)
           result_sets = result.each
@@ -509,7 +509,7 @@ class ResultTest < TinyTds::TestCase
           assert_equal [['rs2'], ['rs3']], result.fields
           assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
         end
-        
+
         it 'must not include empty result sets by default - using 2nd empty buffer' do
           result = @client.execute(@triple_select_2nd_empty)
           result_sets = result.each
@@ -527,7 +527,7 @@ class ResultTest < TinyTds::TestCase
           assert_equal [['rs1'], ['rs3']], result.fields
           assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
         end
-  
+
         it 'must not include empty result sets by default - using 3rd empty buffer' do
           result = @client.execute(@triple_select_3rd_empty)
           result_sets = result.each
@@ -545,41 +545,37 @@ class ResultTest < TinyTds::TestCase
           assert_equal [['rs1'], ['rs2']], result.fields
           assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
         end
-  
+
       end
-      
+
     end
 
     describe 'Complex query with multiple results sets but no actual results' do
+
+      let(:backup_file) { 'C:\\Users\\Public\\tinytdstest.bak' }
+
+      after { File.delete(backup_file) if File.exists?(backup_file) }
+
       it 'must not cancel the query until complete' do
-        @client.execute("
-          BACKUP DATABASE tinytdstest
-          TO DISK = 'C:\\Users\\Public\\tinytdstest.bak'
-        ").do
+        @client.execute("BACKUP DATABASE tinytdstest TO DISK = '#{backup_file}'").do
       end
 
-      after do
-        begin
-          File.delete 'C:\\Users\\Public\\tinytdstest.bak'
-        rescue
-        end
-      end
     end
 
     describe 'when casting to native ruby values' do
-    
+
       it 'returns fixnum for 1' do
         value = @client.execute('SELECT 1 AS [fixnum]').each.first['fixnum']
         assert_equal 1, value
       end
-      
+
       it 'returns nil for NULL' do
         value = @client.execute('SELECT NULL AS [null]').each.first['null']
         assert_equal nil, value
       end
-    
+
     end
-    
+
     describe 'with data type' do
 
       describe 'char max' do
@@ -601,14 +597,14 @@ class ResultTest < TinyTds::TestCase
       end unless sqlserver_2000? || sybase_ase?
 
     end
-    
+
     describe 'when shit happens' do
-      
+
       it 'copes with nil or empty buffer' do
-        assert_raises(TypeError) { @client.execute(nil) } 
+        assert_raises(TypeError) { @client.execute(nil) }
         assert_equal [], @client.execute('').each
       end
-      
+
       if sqlserver?
 
         it 'must not raise an error when severity is 10 or less' do
@@ -639,7 +635,7 @@ class ResultTest < TinyTds::TestCase
         end
 
       end
-      
+
       it 'throws an error when you execute another query with other results pending' do
         result1 = @client.execute(@query1)
         action = lambda { @client.execute(@query1) }
@@ -649,7 +645,7 @@ class ResultTest < TinyTds::TestCase
           assert_equal 20019, e.db_error_number
         end
       end
-          
+
       it 'must error gracefully with bad table name' do
         action = lambda { @client.execute('SELECT * FROM [foobar]').each }
         assert_raise_tinytds_error(action) do |e|
@@ -660,7 +656,7 @@ class ResultTest < TinyTds::TestCase
         end
         assert_followup_query
       end
-      
+
       it 'must error gracefully with incorrect syntax' do
         action = lambda { @client.execute('this will not work').each }
         assert_raise_tinytds_error(action) do |e|
@@ -706,19 +702,19 @@ class ResultTest < TinyTds::TestCase
           skip 'FreeTDS 0.91 and higher can only pass this test.'
         end
       end unless sybase_ase?
-    
+
     end
 
   end
-  
-  
+
+
   protected
-  
+
   def assert_followup_query
     result = @client.execute(@query1)
     assert_equal 1, result.each.first['one']
   end
-  
+
   def insert_and_select_datatype(datatype)
     rollback_transaction(@client) do
       @client.execute("DELETE FROM [datatypes] WHERE [#{datatype}] IS NOT NULL").do
@@ -727,6 +723,6 @@ class ResultTest < TinyTds::TestCase
       flunk "Large #{datatype} data with a length of #{@big_text.length} did not match found text with length of #{found_text.length}" unless @big_text == found_text
     end
   end
-  
+
 end
 

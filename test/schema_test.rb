@@ -237,7 +237,7 @@ class SchemaTest < TinyTds::TestCase
         assert_utf8_encoding(value)
       end
 
-    end if sqlserver_2005? || sqlserver_2008? || sqlserver_azure?
+    end if sqlserver_2005? || sqlserver_2008? || sqlserver_2014? || sqlserver_azure?
 
 
     describe 'for 2008 and up' do

@@ -365,7 +365,7 @@ $ rake TINYTDS_SKIP_PORTS=1
 
 ## About Me
 
-My name is Ken Collins and I currently maintain the SQL Server adapter for ActiveRecord and wrote this library as my first cut into learning ruby C extensions. Hopefully it will help promote the power of ruby and the Rails framework to those that have not yet discovered it. My blog is http://metaskills.net and I can be found on twitter as @metaskills. Enjoy!
+My name is Ken Collins and I currently maintain the SQL Server adapter for ActiveRecord and wrote this library as my first cut into learning ruby C extensions. Hopefully it will help promote the power of ruby and the Rails framework to those that have not yet discovered it. My blog is [metaskills.net](http://metaskills.net/) and I can be found on twitter as @metaskills. Enjoy!
 
 
 ## Special Thanks
@@ -376,12 +376,7 @@ My name is Ken Collins and I currently maintain the SQL Server adapter for Activ
 * Josh Clayton of Thoughtbot for writing about ruby C extensions. - http://robots.thoughtbot.com/post/1037240922/get-your-c-on
 
 
-## Donators
-
-I am trying to save up for a Happy Hacking pro keyboard. Help me out via GitTip! https://www.gittip.com/metaskills/
-
-
 ## License
 
-TinyTDS is Copyright (c) 2010-2014 Ken Collins, <ken@metaskills.net> and Will Bond (Veracross LLC) <wbond@breuer.com>. It is distributed under the MIT license. Windows binaries contain precompiled versions of FreeTDS <http://www.freetds.org/> which is licensed under the GNU LGPL license at <http://www.gnu.org/licenses/lgpl-2.0.html>
+TinyTDS is Copyright (c) 2010-2015 Ken Collins, <ken@metaskills.net> and Will Bond (Veracross LLC) <wbond@breuer.com>. It is distributed under the MIT license. Windows binaries contain precompiled versions of FreeTDS <http://www.freetds.org/> which is licensed under the GNU LGPL license at <http://www.gnu.org/licenses/lgpl-2.0.html>
 

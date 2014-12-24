@@ -45,6 +45,13 @@ class ResultTest < TinyTds::TestCase
       assert_equal data.first.object_id, result.each.first.object_id
     end
     
+    it 'allows successive call to each after first' do
+      result = @client.execute(@query1)
+      first = result.first
+      data = result.each
+      assert_equal first.object_id, data.first.object_id
+    end
+    
     it 'returns hashes with string keys' do
       result = @client.execute(@query1)
       row = result.each(:as => :hash, :symbolize_keys => false).first

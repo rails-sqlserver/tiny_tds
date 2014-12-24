@@ -3,6 +3,8 @@ module TinyTds
     
     include Enumerable
     
-    
+    def first
+      each(first: true).first
+    end
   end
 end

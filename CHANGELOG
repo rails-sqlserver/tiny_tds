@@ -1,4 +1,9 @@
 
+* master *
+
+* Remove 30 char password warning. Fixes #172.
+
+
 * 0.6.2 *
 
 * Support an optional environment variable to find FreeTDS. Fixes #128.

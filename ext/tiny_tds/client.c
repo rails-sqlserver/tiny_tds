@@ -73,9 +73,9 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
       /*
       SYBETIME is the only error that can send INT_TIMEOUT or INT_CONTINUE,
       but we don't ever want to automatically retry. Instead have the app
-      decide what to do. We would use INT_TIMEOUT, however it seems tdserror()
-      in tds/util.c converts INT_TIMEOUT to INT_CONTINUE.
+      decide what to do.
       */
+      return_value = INT_TIMEOUT;
       cancel = 1;
       break;
 

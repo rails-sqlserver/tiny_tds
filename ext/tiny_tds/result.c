@@ -78,7 +78,7 @@ VALUE rb_tinytds_new_result_obj(tinytds_client_wrapper *cwrap) {
 // No GVL Helpers
 
 #define NOGVL_DBCALL(_dbfunction, _client) ( \
-  (RETCODE)rb_thread_blocking_region( \
+  (RETCODE)rb_thread_call_without_gvl( \
     (rb_blocking_function_t*)_dbfunction, _client, \
     (rb_unblock_function_t*)dbcancel_ubf, _client ) \
 )

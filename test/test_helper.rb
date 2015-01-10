@@ -3,12 +3,6 @@ require 'bundler' ; Bundler.require :development, :test
 require 'tiny_tds'
 require 'minitest/autorun'
 
-class DateTime
-  def usec
-    (sec_fraction * 1_000_000).to_i
-  end
-end
-
 TINYTDS_SCHEMAS = ['sqlserver_2000', 'sqlserver_2005', 'sqlserver_2008', 'sqlserver_2014', 'sqlserver_azure', 'sybase_ase'].freeze
 
 module TinyTds

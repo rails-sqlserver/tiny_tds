@@ -2,23 +2,12 @@
 #include <tiny_tds_ext.h>
 #include <stdint.h>
 
-// TINY_TDS_MAX_TIME
-
-#define TINY_TDS_MAX_TIME 315607276799ULL
-
-
-// TINY_TDS_MIN_TIME
-
-#define TINY_TDS_MIN_TIME 2678400ULL
-
-
 // File Types/Vars
 
 VALUE cTinyTdsResult;
 extern VALUE mTinyTds, cTinyTdsClient, cTinyTdsError;
-VALUE cBigDecimal, cDate, cDateTime;
+VALUE cBigDecimal, cDate;
 VALUE opt_decimal_zero, opt_float_zero, opt_one, opt_zero, opt_four, opt_19hdr, opt_tenk, opt_onemil;
-int   opt_ruby_186;
 static ID intern_new, intern_utc, intern_local, intern_localtime, intern_merge,
           intern_civil, intern_new_offset, intern_plus, intern_divide, intern_Rational;
 static ID sym_symbolize_keys, sym_as, sym_array, sym_cache_rows, sym_first, sym_timezone, sym_local, sym_utc, sym_empty_sets;
@@ -293,25 +282,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
           if (year+month+day+hour+min+sec+msec != 0) {
             VALUE offset = (timezone == intern_local) ? rwrap->local_offset : opt_zero;
             uint64_t seconds = (year*31557600ULL) + (month*2592000ULL) + (day*86400ULL) + (hour*3600ULL) + (min*60ULL) + sec;
-            /* Use DateTime */
-            if (seconds < TINY_TDS_MIN_TIME || seconds > TINY_TDS_MAX_TIME) {
-              VALUE datetime_sec = INT2NUM(sec);
-              if (msec != 0) {
-                if ((opt_ruby_186 == 1 && sec < 59) || (opt_ruby_186 != 1)) {
-                  #ifdef HAVE_RUBY_ENCODING_H
-                    VALUE rational_msec = rb_Rational2(INT2NUM(msec*1000), opt_onemil);
-                  #else
-                    VALUE rational_msec = rb_funcall(rb_cObject, intern_Rational, 2, INT2NUM(msec*1000), opt_onemil);
-                  #endif
-                  datetime_sec = rb_funcall(datetime_sec, intern_plus, 1, rational_msec);
-                }
-              }
-              val = rb_funcall(cDateTime, intern_civil, 7, INT2NUM(year), INT2NUM(month), INT2NUM(day), INT2NUM(hour), INT2NUM(min), datetime_sec, offset);
-              val = rb_funcall(val, intern_new_offset, 1, offset);
-            /* Use Time */
-            } else {
-              val = rb_funcall(rb_cTime, timezone, 7, INT2NUM(year), INT2NUM(month), INT2NUM(day), INT2NUM(hour), INT2NUM(min), INT2NUM(sec), INT2NUM(msec*1000));
-            }
+            val = rb_funcall(rb_cTime, timezone, 7, INT2NUM(year), INT2NUM(month), INT2NUM(day), INT2NUM(hour), INT2NUM(min), INT2NUM(sec), INT2NUM(msec*1000));
           }
           break;
         }
@@ -547,7 +518,6 @@ void init_tinytds_result() {
   /* Data Classes */
   cBigDecimal = rb_const_get(rb_cObject, rb_intern("BigDecimal"));
   cDate = rb_const_get(rb_cObject, rb_intern("Date"));
-  cDateTime = rb_const_get(rb_cObject, rb_intern("DateTime"));
   /* Define TinyTds::Result */
   cTinyTdsResult = rb_define_class_under(mTinyTds, "Result", rb_cObject);
   /* Define TinyTds::Result Public Methods */
@@ -590,8 +560,6 @@ void init_tinytds_result() {
   opt_19hdr = INT2NUM(1900);
   opt_tenk = INT2NUM(10000);
   opt_onemil = INT2NUM(1000000);
-  /* Ruby version flags */
-  opt_ruby_186 = (rb_eval_string("RUBY_VERSION == '1.8.6'") == Qtrue) ? 1 : 0;
   /* Encoding */
   #ifdef HAVE_RUBY_ENCODING_H
     binaryEncoding = rb_enc_find("binary");

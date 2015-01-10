@@ -3,6 +3,8 @@
 
 * Remove 30 char password warning. Fixes #172.
 
+* Remove Ruby 1.8.6 support. We always use Time vs edge case DateTime.
+
 
 * 0.6.2 *
 

@@ -1,9 +1,9 @@
 module TinyTds
   class Client
-    
+
     # From sybdb.h comments:
     # DBVERSION_xxx are used with dbsetversion()
-    # 
+    #
     TDS_VERSIONS_SETTERS = {
       'unknown' => 0,
       '46'      => 1,
@@ -19,7 +19,7 @@ module TinyTds
     # From sybdb.h comments:
     # DBTDS_xxx are returned by DBTDS()
     # The integer values of the constants are poorly chosen.
-    # 
+    #
     TDS_VERSIONS_GETTERS = {
       0  => {:name => 'DBTDS_UNKNOWN',        :description => 'Unknown'},
       1  => {:name => 'DBTDS_2_0',            :description => 'Pre 4.0 SQL Server'},
@@ -33,7 +33,7 @@ module TinyTds
       9  => {:name => 'DBTDS_7_1/DBTDS_8_0',  :description => 'Microsoft SQL Server 2000'},
       10 => {:name => 'DBTDS_7_2/DBTDS_9_0',  :description => 'Microsoft SQL Server 2005'}
     }.freeze
-    
+
     @@default_query_options = {
       :as => :hash,
       :symbolize_keys => false,
@@ -41,22 +41,22 @@ module TinyTds
       :timezone => :local,
       :empty_sets => true
     }
-    
+
     attr_reader :query_options
-    
+
     class << self
-      
+
       def default_query_options
         @@default_query_options
       end
 
-      # Most, if not all, iconv encoding names can be found by ruby. Just in case, you can 
-      # overide this method to return a string name that Encoding.find would work with. Default 
+      # Most, if not all, iconv encoding names can be found by ruby. Just in case, you can
+      # overide this method to return a string name that Encoding.find would work with. Default
       # is to return the passed encoding.
       def transpose_iconv_encoding(encoding)
         encoding
       end
-      
+
     end
 
 
@@ -73,7 +73,7 @@ module TinyTds
       opts[:dataserver] = "#{opts[:host]}:#{opts[:port]}" if opts[:dataserver].to_s.empty?
       connect(opts)
     end
-    
+
     def tds_version_info
       info = TDS_VERSIONS_GETTERS[tds_version]
       "#{info[:name]} - #{info[:description]}" if info
@@ -83,11 +83,12 @@ module TinyTds
       !closed? && !dead?
     end
 
+
     private
-    
+
     def self.local_offset
       ::Time.local(2010).utc_offset.to_r / 86400
     end
-    
+
   end
 end

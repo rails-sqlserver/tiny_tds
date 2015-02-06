@@ -267,9 +267,21 @@ As of version 2.3.11 & 3.0.3 of the adapter, you can specify a `:dblib` mode in 
 
 ## Using TinyTDS with Azure
 
-TinyTDS is fully tested with the Azure platform. You must set the `:azure => true` connection option when connecting. This is needed to specify the default database name in the login packet since Azure has no notion of `USE [database]`. You must use the latest FreeTDS 0.91. FreeTDS must be compiled with OpenSSL too.
+TinyTDS is fully tested with the Azure platform. You must set the `azure: true` connection option when connecting. This is needed to specify the default database name in the login packet since Azure has no notion of `USE [database]`. You must use the latest FreeTDS 0.91. FreeTDS must be compiled with OpenSSL too.
 
-IMPORTANT: Do not use `username@server.database.windows.net` for the username connection option! You must use the shorter `username@server` instead!
+**IMPORTANT**: Do not use `username@server.database.windows.net` for the username connection option! You must use the shorter `username@server` instead!
+
+We recommend the following settings when using TinyTDS with Azure. These are the same settings used in the ActiveRecord SQL Server adapter.
+
+```sql
+SET ANSI_NULLS ON
+SET CURSOR_CLOSE_ON_COMMIT OFF
+SET ANSI_NULL_DFLT_ON ON
+SET IMPLICIT_TRANSACTIONS OFF
+SET ANSI_PADDING ON
+SET QUOTED_IDENTIFIER ON
+SET ANSI_WARNINGS ON
+```
 
 
 ## Using MiniPortile

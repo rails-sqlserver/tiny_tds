@@ -19,9 +19,8 @@ class SchemaTest < TinyTds::TestCase
       end
 
       it 'casts binary' do
-        binary_value = sqlserver_azure? ? @gif1px : @gif1px+"\000"
         value = find_value(21, :binary_50)
-        assert_equal binary_value, value
+        assert_equal @gif1px + "\000", value
         assert_binary_encoding(value)
       end
 
@@ -32,7 +31,7 @@ class SchemaTest < TinyTds::TestCase
       end
 
       it 'casts char' do
-        partial_char = sqlserver_azure? ? '12345678' : '12345678  '
+        partial_char = '12345678  '
         assert_equal '1234567890', find_value(41, :char_10)
         assert_equal partial_char, find_value(42, :char_10)
         assert_utf8_encoding find_value(42, :char_10)

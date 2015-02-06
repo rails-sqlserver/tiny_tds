@@ -63,8 +63,8 @@ class ThreadTest < TinyTds::TestCase
       thread = Thread.new do
         @pool.with do |client|
           begin
-            # The default query timeout is 5, so this will last longer than that
-            result = client.execute "waitfor delay '00:00:07'; select db_name()"
+            delay = ('0' + (connection_timeout + 2).to_s)[-2,2] # Two seconds longer than default.
+            result = client.execute "waitfor delay '00:00:#{delay}'; select db_name()"
             result.each { |r| puts r }
           rescue TinyTds::Error => e
             if e.message == 'Adaptive Server connection timed out'
@@ -75,8 +75,8 @@ class ThreadTest < TinyTds::TestCase
       end
 
       timer_thread = Thread.new do
-        # Sleep until after the timeout (of 5) should have been reached
-        sleep(6)
+        # Sleep until after the timeout should have been reached
+        sleep(connection_timeout+2)
         if not exception
           thread.kill
           raise "Timeout passed without query timing out"

@@ -50,18 +50,29 @@ module TinyTds
       client = TinyTds::Client.new(connection_options(options))
       if sybase_ase?
         client.execute("SET ANSINULL ON").do
-      elsif !sqlserver_azure?
-        client.execute("SET ANSI_DEFAULTS ON").do
-        client.execute("SET IMPLICIT_TRANSACTIONS OFF").do
-        client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
+        return client
+      elsif sqlserver_azure?
+        client.execute('SET ANSI_NULLS ON').do
+        client.execute('SET CURSOR_CLOSE_ON_COMMIT OFF').do
+        client.execute('SET ANSI_NULL_DFLT_ON ON').do
+        client.execute('SET IMPLICIT_TRANSACTIONS OFF').do
+        client.execute('SET ANSI_PADDING ON').do
+        client.execute('SET QUOTED_IDENTIFIER ON').do
+        client.execute('SET ANSI_WARNINGS ON').do
+      else
+        client.execute('SET ANSI_DEFAULTS ON').do
+        client.execute('SET CURSOR_CLOSE_ON_COMMIT OFF').do
+        client.execute('SET IMPLICIT_TRANSACTIONS OFF').do
       end
+      client.execute('SET TEXTSIZE 2147483647').do
+      client.execute('SET CONCAT_NULL_YIELDS_NULL ON').do
       client
     end
 
     def connection_options(options={})
       username = sqlserver_azure? ? ENV['TINYTDS_UNIT_AZURE_USER'] : ENV['TINYTDS_UNIT_USER'] || 'tinytds'
       password = sqlserver_azure? ? ENV['TINYTDS_UNIT_AZURE_PASS'] : ENV['TINYTDS_UNIT_PASS'] || ''
-      { :dataserver    => ENV['TINYTDS_UNIT_DATASERVER'],
+      { :dataserver    => sqlserver_azure? ? nil : ENV['TINYTDS_UNIT_DATASERVER'],
         :host          => ENV['TINYTDS_UNIT_HOST'],
         :port          => ENV['TINYTDS_UNIT_PORT'],
         :tds_version   => ENV['TINYTDS_UNIT_VERSION'],
@@ -70,9 +81,13 @@ module TinyTds
         :database      => 'tinytdstest',
         :appname       => 'TinyTds Dev',
         :login_timeout => 5,
-        :timeout       => 5,
+        :timeout       => connection_timeout,
         :azure         => sqlserver_azure?
       }.merge(options)
+    end
+
+    def connection_timeout
+      sqlserver_azure? ? 15 : 5
     end
 
     def assert_client_works(client)

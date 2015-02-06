@@ -560,7 +560,7 @@ class ResultTest < TinyTds::TestCase
         @client.execute("BACKUP DATABASE tinytdstest TO DISK = '#{backup_file}'").do
       end
 
-    end
+    end unless sqlserver_azure?
 
     describe 'when casting to native ruby values' do
 

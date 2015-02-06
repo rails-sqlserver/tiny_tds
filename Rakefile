@@ -11,7 +11,11 @@ def test_libs
 end
 
 def test_files
-  Dir.glob("test/**/*_test.rb").sort
+  if ENV['TEST_FILES']
+    ENV['TEST_FILES'].split(',').map{ |f| f.strip }.sort
+  else
+    Dir.glob("test/**/*_test.rb").sort
+  end
 end
 
 gemspec = Gem::Specification::load(File.expand_path('../tiny_tds.gemspec', __FILE__))

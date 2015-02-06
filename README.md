@@ -283,6 +283,8 @@ SET QUOTED_IDENTIFIER ON
 SET ANSI_WARNINGS ON
 ```
 
+Also, please read the [Azure SQL Database General Guidelines and Limitations](https://msdn.microsoft.com/en-us/library/ee336245.aspx) MSDN article to understand the differences. Specifically, the connection constraints section!
+
 
 ## Using MiniPortile
 

@@ -1,6 +1,8 @@
 
 * master *
 
+* Tested again on Azure. Added notes to README on recommended settings.
+
 * Replace `rb_thread_blocking_region` (removed in Ruby 2.2.0) w/`rb_thread_call_without_gvl`. Fixes #182.
 
 * Remove 30 char password warning. Fixes #172.

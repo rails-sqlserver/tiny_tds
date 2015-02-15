@@ -1,6 +1,8 @@
 
 * master *
 
+* Remove `sspi_w_kerberos.diff` patch. Not needed anymore.
+
 * Tested again on Azure. Added notes to README on recommended settings.
 
 * Replace `rb_thread_blocking_region` (removed in Ruby 2.2.0) w/`rb_thread_call_without_gvl`. Fixes #182.

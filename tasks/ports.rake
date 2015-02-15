@@ -38,7 +38,6 @@ def define_freetds_recipe(platform, host, libiconv)
   recipe.files << FREETDS_VERSION_INFO[FREETDS_VERSION][:files]
   recipe.host = host
   if recipe.respond_to?(:patch_files) && FREETDS_VERSION == "0.91"
-    recipe.patch_files << File.expand_path(File.join('..', '..', 'ext', 'patch', 'sspi_w_kerberos.diff'), __FILE__)
     recipe.patch_files << File.expand_path(File.join('..', '..', 'ext', 'patch', 'dblib-30-char-username.diff'), __FILE__)
     unless RUBY_PLATFORM =~ /mswin|mingw/
       recipe.patch_files << File.expand_path(File.join('..', '..', 'ext', 'patch', 'Makefile.in.diff'), __FILE__)

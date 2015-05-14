@@ -18,10 +18,9 @@ Gem::Specification.new do |s|
   s.rdoc_options  = ['--charset=UTF-8']
   s.extensions    = ['ext/tiny_tds/extconf.rb']
   s.license       = 'MIT'
-  s.add_development_dependency 'rake'
-  s.add_development_dependency 'mini_portile'
-  s.add_development_dependency 'rake-compiler'
-  s.add_development_dependency 'minitest'
-  s.add_development_dependency 'minitest-focus'
-  s.add_development_dependency 'connection_pool'
+  s.add_development_dependency 'rake', '~> 10.4'
+  s.add_development_dependency 'mini_portile', '0.6.2'
+  s.add_development_dependency 'rake-compiler', '0.9.5'
+  s.add_development_dependency 'minitest', '~> 5.6'
+  s.add_development_dependency 'connection_pool', '~> 2.2'
 end

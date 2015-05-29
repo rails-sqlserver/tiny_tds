@@ -1,6 +1,8 @@
 
 * 0.6.3.rc1 *
 
+* Revert 999fa571 so timeouts do not kill the client. Fixes #179.
+
 * Remove `sspi_w_kerberos.diff` patch. Not needed anymore.
 
 * Tested again on Azure. Added notes to README on recommended settings.

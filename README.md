@@ -318,27 +318,15 @@ To find out more about the FreeTDS release system [visit this thread](http://lis
 
 ## Compiling Gems for Windows
 
-For the convenience of Windows users, TinyTDS ships pre-compiled for Ruby 1.9.3, 2.0 and 2.1 on Windows. In order to generate these gems, [rake-compiler-dev-box](https://github.com/rails-sqlserver/rake-compiler-dev-box) is used. This project provides a [Vagrant](http://www.vagrantup.com/) box with rvm, cross-compilers and a number of different versions of ruby.
+For the convenience of Windows users, TinyTDS ships pre-compiled for Ruby 1.9.3, 2.0, 2.1 and 2.2 on Windows. In order to generate these gems, [rake-compiler-dock](https://github.com/rake-compiler/rake-compiler-dock) is used. This project provides a [Docker image](https://registry.hub.docker.com/u/larskanis/rake-compiler-dock/) with rvm, cross-compilers and a number of different target versions of ruby.
 
-There are a handful of rake tasks that are part of TinyTDS that make cross-compiling simple. Ensure that you have VirtualBox, Vagrant and git installed, and then run the following to download the box and perform initial setup:
-
-```
-$ rake cross-compile:setup
-```
-
-Once the setup is complete, run the following rake task to compile the gem for Windows. The first time this will take a while since the `rake-compiler` gem will need to compile a few different versions of ruby:
+Run the following rake task to compile the gem for Windows. This will check the availability of [Docker](https://www.docker.com/) (and boot2docker on Windows or OS-X) and will give some advice for download and installation. When docker is running, it will download the docker image (once-only) and start the build:
 
 ```
-$ rake cross-compile
+$ rake gem:windows
 ```
 
-The compiled gems will exist in `./rake-compile-dev-box/tiny_tds/pkg/`.
-
-If you want to clean up the dependent ports, temp files and resulting gems, run:
-
-```
-$ rake cross-compile:clean
-```
+The compiled gems will exist in `./pkg/`.
 
 
 ## Development & Testing
@@ -372,7 +360,6 @@ $ rake TINYTDS_SKIP_PORTS=1
 
 ## TODO List
 
-* Include OpenSSL with Windows binaries for SQL Azure.
 * Install an interrupt handler.
 * Allow #escape to accept all ruby primitives.
 

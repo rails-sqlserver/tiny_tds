@@ -78,7 +78,7 @@ module TinyTds
         :tds_version   => ENV['TINYTDS_UNIT_VERSION'],
         :username      => username,
         :password      => password,
-        :database      => 'tinytdstest',
+        :database      => ENV['TINYTDS_UNIT_DATABASE'] || 'tinytdstest',
         :appname       => 'TinyTds Dev',
         :login_timeout => 5,
         :timeout       => connection_timeout,

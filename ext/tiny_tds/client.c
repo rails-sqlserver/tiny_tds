@@ -233,7 +233,7 @@ static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
   GET_CLIENT_WRAPPER(self);
   rb_tinytds_client_reset_userdata(cwrap->userdata);
   REQUIRE_OPEN_CLIENT(cwrap);
-  dbcmd(cwrap->client, StringValuePtr(sql));
+  dbcmd(cwrap->client, StringValueCStr(sql));
   if (dbsqlsend(cwrap->client) == FAIL) {
     rb_warn("TinyTds: dbsqlsend() returned FAIL.\n");
     return Qfalse;
@@ -316,25 +316,25 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   if (!NIL_P(version))
     dbsetlversion(cwrap->login, NUM2INT(version));
   if (!NIL_P(user))
-    dbsetluser(cwrap->login, StringValuePtr(user));
+    dbsetluser(cwrap->login, StringValueCStr(user));
   if (!NIL_P(pass))
-    dbsetlpwd(cwrap->login, StringValuePtr(pass));
+    dbsetlpwd(cwrap->login, StringValueCStr(pass));
   if (!NIL_P(app))
-    dbsetlapp(cwrap->login, StringValuePtr(app));
+    dbsetlapp(cwrap->login, StringValueCStr(app));
   if (!NIL_P(ltimeout))
     dbsetlogintime(NUM2INT(ltimeout));
   if (!NIL_P(timeout))
     dbsettime(NUM2INT(timeout));
   if (!NIL_P(charset))
-    DBSETLCHARSET(cwrap->login, StringValuePtr(charset));
+    DBSETLCHARSET(cwrap->login, StringValueCStr(charset));
   if (!NIL_P(database) && (azure == Qtrue)) {
     #ifdef DBSETLDBNAME
-      DBSETLDBNAME(cwrap->login, StringValuePtr(database));
+      DBSETLDBNAME(cwrap->login, StringValueCStr(database));
     #else
       rb_warn("TinyTds: Azure connections not supported in this version of FreeTDS.\n");
     #endif
   }
-  cwrap->client = dbopen(cwrap->login, StringValuePtr(dataserver));
+  cwrap->client = dbopen(cwrap->login, StringValueCStr(dataserver));
   if (cwrap->client) {
     cwrap->closed = 0;
     cwrap->charset = charset;
@@ -343,10 +343,10 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
     dbsetuserdata(cwrap->client, (BYTE*)cwrap->userdata);
     cwrap->userdata->closed = 0;
     if (!NIL_P(database) && (azure != Qtrue)) {
-      dbuse(cwrap->client, StringValuePtr(database));
+      dbuse(cwrap->client, StringValueCStr(database));
     }
     VALUE transposed_encoding = rb_funcall(cTinyTdsClient, intern_transpose_iconv_encoding, 1, charset);
-    cwrap->encoding = rb_enc_find(StringValuePtr(transposed_encoding));
+    cwrap->encoding = rb_enc_find(StringValueCStr(transposed_encoding));
     if (dbtds(cwrap->client) <= 7) {
       cwrap->identity_insert_sql = "SELECT CAST(@@IDENTITY AS bigint) AS Ident";
     } else {

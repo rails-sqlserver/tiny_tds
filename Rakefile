@@ -83,7 +83,7 @@ task 'cross-compile:setup' do
   if Dir.exists? 'rake-compiler-dev-box'
     Dir.chdir 'rake-compiler-dev-box'
   else
-    sh 'git', 'clone', 'https://github.com/tjschuck/rake-compiler-dev-box.git'
+    sh 'git', 'clone', 'https://github.com/rails-sqlserver/rake-compiler-dev-box.git'
     Dir.chdir 'rake-compiler-dev-box'
   end
   sh 'vagrant', 'up'

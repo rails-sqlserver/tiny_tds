@@ -318,7 +318,7 @@ To find out more about the FreeTDS release system [visit this thread](http://lis
 
 ## Compiling Gems for Windows
 
-For the convenience of Windows users, TinyTDS ships pre-compiled for Ruby 1.9.3, 2.0 and 2.1 on Windows. In order to generate these gems, [rake-compiler-dev-box](https://github.com/tjschuck/rake-compiler-dev-box) is used. This project provides a [Vagrant](http://www.vagrantup.com/) box with rvm, cross-compilers and a number of different versions of ruby.
+For the convenience of Windows users, TinyTDS ships pre-compiled for Ruby 1.9.3, 2.0 and 2.1 on Windows. In order to generate these gems, [rake-compiler-dev-box](https://github.com/rails-sqlserver/rake-compiler-dev-box) is used. This project provides a [Vagrant](http://www.vagrantup.com/) box with rvm, cross-compilers and a number of different versions of ruby.
 
 There are a handful of rake tasks that are part of TinyTDS that make cross-compiling simple. Ensure that you have VirtualBox, Vagrant and git installed, and then run the following to download the box and perform initial setup:
 

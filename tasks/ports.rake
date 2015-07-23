@@ -9,7 +9,7 @@ FREETDS_VERSION_INFO = Hash.new { |h,k|
 }.merge({
   "0.82" => {:files => "ftp://ftp.freetds.org/pub/freetds/old/0.82/freetds-0.82.tar.gz"},
   "0.91" => {:files => "ftp://ftp.freetds.org/pub/freetds/stable/freetds-0.91.112.tar.gz"},
-  "current" => {:files => "ftp://ftp.freetds.org/pub/freetds/current/freetds-current.tgz"}
+  "current" => {:files => "ftp://ftp.freetds.org/pub/freetds/current/freetds-current.tar.gz"}
 })
 
 # all ports depends on this directory to exist

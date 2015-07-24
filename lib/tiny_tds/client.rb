@@ -71,6 +71,11 @@ module TinyTds
       opts[:encoding] = (opts[:encoding].nil? || opts[:encoding].downcase == 'utf8') ? 'UTF-8' : opts[:encoding].upcase
       opts[:port] ||= 1433
       opts[:dataserver] = "#{opts[:host]}:#{opts[:port]}" if opts[:dataserver].to_s.empty?
+
+      @azure = opts[:azure]
+      @azure_timeout = opts[:azure_timeout] || 300
+      @azure_timeout_at = Time.now + @azure_timeout
+
       connect(opts)
     end
 
@@ -80,7 +85,14 @@ module TinyTds
     end
 
     def active?
-      !closed? && !dead?
+      return !closed? && !dead? unless @azure
+      return false if @azure_timeout_at < Time.now
+
+      @azure_timeout_at = Time.now + @azure_timeout
+      execute('SELECT 1').each
+      true
+    rescue TinyTds::Error
+      false
     end
 
 

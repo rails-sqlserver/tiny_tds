@@ -18,6 +18,20 @@ def test_files
   end
 end
 
+def add_file_to_gem(spec, relative_path)
+  target_path = File.join gem_build_path(spec), relative_path
+  target_dir = File.dirname(target_path)
+  mkdir_p target_dir
+  rm_f target_path
+  safe_ln relative_path, target_path
+  spec.files += [relative_path]
+end
+
+def gem_build_path(spec)
+  File.join 'pkg', spec.full_name
+end
+
+
 gemspec = Gem::Specification::load(File.expand_path('../tiny_tds.gemspec', __FILE__))
 
 Rake::TestTask.new do |t|
@@ -62,6 +76,8 @@ Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
       "libsybdb-5.dll",
     ]
 
+    # We don't need the sources in a fat binary gem
+    spec.files = spec.files.reject{|f| f=~/^ports\/archives/ }
     spec.files += dlls.map{|dll| "ports/#{host}/bin/#{File.basename(dll)}" }
 
     dlls.each do |dll|
@@ -71,6 +87,11 @@ Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
     end
   end
 
+end
+
+# Bundle the freetds sources to avoid download while gem install
+task gem_build_path(gemspec) do
+  add_file_to_gem(gemspec, "ports/archives/freetds-0.91.112.tar.gz")
 end
 
 desc "Build the windows binary gems per rake-compiler-dock"

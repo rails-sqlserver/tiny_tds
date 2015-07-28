@@ -27,6 +27,30 @@ FREETDS_SOURCE_URI = FREETDS_VERSION_INFO[FREETDS_VERSION][:files]
 # Shamelessly copied from nokogiri
 #
 
+def do_help
+  print <<HELP
+usage: ruby #{$0} [options]
+
+    --enable-system-freetds / --disable-system-freetds
+    --enable-system-iconv / --disable-system-iconv
+    --enable-system-openssl / --disable-system-openssl
+        Force use of system or builtin freetds/iconv/openssl library.
+        Default is to prefer system libraries and fallback to builtin.
+
+    --with-freetds-dir=DIR
+        Use the freetds library placed under DIR.
+
+    --enable-lookup
+        Search for freetds through all paths in the PATH environment variable.
+
+    --enable-cross-build
+        Do cross-build.
+HELP
+  exit! 0
+end
+
+do_help if arg_config('--help')
+
 FREETDSDIR = ENV['FREETDS_DIR']
 
 if FREETDSDIR.nil? || FREETDSDIR.empty?
@@ -254,13 +278,16 @@ def freetds_usable?(lib_prefix)
 end
 
 # We use freetds, when available already, and fallback to compilation of ports
-if !ENV['TINYTDS_SKIP_PORTS'] && !freetds_usable?(lib_prefix)
-  host = RbConfig::CONFIG["host"]
-  # We expect to have iconv and OpenSSL available on non-Windows systems
-  if host =~ /mingw|mswin/
-    libssl = define_libssl_recipe(host).cook_and_activate
-    libiconv = define_libiconv_recipe(host).cook_and_activate
-  end
+system_freetds = enable_config('system-freetds', ENV['TINYTDS_SKIP_PORTS'] || freetds_usable?(lib_prefix))
+
+# We expect to have iconv and OpenSSL available on non-Windows systems
+host = RbConfig::CONFIG["host"]
+system_iconv = enable_config('system-iconv', host =~ /mingw|mswin/ ? false : true)
+system_openssl = enable_config('system-openssl', host =~ /mingw|mswin/ ? false : true )
+
+unless system_freetds
+  libssl = define_libssl_recipe(host).cook_and_activate unless system_openssl
+  libiconv = define_libiconv_recipe(host).cook_and_activate unless system_iconv
   freetds = define_freetds_recipe(host, libiconv, libssl).cook_and_activate
   dir_config('freetds', freetds.path + "/include", freetds.path + "/lib")
 end

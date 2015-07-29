@@ -25,5 +25,14 @@ if RUBY_PLATFORM =~ /mingw|mswin/ && RUBY_VERSION =~ /(\d+.\d+)/
     ENV['PATH'] = old_path
   end
 else
+  # Load dependent shared libraries into the process, so that they are already present,
+  # when tiny_tds.so is loaded. This ensures, that shared libraries are loaded even when
+  # the path is different between build and run time (e.g. Heroku).
+  ports_libs = File.expand_path("../../ports/#{RbConfig::CONFIG["host"]}/lib/*.so", __FILE__)
+  Dir[ports_libs].each do |lib|
+    require "fiddle"
+    Fiddle.dlopen(lib)
+  end
+
   require 'tiny_tds/tiny_tds'
 end

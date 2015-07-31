@@ -1,0 +1,48 @@
+services:
+  - mssql2014
+
+install:
+  - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
+  - SET PATH=C:\MinGW\msys\1.0\bin;%PATH%
+  - SET RAKEOPT=-rdevkit
+  - SET TINYTDS_UNIT_DATASERVER=localhost\SQL2014
+  - SET TINYTDS_UNIT_DATABASE=master
+  - SET TINYTDS_UNIT_USER=sa
+  - SET TINYTDS_UNIT_PASS=Password12!
+  - ruby --version
+  - gem --version
+  - bundle install
+  - ps: |
+        [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | Out-Null
+        [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement") | Out-Null
+
+        $serverName = $env:COMPUTERNAME
+        $instanceName = 'SQL2014'
+        $smo = 'Microsoft.SqlServer.Management.Smo.'
+        $wmi = new-object ($smo + 'Wmi.ManagedComputer')
+
+        # Enable TCP/IP
+        $uri = "ManagedComputer[@Name='$serverName']/ServerInstance[@Name='$instanceName']/ServerProtocol[@Name='Tcp']"
+        $Tcp = $wmi.GetSmoObject($uri)
+        $Tcp.IsEnabled = $true
+        $TCP.alter()
+
+        # Start services
+        Set-Service SQLBrowser -StartupType Manual
+        Start-Service SQLBrowser
+        Start-Service "MSSQL`$$instanceName"
+
+build: off
+
+test_script:
+  - bundle exec rake
+
+environment:
+  matrix:
+    - ruby_version: "193"
+    #- ruby_version: "200"
+    #- ruby_version: "200-x64"
+    #- ruby_version: "21"
+    #- ruby_version: "21-x64"
+    #- ruby_version: "22"
+    - ruby_version: "22-x64"

@@ -18,6 +18,20 @@ def test_files
   end
 end
 
+def add_file_to_gem(spec, relative_path)
+  target_path = File.join gem_build_path(spec), relative_path
+  target_dir = File.dirname(target_path)
+  mkdir_p target_dir
+  rm_f target_path
+  safe_ln relative_path, target_path
+  spec.files += [relative_path]
+end
+
+def gem_build_path(spec)
+  File.join 'pkg', spec.full_name
+end
+
+
 gemspec = Gem::Specification::load(File.expand_path('../tiny_tds.gemspec', __FILE__))
 
 Rake::TestTask.new do |t|
@@ -31,7 +45,7 @@ Gem::PackageTask.new(gemspec) do |pkg|
   pkg.need_zip = false
 end
 
-task :compile => ["ports:freetds"] unless ENV['TINYTDS_SKIP_PORTS']
+task :compile
 
 task :build => [:clean, :compile]
 
@@ -41,70 +55,50 @@ Dir["tasks/*.rake"].sort.each { |f| load f }
 
 Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
   ext.lib_dir = 'lib/tiny_tds'
-  if RUBY_PLATFORM =~ /mswin|mingw/ then
-    # Define target for extension (supporting fat binaries).
-    RUBY_VERSION =~ /(\d+\.\d+)/
-    ext.lib_dir = "lib/tiny_tds/#{$1}"
-  else
-    ext.cross_compile = true
-    ext.cross_platform = []
-    ext.cross_config_options << "--disable-lookup"
-    config_opts = {}
+  ext.cross_compile = true
+  ext.cross_platform = ['x86-mingw32', 'x64-mingw32']
+  ext.cross_config_options += %w[ --disable-lookup --enable-cross-build ]
+
+  # Add dependent DLLs to the cross gems
+  ext.cross_compiling do |spec|
     platform_host_map =  {
-      'x86-mingw32' => 'i586-mingw32msvc',
+      'x86-mingw32' => 'i686-w64-mingw32',
       'x64-mingw32' => 'x86_64-w64-mingw32'
     }
-    # This section ensures we setup up rake dependencies and that libiconv
-    # and freetds are compiled using the cross-compiler and then passed to
-    # extconf.rb in such a way that library detection works.
-    platform_host_map.each do |plat, host|
-      ext.cross_platform << plat
-      libiconv = define_libiconv_recipe(plat, host)
-      freetds  = define_freetds_recipe(plat, host, libiconv)
-      task "native:#{plat}" => ["ports:freetds:#{plat}"] unless ENV['TINYTDS_SKIP_PORTS']
-      # For some reason --with-freetds-dir and --with-iconv-dir would not work.
-      # It seems the default params that extconf.rb constructs include
-      # --without-freetds-include, --without-freetds-lib, --without-iconv-lib
-      # and --without-iconv-include. Thus we must explicitly override them.
-      config_opts[plat] = " --with-freetds-include=#{freetds.path}/include"
-      config_opts[plat] += " --with-freetds-lib=#{freetds.path}/lib"
-      config_opts[plat] += " --with-iconv-include=#{libiconv.path}/include"
-      config_opts[plat] += " --with-iconv-lib=#{libiconv.path}/lib"
+
+    gemplat = spec.platform.to_s
+    host = platform_host_map[gemplat]
+
+    dlls = [
+      "libeay32-1.0.2d-#{host}.dll",
+      "ssleay32-1.0.2d-#{host}.dll",
+      "libiconv-2.dll",
+      "libsybdb-5.dll",
+    ]
+
+    # We don't need the sources in a fat binary gem
+    spec.files = spec.files.reject{|f| f=~/^ports\/archives/ }
+    spec.files += dlls.map{|dll| "ports/#{host}/bin/#{File.basename(dll)}" }
+
+    dlls.each do |dll|
+      file "ports/#{host}/bin/#{dll}" do |t|
+        sh "x86_64-w64-mingw32-strip", t.name
+      end
     end
-    ext.cross_config_options << config_opts
   end
+
 end
 
-desc "Checks out rake-compiler-dev-box and sets up the cross-compiling box. This can take a long time."
-task 'cross-compile:setup' do
-  # Make sure we have the command-line programs we need
-  sh 'git', '--version'
-  sh 'vagrant', '-v'
-  if Dir.exists? 'rake-compiler-dev-box'
-    Dir.chdir 'rake-compiler-dev-box'
-  else
-    sh 'git', 'clone', 'https://github.com/rails-sqlserver/rake-compiler-dev-box.git'
-    Dir.chdir 'rake-compiler-dev-box'
-  end
-  sh 'vagrant', 'up'
+# Bundle the freetds sources to avoid download while gem install
+task gem_build_path(gemspec) do
+  add_file_to_gem(gemspec, "ports/archives/freetds-0.91.112.tar.gz")
 end
 
-desc "Invokes the cross-compiler to generate gems for windows"
-task 'cross-compile' do
-  build_dir = './rake-compiler-dev-box/tiny_tds/'
-  if not Dir.exists?(build_dir)
-    Dir.mkdir build_dir
-  end
-  # Copy the current version of tiny_tds into the box directory
-  Dir.entries('./').each do |entry|
-    next if ['.', '..', 'rake-compiler-dev-box'].include?(entry)
-    cp_r entry, build_dir, :remove_destination => true
-  end
-  Dir.chdir './rake-compiler-dev-box'
-  sh 'vagrant ssh -c "package_win32_fat_binary tiny_tds"'
-end
-
-desc "Cleans up all of the compiled ports, gems and tmp files from cross-compile"
-task 'cross-compile:clean' do
-  rm_r './rake-compiler-dev-box/tiny_tds'
+desc "Build the windows binary gems per rake-compiler-dock"
+task 'gem:windows' do
+  require 'rake_compiler_dock'
+  RakeCompilerDock.sh <<-EOT
+#    bundle install &&
+    rake cross native gem RUBY_CC_VERSION=1.9.3:2.0.0:2.1.6:2.2.2
+  EOT
 end

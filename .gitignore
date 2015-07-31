@@ -16,4 +16,3 @@ Gemfile.lock
 misc
 *.gem
 ports
-rake-compiler-dev-box/

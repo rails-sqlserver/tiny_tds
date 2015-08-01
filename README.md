@@ -288,6 +288,8 @@ Also, please read the [Azure SQL Database General Guidelines and Limitations](ht
 
 ## Using MiniPortile
 
+[![Build status](https://ci.appveyor.com/api/projects/status/g2bhhbsdkx0mal55/branch/master?svg=true)](https://ci.appveyor.com/project/rails-sqlserver/tiny-tds/branch/master)
+
 MiniPortile is a minimalistic, simplistic and stupid implementation of a port/recipe system for developers. <https://github.com/luislavena/mini_portile>
 
 The TinyTDS project uses MiniPortile so that we can easily install a local "project specific" version of FreeTDS and supporting libraries to link against when building a test version of TinyTDS. MiniPortile is a great tool that even allows us to build statically linked components that TinyTDS relies on. Hence this allows us to publish native gems for any platform. We use this feature for gems targeted at Windows.

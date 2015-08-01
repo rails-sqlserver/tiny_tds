@@ -1,4 +1,6 @@
-# TinyTDS - A modern, simple and fast FreeTDS library for Ruby using DB-Library.
+# TinyTDS - Simple and fast FreeTDS bindings for Ruby using DB-Library.
+
+[![Build status](https://ci.appveyor.com/api/projects/status/g2bhhbsdkx0mal55/branch/master?svg=true)](https://ci.appveyor.com/project/rails-sqlserver/tiny-tds/branch/master)
 
 The TinyTDS gem is meant to serve the extremely common use-case of connecting, querying and iterating over results to Microsoft SQL Server databases from ruby. Even though it uses FreeTDS's DB-Library, it is NOT meant to serve as direct 1:1 mapping of that C API.
 
@@ -287,8 +289,6 @@ Also, please read the [Azure SQL Database General Guidelines and Limitations](ht
 
 
 ## Using MiniPortile
-
-[![Build status](https://ci.appveyor.com/api/projects/status/g2bhhbsdkx0mal55/branch/master?svg=true)](https://ci.appveyor.com/project/rails-sqlserver/tiny-tds/branch/master)
 
 MiniPortile is a minimalistic, simplistic and stupid implementation of a port/recipe system for developers. <https://github.com/luislavena/mini_portile>
 

@@ -1,5 +1,7 @@
 
-* 0.6.3.rc1 *
+* 0.6.3.rc2 *
+
+* Refactor build of FreeTDS & Iconv recipes. Add OpenSSL. Merged #207.
 
 * Ensure zero terminated strings, where C-str pointers are expected. Use StringValueCStr() Fixes #208.
 

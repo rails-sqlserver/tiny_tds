@@ -31,7 +31,12 @@ else
   ports_libs = File.expand_path("../../ports/#{RbConfig::CONFIG["host"]}/lib/*.so", __FILE__)
   Dir[ports_libs].each do |lib|
     require "fiddle"
-    Fiddle.dlopen(lib)
+    if Fiddle.respond_to?(:dlopen)
+      Fiddle.dlopen(lib)
+    else
+      # For compat with Ruby < 2.0
+      DL.dlopen(lib)
+    end
   end
 
   require 'tiny_tds/tiny_tds'

@@ -1,3 +1,4 @@
+version: 0.6.3.rc2.{build}
 shallow_clone: true
 skip_tags: true
 matrix:
@@ -14,7 +15,7 @@ install:
   - bundle install
 build: off
 test_script:
-  - powershell -NoExit -File "C:\projects\tiny-tds\test\appveyor\sqlserver_2014.ps1"
+  - powershell -NoExit "& ""C:\projects\tiny-tds\test\appveyor\sqlserver_2014.ps1"""
   - bundle exec rake TINYTDS_UNIT_DATASERVER="localhost\SQL2014" TINYTDS_UNIT_DATABASE=master TINYTDS_UNIT_USER=sa TINYTDS_UNIT_PASS=Password12!
 environment:
   matrix:

@@ -14,7 +14,7 @@ install:
   - bundle install
 build: off
 test_script:
-  - powershell -noexit "& "C:%APPVEYOR_BUILD_FOLDER%\test\appveyor\sqlserver_2014.ps1"
+  - powershell -NoExit -File "%APPVEYOR_BUILD_FOLDER%\test\appveyor\sqlserver_2014.ps1"
   - bundle exec rake TINYTDS_UNIT_DATASERVER="localhost\SQL2014" TINYTDS_UNIT_DATABASE=master TINYTDS_UNIT_USER=sa TINYTDS_UNIT_PASS=Password12!
 environment:
   matrix:

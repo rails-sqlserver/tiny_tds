@@ -1,28 +1,37 @@
 version: 0.6.3.rc2.{build}
-shallow_clone: true
-skip_tags: true
-matrix:
-  fast_finish: true
-services:
-  - mssql2014
-install:
+init:
   - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
   - SET PATH=C:\MinGW\msys\1.0\bin;%PATH%
   - SET RAKEOPT=-rdevkit
-  - echo %APPVEYOR_BUILD_FOLDER%
+clone_depth: 5
+skip_tags: true
+matrix:
+  fast_finish: true
+install:
   - ruby --version
   - gem --version
   - bundle install
+  - bundle exec rake build
 build: off
 test_script:
-  - powershell -NoExit "& ""C:\projects\tiny-tds\test\appveyor\sqlserver_2014.ps1"""
-  - bundle exec rake TINYTDS_UNIT_DATASERVER="localhost\SQL2014" TINYTDS_UNIT_DATABASE=master TINYTDS_UNIT_USER=sa TINYTDS_UNIT_PASS=Password12!
+  - timeout /t 4 /nobreak > NUL
+  - powershell -File "%APPVEYOR_BUILD_FOLDER%\test\appveyor\dbsetup.ps1"
+  - timeout /t 4 /nobreak > NUL
+  - ps: Start-Service 'MSSQL$SQL2014'
+  - timeout /t 4 /nobreak > NUL
+  - sqlcmd -S ".\SQL2014" -U sa -P Password12! -i %APPVEYOR_BUILD_FOLDER%\test\appveyor\dbsetup.sql
+  - bundle exec rake TINYTDS_UNIT_HOST_TEST=localhost TINYTDS_UNIT_DATASERVER="localhost\SQL2014" TINYTDS_SCHEMA=sqlserver_2014
+  - ps: Stop-Service 'MSSQL$SQL2014'
+  - ps: Start-Service 'MSSQL$SQL2012SP1'
+  - timeout /t 4 /nobreak > NUL
+  - sqlcmd -S ".\SQL2012SP1" -U sa -P Password12! -i %APPVEYOR_BUILD_FOLDER%\test\appveyor\dbsetup.sql
+  - bundle exec rake TINYTDS_UNIT_HOST_TEST=localhost TINYTDS_UNIT_DATASERVER="localhost\SQL2012SP1" TINYTDS_SCHEMA=sqlserver_2014
+  - ps: Stop-Service 'MSSQL$SQL2012SP1'
+  - ps: Start-Service 'MSSQL$SQL2008R2SP2'
+  - timeout /t 4 /nobreak > NUL
+  - sqlcmd -S ".\SQL2008R2SP2" -U sa -P Password12! -i %APPVEYOR_BUILD_FOLDER%\test\appveyor\dbsetup.sql
+  - bundle exec rake TINYTDS_UNIT_HOST_TEST=localhost TINYTDS_UNIT_DATASERVER="localhost\SQL2008R2SP2" TINYTDS_SCHEMA=sqlserver_2014
 environment:
   matrix:
-    # - ruby_version: "193"
-    #- ruby_version: "200"
-    #- ruby_version: "200-x64"
-    #- ruby_version: "21"
-    #- ruby_version: "21-x64"
-    #- ruby_version: "22"
+    - ruby_version: "193"
     - ruby_version: "22-x64"

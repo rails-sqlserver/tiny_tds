@@ -52,7 +52,9 @@ class ClientTest < TinyTds::TestCase
     end
 
     it 'must be able to use :host/:port connection' do
-      client = new_connection :dataserver => nil, :host => ENV['TINYTDS_UNIT_HOST'], :port => ENV['TINYTDS_UNIT_PORT'] || 1433
+      host = ENV['TINYTDS_UNIT_HOST_TEST'] || ENV['TINYTDS_UNIT_HOST']
+      port = ENV['TINYTDS_UNIT_PORT_TEST'] || ENV['TINYTDS_UNIT_PORT'] || 1433
+      client = new_connection dataserver: nil, host: host, port: port
     end unless sqlserver_azure?
 
   end
@@ -68,12 +70,12 @@ class ClientTest < TinyTds::TestCase
     end
 
     it 'raises TinyTds exception with undefined :dataserver' do
-      options = connection_options :login_timeout => 1, :dataserver => '127.0.0.2'
+      options = connection_options :login_timeout => 1, :dataserver => 'DOESNOTEXIST'
       action = lambda { new_connection(options) }
       assert_raise_tinytds_error(action) do |e|
-        assert [20008,20009].include?(e.db_error_number)
-        assert_equal 9, e.severity
-        assert_match %r{unable to (open|connect)}i, e.message, 'ignore if non-english test run'
+        assert_equal 20012, e.db_error_number
+        assert_equal 2, e.severity
+        assert_match %r{server name not found in configuration files}i, e.message, 'ignore if non-english test run'
       end
       assert_new_connections_work
     end

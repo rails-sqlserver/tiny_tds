@@ -333,7 +333,21 @@ The compiled gems will exist in `./pkg/`.
 
 ## Development & Testing
 
-We use bundler for development. Simply run `bundle install` then `rake` to build the gem and run the unit tests. The tests assume you have created a database named `tinytdstest` accessible by a database owner named `tinytds`. Before running the test rake task, you may need to define a pair of environment variables that help the client connect to your specific FreeTDS database server name and which schema (2000, 2005, 2008, 2014, Azure or Sybase ASE) to use. For example:
+First make sure your local database has a `[tinytdstest]` database with a owner login named `[tinytds]` having no password. The following SQL run via the `sa` account should set that up for you.
+
+```sql
+CREATE DATABASE [tinytdstest];
+GO
+CREATE LOGIN [tinytds] WITH PASSWORD = '', CHECK_POLICY = OFF, DEFAULT_DATABASE = [tinytdstest];
+GO
+USE [tinytdstest];
+CREATE USER [tinytds] FOR LOGIN [tinytds];
+GO
+EXEC sp_addrolemember N'db_owner', N'tinytds';
+GO
+```
+
+We use bundler for development. Simply run `bundle install` then `rake` to build the gem and run the unit tests. Before running the test rake task, you may need to define a pair of environment variables that help the client connect to your specific FreeTDS database server name and which schema (2000, 2005, 2008, 2014, Azure or Sybase ASE) to use. For example:
 
 ```
 $ rake TINYTDS_UNIT_DATASERVER=mydbserver
@@ -373,6 +387,7 @@ My name is Ken Collins and I currently maintain the SQL Server adapter for Activ
 
 ## Special Thanks
 
+* Lars Kanis for all his help getting the Windows builds working again with rake-compiler-dock.
 * Erik Bryn for joining the project and helping me thru a few tight spots. - http://github.com/ebryn
 * To the authors and contributors of the Mysql2 gem for inspiration. - http://github.com/brianmario/mysql2
 * Yehuda Katz for articulating ruby's need for proper encoding support. Especially in database drivers - http://yehudakatz.com/2010/05/05/ruby-1-9-encodings-a-primer-and-the-solution-for-rails/

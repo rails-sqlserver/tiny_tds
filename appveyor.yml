@@ -30,7 +30,7 @@ test_script:
   - ps: Start-Service 'MSSQL$SQL2008R2SP2'
   - timeout /t 4 /nobreak > NUL
   - sqlcmd -S ".\SQL2008R2SP2" -U sa -P Password12! -i %APPVEYOR_BUILD_FOLDER%\test\appveyor\dbsetup.sql
-  - bundle exec rake TINYTDS_UNIT_HOST_TEST=localhost TINYTDS_UNIT_DATASERVER="localhost\SQL2008R2SP2" TINYTDS_SCHEMA=sqlserver_2014
+  - bundle exec rake TINYTDS_UNIT_HOST_TEST=localhost TINYTDS_UNIT_DATASERVER="localhost\SQL2008R2SP2" TINYTDS_SCHEMA=sqlserver_2008
 environment:
   matrix:
     - ruby_version: "193"

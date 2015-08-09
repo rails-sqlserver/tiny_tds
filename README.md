@@ -2,9 +2,9 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/g2bhhbsdkx0mal55/branch/master?svg=true)](https://ci.appveyor.com/project/rails-sqlserver/tiny-tds/branch/master)
 
-The TinyTDS gem is meant to serve the extremely common use-case of connecting, querying and iterating over results to Microsoft SQL Server databases from ruby. Even though it uses FreeTDS's DB-Library, it is NOT meant to serve as direct 1:1 mapping of that C API.
+The TinyTDS gem is meant to serve the extremely common use-case of connecting, querying and iterating over results to Microsoft SQL Server or Sybase databases from Ruby using the FreeTDS's DB-Library API.
 
-The benefits are speed, automatic casting to ruby primitives, and proper encoding support. It converts all SQL Server datatypes to native ruby objects supporting :utc or :local time zones for time-like types. To date it is the only ruby client library that allows client encoding options, defaulting to UTF-8, while connecting to SQL Server. It also  properly encodes all string and binary data. The motivation for TinyTDS is to become the de-facto low level connection mode for the SQL Server adapter for ActiveRecord. For further details see the special thanks section at the bottom
+TinyTDS offers automatic casting to Ruby primitives along with proper encoding support. It converts all SQL Server datatypes to native Ruby primitives while supporting :utc or :local time zones for time-like types. To date it is the only Ruby client library that allows client encoding options, defaulting to UTF-8, while connecting to SQL Server. It also  properly encodes all string and binary data. The motivation for TinyTDS is to become the de-facto low level connection mode for the SQL Server Adapter for ActiveRecord.
 
 The API is simple and consists of these classes:
 
@@ -15,18 +15,37 @@ The API is simple and consists of these classes:
 
 ## Install
 
-Installing with rubygems should just work. TinyTDS is currently tested on Ruby version 1.9.3 and upward. Older versions are tested with Ruby 1.8 and lower. If you are using Ruby 1.8, please use v0.6.0.rc1 or lower. The v0.6.0 release and higher are only compatible with Ruby 1.9.3 (or higher).
+Installing with rubygems should just work. TinyTDS is currently tested on Ruby version 1.9.3 and upward.
 
 ```
 $ gem install tiny_tds
 ```
 
-Although we search for FreeTDS's libraries and headers, you may have to specify include and lib directories using `--with-freetds-include=/some/local/include/freetds` and `--with-freetds-lib=/some/local/lib`
+If you use Windows, we pre-compile TinyTDS with static versions of FreeTDS, libiconv, and OpenSSL. On all other platforms, we will find these dependencies. If none exist, our native extension will use MiniPortile to install any missing dependencies listed above for your specific platform. These dependencies will be built and linked within the installed TinyTDS gem. Please read the MiniPortile and/or Windows sections at the end of this file for advanced configuration options past the following:
+
+```
+--enable-system-freetds / --disable-system-freetds
+--enable-system-iconv   / --disable-system-iconv
+--enable-system-openssl / --disable-system-openssl
+  Force use of system or builtin freetds/iconv/openssl library.
+  Default is to prefer system libraries and fallback to builtin.
+
+--with-freetds-dir=DIR
+  Use the freetds library placed under DIR.
+
+--enable-lookup
+  Search for freetds through all paths in the PATH environment variable.
+
+--enable-cross-build
+  Do cross-build.
+```
 
 
 ## FreeTDS Compatibility & Configuration
 
-TinyTDS is developed against FreeTDS 0.82 & 0.91, and 0.92 currents, the latest is recommended. It is tested with SQL Server 2000, 2005, 2008, 2014, and Azure. Below are a few QA style notes about installing FreeTDS.
+TinyTDS is developed against FreeTDS 0.82, 0.91 stable, and 0.92 current. Our default and recommended is 0.91 stable. We also test with SQL Server 2000, 2005, 2008, 2014, and Azure. Below are a few QA style notes about installing FreeTDS.
+
+**NOTE:** Windows users of our pre-compiled native gems need not worry about installing FreeTDS and its dependencies.
 
 * **Do I need to install FreeTDS?** Yes! Somehow, someway, you are going to need FreeTDS for TinyTDS to compile against. You can avoid installing FreeTDS on your system by using our projects usage of rake-compiler and mini_portile to compile and package a native gem just for you. See the "Using MiniPortile" section below.
 
@@ -41,9 +60,9 @@ TinyTDS is developed against FreeTDS 0.82 & 0.91, and 0.92 currents, the latest 
 
 ## Data Types
 
-Our goal is to support every SQL Server data type and covert it to a logical ruby object. When dates or times are returned, they are instantiated to either `:utc` or `:local` time depending on the query options. Under ruby 1.9, all strings are encoded to the connection's encoding and all binary data types are associated to ruby's `ASCII-8BIT/BINARY` encoding.
+Our goal is to support every SQL Server data type and covert it to a logical Ruby object. When dates or times are returned, they are instantiated to either `:utc` or `:local` time depending on the query options. All strings are associated the to the connection's encoding and all binary data types are associated to Ruby's `ASCII-8BIT/BINARY` encoding.
 
-Below is a list of the data types we plan to support using future versions of FreeTDS. They are associated with SQL Server 2008 and up. All unsupported data types are returned as properly encoded strings.
+Below is a list of the data types we plan to support using future versions of FreeTDS. They are associated with SQL Server 2008 and up. All unsupported data types below are returned as strings.
 
 * [date]
 * [datetime2]
@@ -112,7 +131,7 @@ Calling #each on the result will lazily load each row from the database.
 result.each do |row|
   # By default each row is a hash.
   # The keys are the fields, as you'd expect.
-  # The values are pre-built ruby primitives mapped from their corresponding types.
+  # The values are pre-built Ruby primitives mapped from their corresponding types.
 end
 ```
 
@@ -229,7 +248,7 @@ Every `TinyTds::Result` object can pass query options to the #each method. The d
 * :as => :hash - Object for each row yielded. Can be set to :array.
 * :symbolize_keys => false - Row hash keys. Defaults to shared/frozen string keys.
 * :cache_rows => true - Successive calls to #each returns the cached rows.
-* :timezone => :local - Local to the ruby client or :utc for UTC.
+* :timezone => :local - Local to the Ruby client or :utc for UTC.
 * :empty_sets => true - Include empty results set in queries that return multiple result sets.
 
 Each result gets a copy of the default options you specify at the client level and can be overridden by passing an options hash to the #each method. For example
@@ -256,15 +275,14 @@ By default row caching is turned on because the SQL Server adapter for ActiveRec
 
 ## Encoding Error Handling
 
-TinyTDS takes an opinionated stance on how we handle encoding errors. First, we treat errors differently on reads vs. writes. Our opinion is that if you are reading bad data due to your client's encoding option, you would rather just find `?`'marks in your strings vs being blocked with exceptions. This is how things wold work via ODBC or SMS. On the other hand, writes will raise an exception. In this case we raise the SYBEICONVO/2402 error message which has a description of `Error converting characters into server's character set. Some character(s) could not be converted.`. Even though the severity of this message is only a `4` and TinyTDS will automatically strip/ignore unknown characters, we feel you should know that you are inserting bad encodings. In this way, a transaction can be rolled back, etc. Remember, any database write that has bad characters due to the client encoding will still be written to the database, but it is up to you rollback said write if needed. Most ORMs like ActiveRecord handle this scenario just fine.
+TinyTDS takes an opinionated stance on how we handle encoding errors. First, we treat errors differently on reads vs. writes. Our opinion is that if you are reading bad data due to your client's encoding option, you would rather just find `?` marks in your strings vs being blocked with exceptions. This is how things wold work via ODBC or SMS. On the other hand, writes will raise an exception. In this case we raise the SYBEICONVO/2402 error message which has a description of `Error converting characters into server's character set. Some character(s) could not be converted.`. Even though the severity of this message is only a `4` and TinyTDS will automatically strip/ignore unknown characters, we feel you should know that you are inserting bad encodings. In this way, a transaction can be rolled back, etc. Remember, any database write that has bad characters due to the client encoding will still be written to the database, but it is up to you rollback said write if needed. Most ORMs like ActiveRecord handle this scenario just fine.
 
 
 ## Using TinyTDS With Rails & The ActiveRecord SQL Server adapter.
 
-As of version 2.3.11 & 3.0.3 of the adapter, you can specify a `:dblib` mode in database.yml and use TinyTDS as the low level connection mode, this is the default in versions 3.1 or higher. The SQL Server adapter can be found using the link below. Also included is a direct link to the wiki article covering common questions when using TinyTDS as the low level connection mode for the adapter.
+TinyTDS is the default connection mode for the SQL Server adapter in versions 3.1 or higher. The SQL Server adapter can be found using the links below.
 
 * ActiveRecord SQL Server Adapter: http://github.com/rails-sqlserver/activerecord-sqlserver-adapter
-* Using TinyTDS: http://github.com/rails-sqlserver/activerecord-sqlserver-adapter/wiki/Using-TinyTds
 
 
 ## Using TinyTDS with Azure
@@ -290,29 +308,14 @@ Also, please read the [Azure SQL Database General Guidelines and Limitations](ht
 
 ## Using MiniPortile
 
-MiniPortile is a minimalistic, simplistic and stupid implementation of a port/recipe system for developers. <https://github.com/luislavena/mini_portile>
+MiniPortile is a minimalistic implementation of a port/recipe system. <https://github.com/luislavena/mini_portile>
 
-The TinyTDS project uses MiniPortile so that we can easily install a local "project specific" version of FreeTDS and supporting libraries to link against when building a test version of TinyTDS. MiniPortile is a great tool that even allows us to build statically linked components that TinyTDS relies on. Hence this allows us to publish native gems for any platform. We use this feature for gems targeted at Windows.
-
-You too can use MiniPortile to build TinyTDS and build your own gems for your own package management needs. Here is a few simple steps that assume you have cloned a fresh copy of this repository. 1) Bundling will install all the development dependencies. 2) Running `rake compile` will basically download and install a supported version of FreeTDS in our `ports.rake` file and supporting libraries. These will all be installed into the projects tmp directory. 3) The final `rake native gem` command will build a native gem for your specific platform. 4) The native gem can be found in the `pkg` directory. The last command assumes "X" is version numbers and #{platform} will be your platform. Note that if you're using Windows make sure you are running these rake tasks with a Unix-style command line tool like [MSYS](http://www.mingw.org/wiki/MSYS).
+The TinyTDS project uses MiniPortile so that we can easily install a local version of FreeTDS and supporting libraries to link against when building a test version of TinyTDS. This same system is also used when installing TinyTDS with Rubygems and building native extensions. It is possible to build TinyTDS with a specific version of FreeTDS using the `TINYTDS_FREETDS_VERSION` environment variable. Here are some exampbles of possible values.
 
 ```
-$ bundle install
-$ rake compile
-$ rake native gem
-$ gem install pkg/tiny_tds-X.X.X-#{platform}.gem
-```
-
-**Important:** You must use rubygems version 1.7.2 or higher. You will almost certainly hit a *Don't know how to build task...* error when running the `rake native gem` command if you do not. Please update rubygems! Here is a link on [how to upgrade or downgrade rubygems](http://rubygems.rubyforge.org/rubygems-update/UPGRADING_rdoc.html).
-
-It is also possible to build a specific version of FreeTDS for your own gem or development and testing using the `TINYTDS_FREETDS_VERSION` environment variable. Here are some exampbles of possible values.
-
-```
-$ rake TINYTDS_FREETDS_VERSION="0.82"
-$ rake TINYTDS_FREETDS_VERSION="0.91"
-$ rake TINYTDS_FREETDS_VERSION="0.91.89"
-$ rake TINYTDS_FREETDS_VERSION="0.92.405"
-$ rake TINYTDS_FREETDS_VERSION="current"
+$ rake TINYTDS_FREETDS_VERSION='0.82' -- --disable-system-freetds --disable-system-iconv
+$ rake TINYTDS_FREETDS_VERSION='0.91' -- --disable-system-freetds --disable-system-iconv
+$ rake TINYTDS_FREETDS_VERSION='0.92' -- --disable-system-freetds --disable-system-iconv
 ```
 
 To find out more about the FreeTDS release system [visit this thread](http://lists.ibiblio.org/pipermail/freetds/2012q1/027756.html) on their mailing list. You can also browse thier FTP server [ftp://ftp.astron.com/pub/freetds/](ftp://ftp.astron.com/pub/freetds/) for version number strings.
@@ -320,15 +323,15 @@ To find out more about the FreeTDS release system [visit this thread](http://lis
 
 ## Compiling Gems for Windows
 
-For the convenience of Windows users, TinyTDS ships pre-compiled for Ruby 1.9.3, 2.0, 2.1 and 2.2 on Windows. In order to generate these gems, [rake-compiler-dock](https://github.com/rake-compiler/rake-compiler-dock) is used. This project provides a [Docker image](https://registry.hub.docker.com/u/larskanis/rake-compiler-dock/) with rvm, cross-compilers and a number of different target versions of ruby.
+For the convenience of Windows users, TinyTDS ships pre-compiled gems for Ruby 1.9.3, 2.0, 2.1 and 2.2 on Windows. In order to generate these gems, [rake-compiler-dock](https://github.com/rake-compiler/rake-compiler-dock) is used. This project provides a [Docker image](https://registry.hub.docker.com/u/larskanis/rake-compiler-dock/) with rvm, cross-compilers and a number of different target versions of Ruby.
 
-Run the following rake task to compile the gem for Windows. This will check the availability of [Docker](https://www.docker.com/) (and boot2docker on Windows or OS-X) and will give some advice for download and installation. When docker is running, it will download the docker image (once-only) and start the build:
+Run the following rake task to compile the gems for Windows. This will check the availability of [Docker](https://www.docker.com/) (and boot2docker on Windows or OS-X) and will give some advice for download and installation. When docker is running, it will download the docker image (once-only) and start the build:
 
 ```
 $ rake gem:windows
 ```
 
-The compiled gems will exist in `./pkg/`.
+The compiled gems will exist in `./pkg` directory.
 
 
 ## Development & Testing
@@ -374,15 +377,9 @@ $ rake TINYTDS_SKIP_PORTS=1
 * IRC Room: #rails-sqlserver on irc.freenode.net
 
 
-## TODO List
-
-* Install an interrupt handler.
-* Allow #escape to accept all ruby primitives.
-
-
 ## About Me
 
-My name is Ken Collins and I currently maintain the SQL Server adapter for ActiveRecord and wrote this library as my first cut into learning ruby C extensions. Hopefully it will help promote the power of ruby and the Rails framework to those that have not yet discovered it. My blog is [metaskills.net](http://metaskills.net/) and I can be found on twitter as @metaskills. Enjoy!
+My name is Ken Collins and I currently maintain the SQL Server adapter for ActiveRecord and wrote this library as my first cut into learning Ruby C extensions. Hopefully it will help promote the power of Ruby and the Rails framework to those that have not yet discovered it. My blog is [metaskills.net](http://metaskills.net/) and I can be found on twitter as @metaskills. Enjoy!
 
 
 ## Special Thanks
@@ -390,11 +387,11 @@ My name is Ken Collins and I currently maintain the SQL Server adapter for Activ
 * Lars Kanis for all his help getting the Windows builds working again with rake-compiler-dock.
 * Erik Bryn for joining the project and helping me thru a few tight spots. - http://github.com/ebryn
 * To the authors and contributors of the Mysql2 gem for inspiration. - http://github.com/brianmario/mysql2
-* Yehuda Katz for articulating ruby's need for proper encoding support. Especially in database drivers - http://yehudakatz.com/2010/05/05/ruby-1-9-encodings-a-primer-and-the-solution-for-rails/
-* Josh Clayton of Thoughtbot for writing about ruby C extensions. - http://robots.thoughtbot.com/post/1037240922/get-your-c-on
+* Yehuda Katz for articulating Ruby's need for proper encoding support. Especially in database drivers - http://yehudakatz.com/2010/05/05/ruby-1-9-encodings-a-primer-and-the-solution-for-rails/
+* Josh Clayton of Thoughtbot for writing about Ruby C extensions. - http://robots.thoughtbot.com/post/1037240922/get-your-c-on
 
 
 ## License
 
-TinyTDS is Copyright (c) 2010-2015 Ken Collins, <ken@metaskills.net> and Will Bond (Veracross LLC) <wbond@breuer.com>. It is distributed under the MIT license. Windows binaries contain precompiled versions of FreeTDS <http://www.freetds.org/> which is licensed under the GNU LGPL license at <http://www.gnu.org/licenses/lgpl-2.0.html>
+TinyTDS is Copyright (c) 2010-2015 Ken Collins, <ken@metaskills.net> and Will Bond (Veracross LLC) <wbond@breuer.com>. It is distributed under the MIT license. Windows binaries contain pre-compiled versions of FreeTDS <http://www.freetds.org/> which is licensed under the GNU LGPL license at <http://www.gnu.org/licenses/lgpl-2.0.html>
 

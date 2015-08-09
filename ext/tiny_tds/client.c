@@ -26,7 +26,7 @@ VALUE opt_escape_regex, opt_escape_dblquote;
 
 VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, char *error, char *source, int severity, int dberr, int oserr) {
   GET_CLIENT_USERDATA(dbproc);
-  if (cancel && !dbdead(dbproc) && userdata && !userdata->closed) { 
+  if (cancel && !dbdead(dbproc) && userdata && !userdata->closed) {
     userdata->dbsqlok_sent = 1;
     dbsqlok(dbproc);
     userdata->dbcancel_sent = 1;
@@ -39,7 +39,7 @@ VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, char *error, char *s
   if (dberr)
     rb_funcall(e, intern_db_error_number_eql, 1, INT2FIX(dberr));
   if (oserr)
-    rb_funcall(e, intern_os_error_number_eql, 1, INT2FIX(oserr));   
+    rb_funcall(e, intern_os_error_number_eql, 1, INT2FIX(oserr));
   rb_exc_raise(e);
   return Qnil;
 }
@@ -47,7 +47,7 @@ VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, char *error, char *s
 
 // Lib Backend (Memory Management & Handlers)
 
-int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr) { 
+int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr) {
   static char *source = "error";
   GET_CLIENT_USERDATA(dbproc);
 
@@ -187,12 +187,12 @@ static VALUE allocate(VALUE klass) {
   cwrap->charset = Qnil;
   cwrap->userdata = malloc(sizeof(tinytds_client_userdata));
   cwrap->userdata->closed = 1;
-  rb_tinytds_client_reset_userdata(cwrap->userdata);  
+  rb_tinytds_client_reset_userdata(cwrap->userdata);
   return obj;
 }
 
 
-// TinyTds::Client (public) 
+// TinyTds::Client (public)
 
 static VALUE rb_tinytds_tds_version(VALUE self) {
   GET_CLIENT_WRAPPER(self);
@@ -244,7 +244,7 @@ static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
   GET_RESULT_WRAPPER(result);
   rwrap->local_offset = rb_funcall(cTinyTdsClient, intern_local_offset, 0);
   rwrap->encoding = cwrap->encoding;
-  return result;  
+  return result;
 }
 
 static VALUE rb_tinytds_charset(VALUE self) {
@@ -289,7 +289,7 @@ static VALUE rb_tinytds_freetds_nine_one_or_higher(VALUE self) {
 }
 
 
-// TinyTds::Client (protected) 
+// TinyTds::Client (protected)
 
 static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   /* Parsing options hash to local vars. */

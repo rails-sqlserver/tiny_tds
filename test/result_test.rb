@@ -554,7 +554,7 @@ class ResultTest < TinyTds::TestCase
 
       let(:backup_file) { 'C:\\Users\\Public\\tinytdstest.bak' }
 
-      after { File.delete(backup_file) if File.exists?(backup_file) }
+      after { File.delete(backup_file) if File.exist?(backup_file) }
 
       it 'must not cancel the query until complete' do
         @client.execute("BACKUP DATABASE tinytdstest TO DISK = '#{backup_file}'").do

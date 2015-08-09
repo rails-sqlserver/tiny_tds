@@ -27,7 +27,7 @@ module TinyTds
     end
 
     after do
-      @client.close if @client.is_a?(TinyTds::Client)
+      @client.close if defined?(@client) && @client.is_a?(TinyTds::Client)
     end
 
     protected

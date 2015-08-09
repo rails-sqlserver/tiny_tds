@@ -1,5 +1,5 @@
 
-* 0.6.3.rc2 *
+* 0.7.0 *
 
 * Refactor build of FreeTDS & Iconv recipes. Add OpenSSL. Merged #207.
 

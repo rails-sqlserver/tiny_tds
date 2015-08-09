@@ -20,6 +20,7 @@ FREETDS_VERSION_INFO = Hash.new { |h,k|
 }.merge({
   "0.82" => {:files => "ftp://ftp.freetds.org/pub/freetds/old/0.82/freetds-0.82.tar.gz"},
   "0.91" => {:files => "ftp://ftp.freetds.org/pub/freetds/stable/freetds-0.91.112.tar.gz"},
+  "0.92" => {:files => "ftp://ftp.freetds.org/pub/freetds/stable/freetds-0.92.405.tar.gz"},
   "current" => {:files => "ftp://ftp.freetds.org/pub/freetds/current/freetds-current.tar.gz"}
 })
 FREETDS_SOURCE_URI = FREETDS_VERSION_INFO[FREETDS_VERSION][:files]
@@ -32,19 +33,19 @@ def do_help
 usage: ruby #{$0} [options]
 
     --enable-system-freetds / --disable-system-freetds
-    --enable-system-iconv / --disable-system-iconv
+    --enable-system-iconv   / --disable-system-iconv
     --enable-system-openssl / --disable-system-openssl
-        Force use of system or builtin freetds/iconv/openssl library.
-        Default is to prefer system libraries and fallback to builtin.
+      Force use of system or builtin freetds/iconv/openssl library.
+      Default is to prefer system libraries and fallback to builtin.
 
     --with-freetds-dir=DIR
-        Use the freetds library placed under DIR.
+      Use the freetds library placed under DIR.
 
     --enable-lookup
-        Search for freetds through all paths in the PATH environment variable.
+      Search for freetds through all paths in the PATH environment variable.
 
     --enable-cross-build
-        Do cross-build.
+      Do cross-build.
 HELP
   exit! 0
 end

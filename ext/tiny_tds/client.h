@@ -7,8 +7,8 @@ void init_tinytds_client();
 typedef struct {
   short int is_set;
   int cancel;
-  char error[1024];
-  char source[1024];
+  char *error;
+  char *source;
   int severity;
   int dberr;
   int oserr;

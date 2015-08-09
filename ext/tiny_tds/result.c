@@ -94,8 +94,8 @@ static void nogvl_cleanup(DBPROCESS *client) {
     userdata->nonblocking_error.is_set = 0;
     rb_tinytds_raise_error(client,
       userdata->nonblocking_error.cancel,
-      &userdata->nonblocking_error.error,
-      &userdata->nonblocking_error.source,
+      userdata->nonblocking_error.error,
+      userdata->nonblocking_error.source,
       userdata->nonblocking_error.severity,
       userdata->nonblocking_error.dberr,
       userdata->nonblocking_error.oserr);

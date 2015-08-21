@@ -1,7 +1,6 @@
 # TinyTDS - Simple and fast FreeTDS bindings for Ruby using DB-Library.
 
-[![Build Status](https://ci.appveyor.com/api/projects/status/g2bhhbsdkx0mal55/branch/master?svg=true)](https://ci.appveyor.com/project/rails-sqlserver/tiny-tds/branch/master) [![Gem Version](https://img.shields.io/badge/gem-v0.7.0-blue.svg)](https://rubygems.org/gems/tiny_tds)
-
+[![Build Status](https://ci.appveyor.com/api/projects/status/g2bhhbsdkx0mal55/branch/master?svg=true)](https://ci.appveyor.com/project/rails-sqlserver/tiny-tds/branch/master) [![Gem Version](https://img.shields.io/badge/gem-v0.7.0-blue.svg)](https://rubygems.org/gems/tiny_tds) [![Gitter chat](https://img.shields.io/badge/%E2%8A%AA%20GITTER%20-JOIN%20CHAT%20%E2%86%92-brightgreen.svg?style=flat)](https://gitter.im/rails-sqlserver/activerecord-sqlserver-adapter)
 
 The TinyTDS gem is meant to serve the extremely common use-case of connecting, querying and iterating over results to Microsoft SQL Server or Sybase databases from Ruby using the FreeTDS's DB-Library API.
 

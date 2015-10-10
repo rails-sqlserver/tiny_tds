@@ -44,6 +44,12 @@ usage: ruby #{$0} [options]
     --enable-lookup
       Search for freetds through all paths in the PATH environment variable.
 
+    --disable-openssl
+      Disable OpenSSL for freetds build. No effect on system-freetds.
+
+    --enable-gnutls
+      Use GnuTLS instead of OpenSSL for freetds build.
+
     --enable-cross-build
       Do cross-build.
 HELP
@@ -202,14 +208,19 @@ def define_libiconv_recipe(host)
   end
 end
 
-def define_freetds_recipe(host, libiconv, libssl)
+def define_freetds_recipe(host, libiconv, libssl, gnutls)
   BuildRecipe.new("freetds", FREETDS_VERSION, [FREETDS_SOURCE_URI])
              .tap do |recipe|
     with_tdsver = FREETDS_VERSION =~ /0\.8/ ? "--with-tdsver=8.0" : "--with-tdsver=7.1"
     for_windows = recipe.host =~ /mswin|mingw/i
     recipe.configure_options << '--with-pic'
     recipe.configure_options << "--with-libiconv-prefix=#{libiconv.path}" if libiconv
-    recipe.configure_options << "--with-openssl=#{libssl.path}" if libssl
+    if true == libssl
+      recipe.configure_options << "--with-openssl"
+    elsif libssl
+      recipe.configure_options << "--with-openssl=#{libssl.path}"
+    end
+    recipe.configure_options << "--with-gnutls" if gnutls
     recipe.configure_options << '--sysconfdir=C:/Sites' if for_windows
     recipe.configure_options << '--enable-sspi' if for_windows
     recipe.configure_options << "--disable-odbc"
@@ -285,11 +296,13 @@ system_freetds = enable_config('system-freetds', ENV['TINYTDS_SKIP_PORTS'] || fr
 host = RbConfig::CONFIG["host"]
 system_iconv = enable_config('system-iconv', host =~ /mingw|mswin/ ? false : true)
 system_openssl = enable_config('system-openssl', host =~ /mingw|mswin/ ? false : true )
+enable_gnutls = enable_config('gnutls', false )
+enable_openssl = enable_config('openssl', !enable_gnutls )
 
 unless system_freetds
   libssl = define_libssl_recipe(host).cook_and_activate unless system_openssl
   libiconv = define_libiconv_recipe(host).cook_and_activate unless system_iconv
-  freetds = define_freetds_recipe(host, libiconv, libssl).cook_and_activate
+  freetds = define_freetds_recipe(host, libiconv, libssl || enable_openssl, enable_gnutls).cook_and_activate
   dir_config('freetds', freetds.path + "/include", freetds.path + "/lib")
 end
 

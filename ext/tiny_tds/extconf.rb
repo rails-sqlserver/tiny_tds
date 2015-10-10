@@ -14,13 +14,11 @@ ICONV_SOURCE_URI = "http://ftp.gnu.org/pub/gnu/libiconv/libiconv-#{ICONV_VERSION
 OPENSSL_VERSION = ENV['TINYTDS_OPENSSL_VERSION'] || '1.0.2d'
 OPENSSL_SOURCE_URI = "http://www.openssl.org/source/openssl-#{OPENSSL_VERSION}.tar.gz"
 
-FREETDS_VERSION = ENV['TINYTDS_FREETDS_VERSION'] || "0.91"
+FREETDS_VERSION = ENV['TINYTDS_FREETDS_VERSION'] || "0.95.64"
 FREETDS_VERSION_INFO = Hash.new { |h,k|
-  h[k] = {:files => "ftp://ftp.freetds.org/pub/freetds/stable/freetds-#{k}.tar.gz"}
+  h[k] = {:files => "ftp://ftp.freetds.org/pub/freetds/stable/freetds-#{k}.tar.bz2"}
 }.merge({
   "0.82" => {:files => "ftp://ftp.freetds.org/pub/freetds/old/0.82/freetds-0.82.tar.gz"},
-  "0.91" => {:files => "ftp://ftp.freetds.org/pub/freetds/stable/freetds-0.91.112.tar.gz"},
-  "0.92" => {:files => "ftp://ftp.freetds.org/pub/freetds/stable/freetds-0.92.405.tar.gz"},
   "current" => {:files => "ftp://ftp.freetds.org/pub/freetds/current/freetds-current.tar.gz"}
 })
 FREETDS_SOURCE_URI = FREETDS_VERSION_INFO[FREETDS_VERSION][:files]

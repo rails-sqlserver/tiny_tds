@@ -91,7 +91,7 @@ end
 
 # Bundle the freetds sources to avoid download while gem install
 task gem_build_path(gemspec) do
-  add_file_to_gem(gemspec, "ports/archives/freetds-0.91.112.tar.gz")
+  add_file_to_gem(gemspec, "ports/archives/freetds-0.95.64.tar.bz2")
 end
 
 desc "Build the windows binary gems per rake-compiler-dock"

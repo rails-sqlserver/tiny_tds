@@ -16,16 +16,14 @@ class ThreadTest < TinyTds::TestCase
     end
 
     it 'should finish faster in parallel' do
+      skip if sqlserver_azure?
       x = Benchmark.realtime do
         threads = []
         @numthreads.times do |i|
           start = Time.new
           threads << Thread.new do
             ts = Time.new
-            @pool.with do |client|
-              result = client.execute @query
-              result.each { |r| puts r }
-            end
+            @pool.with { |c| c.execute(@query).do }
             te = Time.new
             @logger.info "Thread #{i} finished in #{te - ts} thread seconds, #{te - start} real seconds"
           end

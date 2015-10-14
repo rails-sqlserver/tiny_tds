@@ -10,7 +10,8 @@
 #include <sybfront.h>
 #include <sybdb.h>
 
-#include <client.h>
-#include <result.h>
+#include <./error.h>
+#include <./client.h>
+#include <./result.h>
 
 #endif

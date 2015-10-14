@@ -4,7 +4,6 @@
 VALUE cTinyTdsClient;
 extern VALUE mTinyTds, cTinyTdsError;
 static ID sym_username, sym_password, sym_dataserver, sym_database, sym_appname, sym_tds_version, sym_login_timeout, sym_timeout, sym_encoding, sym_azure;
-static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, intern_os_error_number_eql;
 static ID intern_new, intern_dup, intern_transpose_iconv_encoding, intern_local_offset, intern_gsub;
 VALUE opt_escape_regex, opt_escape_dblquote;
 
@@ -20,29 +19,6 @@ VALUE opt_escape_regex, opt_escape_dblquote;
     rb_raise(cTinyTdsError, "closed connection"); \
     return Qnil; \
   }
-
-
-// Lib Backend (Helpers)
-
-VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, char *error, char *source, int severity, int dberr, int oserr) {
-  GET_CLIENT_USERDATA(dbproc);
-  if (cancel && !dbdead(dbproc) && userdata && !userdata->closed) {
-    userdata->dbsqlok_sent = 1;
-    dbsqlok(dbproc);
-    userdata->dbcancel_sent = 1;
-    dbcancel(dbproc);
-  }
-  VALUE e = rb_exc_new2(cTinyTdsError, error);
-  rb_funcall(e, intern_source_eql, 1, rb_str_new2(source));
-  if (severity)
-    rb_funcall(e, intern_severity_eql, 1, INT2FIX(severity));
-  if (dberr)
-    rb_funcall(e, intern_db_error_number_eql, 1, INT2FIX(dberr));
-  if (oserr)
-    rb_funcall(e, intern_os_error_number_eql, 1, INT2FIX(oserr));
-  rb_exc_raise(e);
-  return Qnil;
-}
 
 
 // Lib Backend (Memory Management & Handlers)
@@ -389,11 +365,6 @@ void init_tinytds_client() {
   sym_timeout = ID2SYM(rb_intern("timeout"));
   sym_encoding = ID2SYM(rb_intern("encoding"));
   sym_azure = ID2SYM(rb_intern("azure"));
-  /* Intern TinyTds::Error Accessors */
-  intern_source_eql = rb_intern("source=");
-  intern_severity_eql = rb_intern("severity=");
-  intern_db_error_number_eql = rb_intern("db_error_number=");
-  intern_os_error_number_eql = rb_intern("os_error_number=");
   /* Intern Misc */
   intern_new = rb_intern("new");
   intern_dup = rb_intern("dup");

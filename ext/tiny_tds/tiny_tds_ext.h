@@ -6,6 +6,7 @@
 
 #include <ruby.h>
 #include <ruby/encoding.h>
+#include <ruby/thread.h>
 #include <sybfront.h>
 #include <sybdb.h>
 

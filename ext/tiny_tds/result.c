@@ -68,7 +68,7 @@ VALUE rb_tinytds_new_result_obj(tinytds_client_wrapper *cwrap) {
 
 #define NOGVL_DBCALL(_dbfunction, _client) ( \
   (RETCODE)rb_thread_call_without_gvl( \
-    (rb_blocking_function_t*)_dbfunction, _client, \
+    (void *(*)(void *))_dbfunction, _client, \
     (rb_unblock_function_t*)dbcancel_ubf, _client ) \
 )
 
@@ -94,8 +94,8 @@ static void nogvl_cleanup(DBPROCESS *client) {
     userdata->nonblocking_error.is_set = 0;
     rb_tinytds_raise_error(client,
       userdata->nonblocking_error.cancel,
-      &userdata->nonblocking_error.error,
-      &userdata->nonblocking_error.source,
+      userdata->nonblocking_error.error,
+      userdata->nonblocking_error.source,
       userdata->nonblocking_error.severity,
       userdata->nonblocking_error.dberr,
       userdata->nonblocking_error.oserr);

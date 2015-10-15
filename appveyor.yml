@@ -34,7 +34,15 @@ test_script:
   - timeout /t 4 /nobreak > NUL
   - sqlcmd -S ".\SQL2008R2SP2" -U sa -P Password12! -i %APPVEYOR_BUILD_FOLDER%\test\appveyor\dbsetup.sql
   - bundle exec rake TINYTDS_UNIT_HOST_TEST=localhost TINYTDS_UNIT_DATASERVER="localhost\SQL2008R2SP2" TINYTDS_SCHEMA=sqlserver_2008
+  - timeout /t 4 /nobreak > NUL
+  - bundle exec rake TINYTDS_UNIT_HOST_TEST=%CI_AZURE_HOST% TINYTDS_UNIT_HOST=%CI_AZURE_HOST% TINYTDS_SCHEMA=sqlserver_azure
 environment:
+  CI_AZURE_HOST:
+    secure: b7kG0e0O6hPi/7niF3YTGih1WtdO/dmuyg0k+Le+zEE=
+  TINYTDS_UNIT_AZURE_USER:
+    secure: Clk9RCYMZ0vz0IfMMnOtJW/ufcCKW3nQC3BgCipdM+c=
+  TINYTDS_UNIT_AZURE_PASS:
+    secure: D3vsNNzv/Th+RqMNrm3WJw==
   matrix:
     - ruby_version: "193"
     - ruby_version: "200"

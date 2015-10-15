@@ -13,6 +13,9 @@ install:
   - bundle install
   - bundle exec rake build
 build: off
+branches:
+  except:
+    - /dev.*/
 test_script:
   - timeout /t 4 /nobreak > NUL
   - powershell -File "%APPVEYOR_BUILD_FOLDER%\test\appveyor\dbsetup.ps1"

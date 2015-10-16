@@ -110,7 +110,13 @@ class BuildRecipe < MiniPortile
   end
 
   def port_path
+    # Use the same path for all recipes, so that only one include/lib path is required.
     "#{target}/#{host}"
+  end
+
+  def installed?
+    # We use the same port_path for all recipes. That breaks the standard installed? method.
+    false
   end
 
   # When using rake-compiler-dock on Windows, the underlying Virtualbox shared

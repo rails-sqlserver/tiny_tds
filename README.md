@@ -15,7 +15,7 @@ The API is simple and consists of these classes:
 
 ## Install
 
-Installing with rubygems should just work. TinyTDS is currently tested on Ruby version 1.9.3 and upward.
+Installing with rubygems should just work. TinyTDS is currently tested on Ruby version 2.0.0 and upward.
 
 ```
 $ gem install tiny_tds
@@ -323,7 +323,7 @@ To find out more about the FreeTDS release system [visit this thread](http://lis
 
 ## Compiling Gems for Windows
 
-For the convenience of Windows users, TinyTDS ships pre-compiled gems for Ruby 1.9.3, 2.0, 2.1 and 2.2 on Windows. In order to generate these gems, [rake-compiler-dock](https://github.com/rake-compiler/rake-compiler-dock) is used. This project provides a [Docker image](https://registry.hub.docker.com/u/larskanis/rake-compiler-dock/) with rvm, cross-compilers and a number of different target versions of Ruby.
+For the convenience of Windows users, TinyTDS ships pre-compiled gems for Ruby 2.0, 2.1 and 2.2 on Windows. In order to generate these gems, [rake-compiler-dock](https://github.com/rake-compiler/rake-compiler-dock) is used. This project provides a [Docker image](https://registry.hub.docker.com/u/larskanis/rake-compiler-dock/) with rvm, cross-compilers and a number of different target versions of Ruby.
 
 Run the following rake task to compile the gems for Windows. This will check the availability of [Docker](https://www.docker.com/) (and boot2docker on Windows or OS-X) and will give some advice for download and installation. When docker is running, it will download the docker image (once-only) and start the build:
 

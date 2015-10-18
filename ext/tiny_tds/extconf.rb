@@ -14,13 +14,11 @@ ICONV_SOURCE_URI = "http://ftp.gnu.org/pub/gnu/libiconv/libiconv-#{ICONV_VERSION
 OPENSSL_VERSION = ENV['TINYTDS_OPENSSL_VERSION'] || '1.0.2d'
 OPENSSL_SOURCE_URI = "http://www.openssl.org/source/openssl-#{OPENSSL_VERSION}.tar.gz"
 
-FREETDS_VERSION = ENV['TINYTDS_FREETDS_VERSION'] || "0.91"
+FREETDS_VERSION = ENV['TINYTDS_FREETDS_VERSION'] || "0.95.64"
 FREETDS_VERSION_INFO = Hash.new { |h,k|
-  h[k] = {:files => "ftp://ftp.freetds.org/pub/freetds/stable/freetds-#{k}.tar.gz"}
+  h[k] = {:files => "ftp://ftp.freetds.org/pub/freetds/stable/freetds-#{k}.tar.bz2"}
 }.merge({
   "0.82" => {:files => "ftp://ftp.freetds.org/pub/freetds/old/0.82/freetds-0.82.tar.gz"},
-  "0.91" => {:files => "ftp://ftp.freetds.org/pub/freetds/stable/freetds-0.91.112.tar.gz"},
-  "0.92" => {:files => "ftp://ftp.freetds.org/pub/freetds/stable/freetds-0.92.405.tar.gz"},
   "current" => {:files => "ftp://ftp.freetds.org/pub/freetds/current/freetds-current.tar.gz"}
 })
 FREETDS_SOURCE_URI = FREETDS_VERSION_INFO[FREETDS_VERSION][:files]
@@ -103,10 +101,8 @@ class BuildRecipe < MiniPortile
   end
 
   def consolidated_host(name)
-    # For ruby-1.9.3 we use newer mingw-w64 (i686-w64-mingw32) to build the shared libraries
-    # and mingw32 (i586-mingw32msvc) to build the extension.
-    name.gsub('i586-mingw32msvc', 'i686-w64-mingw32').
-         gsub('i686-pc-mingw32', 'i686-w64-mingw32')
+    # Host name and prefix of build tools are different on Windows 32 bit.
+    name.gsub('i686-pc-mingw32', 'i686-w64-mingw32')
   end
 
   def configure_defaults
@@ -118,7 +114,13 @@ class BuildRecipe < MiniPortile
   end
 
   def port_path
+    # Use the same path for all recipes, so that only one include/lib path is required.
     "#{target}/#{host}"
+  end
+
+  def installed?
+    # We use the same port_path for all recipes. That breaks the standard installed? method.
+    false
   end
 
   # When using rake-compiler-dock on Windows, the underlying Virtualbox shared

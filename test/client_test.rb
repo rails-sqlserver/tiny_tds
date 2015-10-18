@@ -144,7 +144,7 @@ class ClientTest < TinyTds::TestCase
       assert_raise_tinytds_error(action) do |e|
         if sqlserver_azure?
           assert_equal 40532, e.db_error_number
-          assert_equal 14, e.severity
+          assert_equal 20, e.severity
           assert_match %r{login failed}i, e.message, 'ignore if non-english test run'
         else
           assert_equal sybase_ase? ? 4002 : 18456, e.db_error_number

@@ -103,10 +103,8 @@ class BuildRecipe < MiniPortile
   end
 
   def consolidated_host(name)
-    # For ruby-1.9.3 we use newer mingw-w64 (i686-w64-mingw32) to build the shared libraries
-    # and mingw32 (i586-mingw32msvc) to build the extension.
-    name.gsub('i586-mingw32msvc', 'i686-w64-mingw32').
-         gsub('i686-pc-mingw32', 'i686-w64-mingw32')
+     # Host name and prefix of build tools are different on Windows 32 bit.
+    name.gsub('i686-pc-mingw32', 'i686-w64-mingw32')
   end
 
   def configure_defaults

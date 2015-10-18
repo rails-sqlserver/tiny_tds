@@ -1,5 +1,4 @@
 init:
-  - ps: Update-AppveyorBuild -Version "$(Get-Content $env:appveyor_build_folder\VERSION)"
   - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
   - SET PATH=C:\MinGW\msys\1.0\bin;%PATH%
   - SET RAKEOPT=-rdevkit
@@ -8,6 +7,7 @@ skip_tags: true
 matrix:
   fast_finish: true
 install:
+  - ps: Update-AppveyorBuild -Version "$(Get-Content $env:appveyor_build_folder\VERSION)"
   - ruby --version
   - gem --version
   - bundle install

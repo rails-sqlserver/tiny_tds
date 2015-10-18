@@ -1,5 +1,5 @@
-version: 0.7.0.{build}
 init:
+  - SET /P APPVEYOR_BUILD_VERSION=< %APPVEYOR_BUILD_FOLDER%\VERSION
   - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
   - SET PATH=C:\MinGW\msys\1.0\bin;%PATH%
   - SET RAKEOPT=-rdevkit

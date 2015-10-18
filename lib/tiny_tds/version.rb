@@ -1,3 +1,3 @@
 module TinyTds
-  VERSION = '1.0.0.beta1'
+  VERSION = File.read(File.expand_path("../../../VERSION", __FILE__))
 end

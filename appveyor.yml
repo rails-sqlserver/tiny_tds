@@ -1,5 +1,5 @@
 init:
-  - SET /P APPVEYOR_BUILD_VERSION=< %APPVEYOR_BUILD_FOLDER%\VERSION
+  - ps: Update-AppveyorBuild -Version "$(Get-Content $env:appveyor_build_folder\VERSION)"
   - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
   - SET PATH=C:\MinGW\msys\1.0\bin;%PATH%
   - SET RAKEOPT=-rdevkit

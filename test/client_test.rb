@@ -142,13 +142,9 @@ class ClientTest < TinyTds::TestCase
       options = connection_options :username => 'willnotwork'
       action = lambda { new_connection(options) }
       assert_raise_tinytds_error(action) do |e|
-        if sqlserver_azure?
-          assert_match %r{server name cannot be determined}i, e.message, 'ignore if non-english test run'
-        else
-          assert_equal sybase_ase? ? 4002 : 18456, e.db_error_number
-          assert_equal 14, e.severity
-          assert_match %r{login failed}i, e.message, 'ignore if non-english test run'
-        end
+        assert_equal sybase_ase? ? 4002 : 18456, e.db_error_number
+        assert_equal 14, e.severity
+        assert_match %r{login failed}i, e.message, 'ignore if non-english test run'
       end
       assert_new_connections_work
     end

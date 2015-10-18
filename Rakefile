@@ -5,6 +5,7 @@ require 'rbconfig'
 require 'rake/testtask'
 require 'rake/extensiontask'
 require 'rubygems/package_task'
+require_relative './ext/tiny_tds/extconsts'
 
 def test_libs
   ['lib','test']
@@ -30,7 +31,6 @@ end
 def gem_build_path(spec)
   File.join 'pkg', spec.full_name
 end
-
 
 gemspec = Gem::Specification::load(File.expand_path('../tiny_tds.gemspec', __FILE__))
 
@@ -58,40 +58,34 @@ Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
   ext.cross_compile = true
   ext.cross_platform = ['x86-mingw32', 'x64-mingw32']
   ext.cross_config_options += %w[ --disable-lookup --enable-cross-build ]
-
   # Add dependent DLLs to the cross gems
   ext.cross_compiling do |spec|
     platform_host_map =  {
       'x86-mingw32' => 'i686-w64-mingw32',
       'x64-mingw32' => 'x86_64-w64-mingw32'
     }
-
     gemplat = spec.platform.to_s
     host = platform_host_map[gemplat]
-
     dlls = [
       "libeay32-1.0.2d-#{host}.dll",
       "ssleay32-1.0.2d-#{host}.dll",
       "libiconv-2.dll",
       "libsybdb-5.dll",
     ]
-
     # We don't need the sources in a fat binary gem
     spec.files = spec.files.reject{|f| f=~/^ports\/archives/ }
     spec.files += dlls.map{|dll| "ports/#{host}/bin/#{File.basename(dll)}" }
-
     dlls.each do |dll|
       file "ports/#{host}/bin/#{dll}" do |t|
         sh "x86_64-w64-mingw32-strip", t.name
       end
     end
   end
-
 end
 
-# Bundle the freetds sources to avoid download while gem install
+# Bundle the freetds sources to avoid download while gem install.
 task gem_build_path(gemspec) do
-  add_file_to_gem(gemspec, "ports/archives/freetds-0.91.112.tar.gz")
+  add_file_to_gem gemspec, "ports/archives/freetds-#{FREETDS_VERSION}.tar.gz"
 end
 
 desc "Build the windows binary gems per rake-compiler-dock"

@@ -96,7 +96,7 @@ class BuildRecipe < MiniPortile
     super(name, version)
     self.files = files
     self.target = File.expand_path('../../../ports', __FILE__)
-    self.host = consolidated_host(RbConfig::CONFIG["host_alias"].empty? ? RbConfig::CONFIG["host"] : RbConfig::CONFIG["host_alias"])
+    self.host = consolidated_host(RbConfig::CONFIG["host"])
     self.patch_files = Dir[File.join(self.target, "patches", self.name, self.version, "*.diff")].sort
   end
 

@@ -161,17 +161,6 @@ class ClientTest < TinyTds::TestCase
       assert_new_connections_work
     end
 
-    it 'fails miserably with unknown encoding option' do
-      options = connection_options :encoding => 'ISO-WTF'
-      action = lambda { new_connection(options) }
-      assert_raise_tinytds_error(action) do |e|
-        assert_equal 20002, e.db_error_number
-        assert_equal 9, e.severity
-        assert_match %r{connection failed}i, e.message, 'ignore if non-english test run'
-      end
-      assert_new_connections_work
-    end unless sybase_ase?
-
   end
 
   describe 'Private methods' do

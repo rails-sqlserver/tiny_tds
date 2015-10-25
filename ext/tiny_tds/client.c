@@ -287,13 +287,6 @@ static VALUE rb_tinytds_identity_sql(VALUE self) {
   return rb_str_new2(cwrap->identity_insert_sql);
 }
 
-static VALUE rb_tinytds_freetds_nine_one_or_higher(VALUE self) {
-  #ifdef DBSETLDBNAME
-    return Qtrue;
-  #else
-    return Qfalse;
-  #endif
-}
 
 
 // TinyTds::Client (protected)
@@ -385,7 +378,6 @@ void init_tinytds_client() {
   rb_define_method(cTinyTdsClient, "escape", rb_tinytds_escape, 1);
   rb_define_method(cTinyTdsClient, "return_code", rb_tinytds_return_code, 0);
   rb_define_method(cTinyTdsClient, "identity_sql", rb_tinytds_identity_sql, 0);
-  rb_define_method(cTinyTdsClient, "freetds_091_or_higer?", rb_tinytds_freetds_nine_one_or_higher, 0);
   /* Define TinyTds::Client Protected Methods */
   rb_define_protected_method(cTinyTdsClient, "connect", rb_tinytds_connect, 1);
   /* Symbols For Connect */

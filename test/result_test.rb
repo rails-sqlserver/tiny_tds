@@ -694,17 +694,13 @@ class ResultTest < TinyTds::TestCase
       end
 
       it 'errors gracefully with incorrect syntax in sp_executesql' do
-        if @client.freetds_091_or_higer?
-          action = lambda { @client.execute("EXEC sp_executesql N'this will not work'").each }
-          assert_raise_tinytds_error(action) do |e|
-            assert_match %r|incorrect syntax|i, e.message
-            assert_equal 15, e.severity
-            assert_equal 156, e.db_error_number
-          end
-          assert_followup_query
-        else
-          skip 'FreeTDS 0.91 and higher can only pass this test.'
+        action = lambda { @client.execute("EXEC sp_executesql N'this will not work'").each }
+        assert_raise_tinytds_error(action) do |e|
+          assert_match %r|incorrect syntax|i, e.message
+          assert_equal 15, e.severity
+          assert_equal 156, e.db_error_number
         end
+        assert_followup_query
       end unless sybase_ase?
 
     end

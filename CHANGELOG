@@ -4,6 +4,7 @@
 * Removed Ruby 1.9.3 from CI builds.
 * CI now tests Azure too.
 * Fixed compiler warnings on Darwin/OSX. Still a few on Windows.
+* FreeTDS - Remove support for bad iconv.
 
 
 * 0.7.0 *

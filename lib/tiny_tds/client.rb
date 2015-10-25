@@ -13,7 +13,8 @@ module TinyTds
       '71'      => 5,
       '80'      => 5,
       '72'      => 6,
-      '90'      => 6
+      '90'      => 6,
+      '73'      => 7
     }.freeze
 
     # From sybdb.h comments:
@@ -31,7 +32,8 @@ module TinyTds
       7  => {:name => 'DBTDS_5_0',            :description => '5.0 SQL Server'},
       8  => {:name => 'DBTDS_7_0',            :description => 'Microsoft SQL Server 7.0'},
       9  => {:name => 'DBTDS_7_1/DBTDS_8_0',  :description => 'Microsoft SQL Server 2000'},
-      10 => {:name => 'DBTDS_7_2/DBTDS_9_0',  :description => 'Microsoft SQL Server 2005'}
+      10 => {:name => 'DBTDS_7_2/DBTDS_9_0',  :description => 'Microsoft SQL Server 2005'},
+      11 => {:name => 'DBTDS_7_3',            :description => 'Microsoft SQL Server 2008'}
     }.freeze
 
     @@default_query_options = {
@@ -66,7 +68,7 @@ module TinyTds
       @query_options = @@default_query_options.dup
       opts[:password] = opts[:password].to_s if opts[:password] && opts[:password].to_s.strip != ''
       opts[:appname] ||= 'TinyTds'
-      opts[:tds_version] = TDS_VERSIONS_SETTERS[opts[:tds_version].to_s] || TDS_VERSIONS_SETTERS['71']
+      opts[:tds_version] = TDS_VERSIONS_SETTERS[opts[:tds_version].to_s] || TDS_VERSIONS_SETTERS['73']
       opts[:login_timeout] ||= 60
       opts[:timeout] ||= 5
       opts[:encoding] = (opts[:encoding].nil? || opts[:encoding].downcase == 'utf8') ? 'UTF-8' : opts[:encoding].upcase

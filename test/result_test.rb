@@ -397,6 +397,7 @@ class ResultTest < TinyTds::TestCase
       describe 'using :empty_sets TRUE' do
 
         before do
+          close_client
           @old_query_option_value = TinyTds::Client.default_query_options[:empty_sets]
           TinyTds::Client.default_query_options[:empty_sets] = true
           @client = new_connection
@@ -477,6 +478,7 @@ class ResultTest < TinyTds::TestCase
       describe 'using :empty_sets FALSE' do
 
         before do
+          close_client
           @old_query_option_value = TinyTds::Client.default_query_options[:empty_sets]
           TinyTds::Client.default_query_options[:empty_sets] = false
           @client = new_connection
@@ -668,12 +670,14 @@ class ResultTest < TinyTds::TestCase
       end
 
       it 'must not error at all from reading non-convertable charcters and just use ? marks' do
+        close_client
         @client = new_connection :encoding => 'ASCII'
         @client.charset.must_equal 'ASCII'
         find_value(202, :nvarchar_50).must_equal 'test nvarchar_50 ??'
       end
 
       it 'must error gracefully from writing non-convertable characters' do
+        close_client
         @client = new_connection :encoding => 'ASCII'
         @client.charset.must_equal 'ASCII'
         rollback_transaction(@client) do

@@ -48,6 +48,7 @@ class ClientTest < TinyTds::TestCase
         client = new_connection(:encoding => encoding)
         assert_equal encoding, client.charset
         assert_equal Encoding.find(encoding), client.encoding
+        client.close
       end
     end
 
@@ -55,6 +56,7 @@ class ClientTest < TinyTds::TestCase
       host = ENV['TINYTDS_UNIT_HOST_TEST'] || ENV['TINYTDS_UNIT_HOST']
       port = ENV['TINYTDS_UNIT_PORT_TEST'] || ENV['TINYTDS_UNIT_PORT'] || 1433
       client = new_connection dataserver: nil, host: host, port: port
+      client.close
     end unless sqlserver_azure?
 
   end
@@ -89,6 +91,7 @@ class ClientTest < TinyTds::TestCase
         assert_match %r{timed out}i, e.message, 'ignore if non-english test run'
       end
       assert_client_works(client)
+      close_client(client)
       assert_new_connections_work
     end
 
@@ -97,6 +100,7 @@ class ClientTest < TinyTds::TestCase
       client.execute("WaitFor Delay '00:00:01'").do
       client.execute("WaitFor Delay '00:00:01'").do
       client.execute("WaitFor Delay '00:00:01'").do
+      close_client(client)
     end
 
     it 'must not timeout per sql batch when under transaction' do
@@ -108,6 +112,7 @@ class ClientTest < TinyTds::TestCase
         client.execute("WaitFor Delay '00:00:01'").do
       ensure
         client.execute("COMMIT TRANSACTION").do
+        close_client(client)
       end
     end
 
@@ -134,6 +139,7 @@ class ClientTest < TinyTds::TestCase
           assert_equal 1, e.severity
           assert_match %r{dead or not enabled}i, e.message, 'ignore if non-english test run'
         end
+        close_client(client)
         assert_new_connections_work
       end
     end

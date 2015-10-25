@@ -195,7 +195,7 @@ end
 def define_freetds_recipe(host, libiconv, libssl, gnutls)
   BuildRecipe.new("freetds", FREETDS_VERSION, [FREETDS_SOURCE_URI])
              .tap do |recipe|
-    with_tdsver = FREETDS_VERSION =~ /0\.8/ ? "--with-tdsver=8.0" : "--with-tdsver=7.1"
+    with_tdsver = FREETDS_VERSION =~ /0\.91/ ? "--with-tdsver=7.1" : "--with-tdsver=7.3"
     for_windows = recipe.host =~ /mswin|mingw/i
     recipe.configure_options << '--with-pic'
     recipe.configure_options << "--with-libiconv-prefix=#{libiconv.path}" if libiconv

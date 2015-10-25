@@ -29,8 +29,13 @@ class ClientTest < TinyTds::TestCase
         assert_equal 7, @client.tds_version
         assert_equal 'DBTDS_5_0 - 5.0 SQL Server', @client.tds_version_info
       else
-        assert_equal 9, @client.tds_version
-        assert_equal 'DBTDS_7_1/DBTDS_8_0 - Microsoft SQL Server 2000', @client.tds_version_info
+        assert_equal 11, @client.tds_version
+        assert_equal 'DBTDS_7_3 - Microsoft SQL Server 2008', @client.tds_version_info
+        close_client(@client)
+        client = new_connection tds_version: '71'
+        assert_equal 9, client.tds_version
+        assert_equal 'DBTDS_7_1/DBTDS_8_0 - Microsoft SQL Server 2000', client.tds_version_info
+        close_client(client)
       end
     end
 

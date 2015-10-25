@@ -26,9 +26,7 @@ module TinyTds
 
     end
 
-    after do
-      @client.close if defined?(@client) && @client.is_a?(TinyTds::Client)
-    end
+    after { close_client }
 
     protected
 
@@ -44,6 +42,10 @@ module TinyTds
 
     def sqlserver?
       self.class.sqlserver?
+    end
+
+    def close_client(client=@client)
+      client.close if defined?(client) && client.is_a?(TinyTds::Client)
     end
 
     def new_connection(options={})
@@ -97,17 +99,21 @@ module TinyTds
     def assert_new_connections_work
       client = new_connection
       client.execute("SELECT 'new_connections_work' as [new_connections_work]").each
+      client.close
     end
 
     def assert_raise_tinytds_error(action)
+      result = nil
       error_raised = false
       begin
-        action.call
+        result = action.call
       rescue TinyTds::Error => e
         error_raised = true
       end
       assert error_raised, 'expected a TinyTds::Error but none happened'
       yield e
+    ensure
+      close_client(result)
     end
 
     def inspect_tinytds_exception

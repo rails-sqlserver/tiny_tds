@@ -15,6 +15,10 @@ class ThreadTest < TinyTds::TestCase
       @pool = ConnectionPool.new(:size => @poolsize, :timeout => 5) { new_connection }
     end
 
+    after do
+      @pool.shutdown { |c| c.close }
+    end
+
     it 'should finish faster in parallel' do
       skip if sqlserver_azure?
       x = Benchmark.realtime do

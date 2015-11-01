@@ -7,9 +7,7 @@
 #include <ruby.h>
 #include <ruby/encoding.h>
 #include <ruby/version.h>
-#if RUBY_API_VERSION_MAJOR >= 2
 #include <ruby/thread.h>
-#endif
 #include <sybfront.h>
 #include <sybdb.h>
 

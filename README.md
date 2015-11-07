@@ -87,7 +87,7 @@ Creating a new client takes a hash of options. For valid iconv encoding options,
 * :port - Defaults to 1433. Only used if :host is used.
 * :database - The default database to use.
 * :appname - Short string seen in SQL Servers process/activity window.
-* :tds_version - TDS version. Defaults to "71" (7.1) and is not recommended to change!
+* :tds_version - TDS version. Defaults to "7.3" for FreeTDS 0.95 usage. Please set to "7.1" for FreeTDS 0.91.
 * :login_timeout - Seconds to wait for login. Default to 60 seconds.
 * :timeout - Seconds to wait for a response to a SQL command. Default 5 seconds.
 * :encoding - Any valid iconv value like CP1251 or ISO-8859-1. Default UTF-8.

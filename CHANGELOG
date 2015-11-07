@@ -1,5 +1,6 @@
 * 1.0.0 *
 
+* Allow our `tds_version` to mirror TDSVER env var. Ex '7.3' vs '73'.
 * Made sure Azure logins are user@short vs. long domain. Fixes #229
 * Removed Ruby 1.9.3 from CI builds.
 * CI now tests Azure too.

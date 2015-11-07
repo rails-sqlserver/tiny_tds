@@ -142,9 +142,9 @@ module TinyTds
       loader = new_connection
       schema_file = File.expand_path File.join(File.dirname(__FILE__), 'schema', "#{current_schema}.sql")
       schema_sql = File.open(schema_file,"rb:UTF-8") { |f|f.read }
-      loader.execute(drop_sql).each
-      loader.execute(schema_sql).cancel
-      loader.execute(sp_sql).cancel
+      loader.execute(drop_sql).do
+      loader.execute(schema_sql).do
+      loader.execute(sp_sql).do
       loader.close
       true
     end

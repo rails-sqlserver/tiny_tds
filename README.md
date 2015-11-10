@@ -313,7 +313,7 @@ MiniPortile is a minimalistic implementation of a port/recipe system. <https://g
 The TinyTDS project uses MiniPortile so that we can easily install a local version of FreeTDS and supporting libraries to link against when building a test version of TinyTDS. This same system is also used when installing TinyTDS with Rubygems and building native extensions. It is possible to build TinyTDS with a specific version of FreeTDS using the `TINYTDS_FREETDS_VERSION` environment variable. Here are some exampbles of possible values.
 
 ```
-$ rake TINYTDS_FREETDS_VERSION='0.91.112' -- --disable-system-freetds --disable-system-iconv
+$ rake TDSVER='7.1' TINYTDS_FREETDS_VERSION='0.91.112' -- --disable-system-freetds --disable-system-iconv
 ```
 
 To find out more about the FreeTDS release system [visit this thread](http://lists.ibiblio.org/pipermail/freetds/2012q1/027756.html) on their mailing list. You can also browse thier FTP server [ftp://ftp.astron.com/pub/freetds/](ftp://ftp.astron.com/pub/freetds/) for version number strings.

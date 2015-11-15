@@ -62,7 +62,7 @@ module TinyTds
 
     def initialize(opts={})
       raise ArgumentError, 'missing :host option if no :dataserver given' if opts[:dataserver].to_s.empty? && opts[:host].to_s.empty?
-      opts[:username] = azure_username(opts)
+      opts[:username] = parse_username(opts)
       @query_options = @@default_query_options.dup
       opts[:password] = opts[:password].to_s if opts[:password] && opts[:password].to_s.strip != ''
       opts[:appname] ||= 'TinyTds'
@@ -73,20 +73,6 @@ module TinyTds
       opts[:port] ||= 1433
       opts[:dataserver] = "#{opts[:host]}:#{opts[:port]}" if opts[:dataserver].to_s.empty?
       connect(opts)
-    end
-
-    def self.azure_username(opts)
-      # Three cases we care about:
-      if opts[:username] =~ /\S+@[A-z\-]+$/
-        # If it matches `user@short-name`
-        opts[:username]
-      elsif not opts[:username].include?("@")
-        # If it contains `@`, then it must be `user@long.domain.name.com`
-        short_name = opts[:host].split(".").first
-        "#{opts[:username]}@#{short_name}"
-      else
-        opts[:username].match(/(\S+@[A-z\-]+)\..+$/).captures.first
-      end
     end
 
     def tds_version_info
@@ -103,6 +89,13 @@ module TinyTds
 
     def self.local_offset
       ::Time.local(2010).utc_offset.to_r / 86400
+    end
+
+    def parse_username(opts)
+      username = opts[:username]
+      return username unless opts[:azure]
+      user, domain = username.split("@")
+      "#{user}@#{domain.split('.').first}"
     end
 
   end

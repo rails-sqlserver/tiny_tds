@@ -174,6 +174,26 @@ class ClientTest < TinyTds::TestCase
 
   end
 
+  describe 'Private methods' do
+
+    let(:client) { @client = new_connection }
+
+    it '#parse_username returns username if azure is not true' do
+      username = 'user@long.domain.name.com'
+      client.send(:parse_username, username: username).must_equal username
+    end
+
+    it '#parse_username returns short username if azure is true' do
+      username = 'user@long.domain.name.com'
+      client.send(:parse_username, username: username, azure: true).must_equal 'user@long'
+    end
+
+    it '#parse_username returns short username if passed and azure is true' do
+      username = 'user@short'
+      client.send(:parse_username, username: username, azure: true).must_equal 'user@short'
+    end
+
+  end
 
 
 end

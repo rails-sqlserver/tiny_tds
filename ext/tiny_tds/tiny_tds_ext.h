@@ -1,8 +1,8 @@
 #ifndef TINYTDS_EXT
 #define TINYTDS_EXT
 
-#undef MSDBLIB
-#define SYBDBLIB
+#undef SYBDBLIB
+#define MSDBLIB 1
 
 #include <ruby.h>
 #include <ruby/encoding.h>

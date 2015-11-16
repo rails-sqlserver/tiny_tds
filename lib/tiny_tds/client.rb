@@ -93,6 +93,7 @@ module TinyTds
 
     def parse_username(opts)
       username = opts[:username]
+      return username if username.nil?
       return username unless opts[:azure]
       user, domain = username.split("@")
       "#{user}@#{domain.split('.').first}"

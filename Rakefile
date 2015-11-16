@@ -55,7 +55,6 @@ Dir["tasks/*.rake"].sort.each { |f| load f }
 
 Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
   ext.lib_dir = 'lib/tiny_tds'
-  ext.config_options << "-std=c99" if ENV['CI']
   ext.cross_compile = true
   ext.cross_platform = ['x86-mingw32', 'x64-mingw32']
   ext.cross_config_options += %w[ --disable-lookup --enable-cross-build ]

@@ -677,6 +677,7 @@ class ResultTest < TinyTds::TestCase
       end
 
       it 'must error gracefully from writing non-convertable characters' do
+        skip
         close_client
         @client = new_connection :encoding => 'ASCII'
         @client.charset.must_equal 'ASCII'

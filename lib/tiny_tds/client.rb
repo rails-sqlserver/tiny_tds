@@ -67,7 +67,7 @@ module TinyTds
     end
 
     def tds_versions_setter(opts={})
-      v = opts[:tds_version] || ENV['TDSVER'] || '7.3'
+      v = opts[:tds_version] || ENV['TDSVER'] || '7.1'
       TDS_VERSIONS_SETTERS[v.to_s]
     end
 

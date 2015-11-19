@@ -42,7 +42,6 @@ static void rb_tinytds_result_mark(void *ptr) {
 }
 
 static void rb_tinytds_result_free(void *ptr) {
-  tinytds_result_wrapper *rwrap = (tinytds_result_wrapper *)ptr;
   xfree(ptr);
 }
 
@@ -282,8 +281,8 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
           sec   = date_rec.datesecond;
           msec  = date_rec.datemsecond;
           if (year+month+day+hour+min+sec+msec != 0) {
-            VALUE offset = (timezone == intern_local) ? rwrap->local_offset : opt_zero;
-            uint64_t seconds = (year*31557600ULL) + (month*2592000ULL) + (day*86400ULL) + (hour*3600ULL) + (min*60ULL) + sec;
+            // VALUE offset = (timezone == intern_local) ? rwrap->local_offset : opt_zero;
+            // uint64_t seconds = (year*31557600ULL) + (month*2592000ULL) + (day*86400ULL) + (hour*3600ULL) + (min*60ULL) + sec;
             val = rb_funcall(rb_cTime, timezone, 7, INT2NUM(year), INT2NUM(month), INT2NUM(day), INT2NUM(hour), INT2NUM(min), INT2NUM(sec), INT2NUM(msec*1000));
           }
           break;

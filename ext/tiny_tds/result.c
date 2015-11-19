@@ -27,6 +27,12 @@ rb_encoding *binaryEncoding;
   _val; \
 })
 
+#ifdef _WIN32
+  #define LONG_LONG_FORMAT "I64d"
+#else
+  #define LONG_LONG_FORMAT "lld"
+#endif
+
 
 // Lib Backend (Memory Management)
 
@@ -238,7 +244,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
           DBMONEY *money = (DBMONEY *)data;
           char converted_money[25];
           long long money_value = ((long long)money->mnyhigh << 32) | money->mnylow;
-          sprintf(converted_money, "%lld", money_value);
+          sprintf(converted_money, "%" LONG_LONG_FORMAT, money_value);
           val = rb_funcall(cBigDecimal, intern_new, 2, rb_str_new2(converted_money), opt_four);
           val = rb_funcall(val, intern_divide, 1, opt_tenk);
           break;

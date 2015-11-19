@@ -28,12 +28,12 @@ class ClientTest < TinyTds::TestCase
       if sybase_ase?
         assert_equal 7, @client.tds_version
         assert_equal 'DBTDS_5_0 - 5.0 SQL Server', @client.tds_version_info
-      elsif ENV['TDSVER'] == '7.1'
-        assert_equal 9, @client.tds_version
-        assert_equal 'DBTDS_7_1/DBTDS_8_0 - Microsoft SQL Server 2000', @client.tds_version_info
-      else
+      elsif ENV['TDSVER'] == '7.3'
         assert_equal 11, @client.tds_version
         assert_equal 'DBTDS_7_3 - Microsoft SQL Server 2008', @client.tds_version_info
+      else
+        assert_equal 9, @client.tds_version
+        assert_equal 'DBTDS_7_1/DBTDS_8_0 - Microsoft SQL Server 2000', @client.tds_version_info
       end
     end
 

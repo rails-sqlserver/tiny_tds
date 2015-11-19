@@ -24,7 +24,7 @@ VALUE opt_escape_regex, opt_escape_dblquote;
 
 // Lib Backend (Helpers)
 
-VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, char *error, char *source, int severity, int dberr, int oserr) {
+VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, const char *error, const char *source, int severity, int dberr, int oserr) {
   VALUE e;
   GET_CLIENT_USERDATA(dbproc);
   if (cancel && !dbdead(dbproc) && userdata && !userdata->closed) {
@@ -49,7 +49,7 @@ VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, char *error, char *s
 // Lib Backend (Memory Management & Handlers)
 
 int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr) {
-  static char *source = "error";
+  static const char *source = "error";
   /* Everything should cancel by default */
   int return_value = INT_CANCEL;
   int cancel = 0;
@@ -126,7 +126,7 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
 }
 
 int tinytds_msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line) {
-  static char *source = "message";
+  static const char *source = "message";
   GET_CLIENT_USERDATA(dbproc);
   if (severity > 10) {
     // See tinytds_err_handler() for info about why we do this

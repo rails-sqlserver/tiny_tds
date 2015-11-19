@@ -36,7 +36,7 @@ typedef struct {
   rb_encoding *encoding;
 } tinytds_client_wrapper;
 
-VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, char *error, char *source, int severity, int dberr, int oserr);
+VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, const char *error, const char *source, int severity, int dberr, int oserr);
 
 // Lib Macros
 

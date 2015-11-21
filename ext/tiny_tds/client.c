@@ -24,7 +24,8 @@ VALUE opt_escape_regex, opt_escape_dblquote;
 
 // Lib Backend (Helpers)
 
-VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, char *error, char *source, int severity, int dberr, int oserr) {
+VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, const char *error, const char *source, int severity, int dberr, int oserr) {
+  VALUE e;
   GET_CLIENT_USERDATA(dbproc);
   if (cancel && !dbdead(dbproc) && userdata && !userdata->closed) {
     userdata->dbsqlok_sent = 1;
@@ -32,7 +33,7 @@ VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, char *error, char *s
     userdata->dbcancel_sent = 1;
     dbcancel(dbproc);
   }
-  VALUE e = rb_exc_new2(cTinyTdsError, error);
+  e = rb_exc_new2(cTinyTdsError, error);
   rb_funcall(e, intern_source_eql, 1, rb_str_new2(source));
   if (severity)
     rb_funcall(e, intern_severity_eql, 1, INT2FIX(severity));
@@ -48,12 +49,12 @@ VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, char *error, char *s
 // Lib Backend (Memory Management & Handlers)
 
 int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr) {
-  static char *source = "error";
-  GET_CLIENT_USERDATA(dbproc);
-
+  static const char *source = "error";
   /* Everything should cancel by default */
   int return_value = INT_CANCEL;
   int cancel = 0;
+
+  GET_CLIENT_USERDATA(dbproc);
 
   /* These error codes are documented in include/sybdb.h in FreeTDS */
   switch(dberr) {
@@ -125,7 +126,7 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
 }
 
 int tinytds_msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severity, char *msgtext, char *srvname, char *procname, int line) {
-  static char *source = "message";
+  static const char *source = "message";
   GET_CLIENT_USERDATA(dbproc);
   if (severity > 10) {
     // See tinytds_err_handler() for info about why we do this
@@ -230,6 +231,8 @@ static VALUE rb_tinytds_sqlsent(VALUE self) {
 }
 
 static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
+  VALUE result;
+
   GET_CLIENT_WRAPPER(self);
   rb_tinytds_client_reset_userdata(cwrap->userdata);
   REQUIRE_OPEN_CLIENT(cwrap);
@@ -239,12 +242,14 @@ static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
     return Qfalse;
   }
   cwrap->userdata->dbsql_sent = 1;
-  VALUE result = rb_tinytds_new_result_obj(cwrap);
+  result = rb_tinytds_new_result_obj(cwrap);
   rb_iv_set(result, "@query_options", rb_funcall(rb_iv_get(self, "@query_options"), intern_dup, 0));
-  GET_RESULT_WRAPPER(result);
-  rwrap->local_offset = rb_funcall(cTinyTdsClient, intern_local_offset, 0);
-  rwrap->encoding = cwrap->encoding;
-  return result;
+  {
+    GET_RESULT_WRAPPER(result);
+    rwrap->local_offset = rb_funcall(cTinyTdsClient, intern_local_offset, 0);
+    rwrap->encoding = cwrap->encoding;
+    return result;
+  }
 }
 
 static VALUE rb_tinytds_charset(VALUE self) {
@@ -258,9 +263,11 @@ static VALUE rb_tinytds_encoding(VALUE self) {
 }
 
 static VALUE rb_tinytds_escape(VALUE self, VALUE string) {
-  Check_Type(string, T_STRING);
+  VALUE new_string;
   GET_CLIENT_WRAPPER(self);
-  VALUE new_string = rb_funcall(string, intern_gsub, 2, opt_escape_regex, opt_escape_dblquote);
+
+  Check_Type(string, T_STRING);
+  new_string = rb_funcall(string, intern_gsub, 2, opt_escape_regex, opt_escape_dblquote);
   rb_enc_associate(new_string, cwrap->encoding);
   return new_string;
 }
@@ -294,6 +301,8 @@ static VALUE rb_tinytds_freetds_nine_one_or_higher(VALUE self) {
 static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   /* Parsing options hash to local vars. */
   VALUE user, pass, dataserver, database, app, version, ltimeout, timeout, charset, azure;
+  GET_CLIENT_WRAPPER(self);
+
   user = rb_hash_aref(opts, sym_username);
   pass = rb_hash_aref(opts, sym_password);
   dataserver = rb_hash_aref(opts, sym_dataserver);
@@ -311,7 +320,6 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   }
   dberrhandle(tinytds_err_handler);
   dbmsghandle(tinytds_msg_handler);
-  GET_CLIENT_WRAPPER(self);
   cwrap->login = dblogin();
   if (!NIL_P(version))
     dbsetlversion(cwrap->login, NUM2INT(version));
@@ -336,6 +344,8 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   }
   cwrap->client = dbopen(cwrap->login, StringValueCStr(dataserver));
   if (cwrap->client) {
+    VALUE transposed_encoding;
+
     cwrap->closed = 0;
     cwrap->charset = charset;
     if (!NIL_P(version))
@@ -345,7 +355,7 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
     if (!NIL_P(database) && (azure != Qtrue)) {
       dbuse(cwrap->client, StringValueCStr(database));
     }
-    VALUE transposed_encoding = rb_funcall(cTinyTdsClient, intern_transpose_iconv_encoding, 1, charset);
+    transposed_encoding = rb_funcall(cTinyTdsClient, intern_transpose_iconv_encoding, 1, charset);
     cwrap->encoding = rb_enc_find(StringValueCStr(transposed_encoding));
     if (dbtds(cwrap->client) <= 7) {
       cwrap->identity_insert_sql = "SELECT CAST(@@IDENTITY AS bigint) AS Ident";

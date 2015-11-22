@@ -43,7 +43,7 @@ If you use Windows, we pre-compile TinyTDS with static versions of FreeTDS, libi
 
 ## FreeTDS Compatibility & Configuration
 
-TinyTDS is developed against FreeTDS 0.82, 0.91 stable, and 0.92 current. Our default and recommended is 0.91 stable. We also test with SQL Server 2000, 2005, 2008, 2014, and Azure. Below are a few QA style notes about installing FreeTDS.
+TinyTDS is developed against FreeTDS 0.91, and 0.95 current. Our default and recommended is 0.95. We also test with SQL Server 2000, 2005, 2008, 2014, and Azure. Below are a few QA style notes about installing FreeTDS.
 
 **NOTE:** Windows users of our pre-compiled native gems need not worry about installing FreeTDS and its dependencies.
 
@@ -51,11 +51,11 @@ TinyTDS is developed against FreeTDS 0.82, 0.91 stable, and 0.92 current. Our de
 
 * **OK, I am installing FreeTDS, how do I configure it?** Contrary to what most people think, you do not need to specially configure FreeTDS in any way for client libraries like TinyTDS to use it. About the only requirement is that you compile it with libiconv for proper encoding support. FreeTDS must also be compiled with OpenSSL (or the like) to use it with Azure. See the "Using TinyTDS with Azure" section below for more info.
 
-* **Do I need to configure `--with-tdsver` equal to anything?** Most likely! Technically you should not have too. This is only a default for clients/configs that do not specify what TDS version they want to use. We are currently having issues with passing down a TDS version with the login bit. Till we get that fixed, if you are not using a freetds.conf or a TDSVER environment variable, the make sure to use 7.1 for FreeTDS 0.91 and 8.0 for FreeTDS 0.82.
+* **Do I need to configure `--with-tdsver` equal to anything?** Most likely! Technically you should not have too. This is only a default for clients/configs that do not specify what TDS version they want to use. We are currently having issues with passing down a TDS version with the login bit. Till we get that fixed, if you are not using a freetds.conf or a TDSVER environment variable, then make sure to use 7.1.
 
 * **But I want to use TDS version 7.2 for SQL Server 2005 and up!** TinyTDS uses TDS version 7.1 (previously named 8.0) and fully supports all the data types supported by FreeTDS, this includes `varchar(max)` and `nvarchar(max)`. Technically compiling and using TDS version 7.2 with FreeTDS is not supported. But this does not mean those data types will not work. I know, it's confusing If you want to learn more, read this thread. http://lists.ibiblio.org/pipermail/freetds/2011q3/027306.html
 
-* **I want to configure FreeTDS using `--enable-msdblib` and/or `--enable-sybase-compat` so it works for my database. Cool?** It's a waste of time and totally moot! Client libraries like TinyTDS define their own C structure names where they diverge from Sybase to SQL Server. Technically we use the Sybase structures which does not mean we only work with that database vs SQL Server. These configs are just a low level default for C libraries that do not define what they want. So I repeat, you do not NEED to use any of these, nor will they hurt anything since we control what C structure names we use and this has no affect on what database you use!
+* **I want to configure FreeTDS using `--enable-msdblib` and/or `--enable-sybase-compat` so it works for my database. Cool?** It's a waste of time and totally moot! Client libraries like TinyTDS define their own C structure names where they diverge from Sybase to SQL Server. Technically we use the MSDBLIB structures which does not mean we only work with that database vs Sybase. These configs are just a low level default for C libraries that do not define what they want. So I repeat, you do not NEED to use any of these, nor will they hurt anything since we control what C structure names we use internally!
 
 
 ## Data Types
@@ -87,7 +87,7 @@ Creating a new client takes a hash of options. For valid iconv encoding options,
 * :port - Defaults to 1433. Only used if :host is used.
 * :database - The default database to use.
 * :appname - Short string seen in SQL Servers process/activity window.
-* :tds_version - TDS version. Defaults to "71" (7.1) and is not recommended to change!
+* :tds_version - TDS version. Defaults to "7.3" for FreeTDS 0.95 usage. Please set to "7.1" for FreeTDS 0.91.
 * :login_timeout - Seconds to wait for login. Default to 60 seconds.
 * :timeout - Seconds to wait for a response to a SQL command. Default 5 seconds.
 * :encoding - Any valid iconv value like CP1251 or ISO-8859-1. Default UTF-8.
@@ -287,7 +287,7 @@ TinyTDS is the default connection mode for the SQL Server adapter in versions 3.
 
 ## Using TinyTDS with Azure
 
-TinyTDS is fully tested with the Azure platform. You must set the `azure: true` connection option when connecting. This is needed to specify the default database name in the login packet since Azure has no notion of `USE [database]`. You must use the latest FreeTDS 0.91. FreeTDS must be compiled with OpenSSL too.
+TinyTDS is fully tested with the Azure platform. You must set the `azure: true` connection option when connecting. This is needed to specify the default database name in the login packet since Azure has no notion of `USE [database]`. FreeTDS must be compiled with OpenSSL too.
 
 **IMPORTANT**: Do not use `username@server.database.windows.net` for the username connection option! You must use the shorter `username@server` instead!
 
@@ -313,9 +313,7 @@ MiniPortile is a minimalistic implementation of a port/recipe system. <https://g
 The TinyTDS project uses MiniPortile so that we can easily install a local version of FreeTDS and supporting libraries to link against when building a test version of TinyTDS. This same system is also used when installing TinyTDS with Rubygems and building native extensions. It is possible to build TinyTDS with a specific version of FreeTDS using the `TINYTDS_FREETDS_VERSION` environment variable. Here are some exampbles of possible values.
 
 ```
-$ rake TINYTDS_FREETDS_VERSION='0.82' -- --disable-system-freetds --disable-system-iconv
-$ rake TINYTDS_FREETDS_VERSION='0.91' -- --disable-system-freetds --disable-system-iconv
-$ rake TINYTDS_FREETDS_VERSION='0.92' -- --disable-system-freetds --disable-system-iconv
+$ rake TDSVER='7.1' TINYTDS_FREETDS_VERSION='0.91.112' -- --disable-system-freetds --disable-system-iconv
 ```
 
 To find out more about the FreeTDS release system [visit this thread](http://lists.ibiblio.org/pipermail/freetds/2012q1/027756.html) on their mailing list. You can also browse thier FTP server [ftp://ftp.astron.com/pub/freetds/](ftp://ftp.astron.com/pub/freetds/) for version number strings.

@@ -2,10 +2,6 @@
 #ifndef TINYTDS_RESULT_H
 #define TINYTDS_RESULT_H
 
-#ifndef DBSETLDBNAME
-  typedef tds_sysdep_int64_type DBBIGINT;  /* For FreeTDS 0.82 */
-#endif
-
 void init_tinytds_result();
 VALUE rb_tinytds_new_result_obj(tinytds_client_wrapper *cwrap);
 

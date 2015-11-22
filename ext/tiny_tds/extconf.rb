@@ -5,25 +5,7 @@ ENV['RC_ARCHS'] = '' if RUBY_PLATFORM =~ /darwin/
 require 'mkmf'
 require 'mini_portile'
 require 'fileutils'
-
-# If your using 0.82, you may have to make a conf file to get it to work. For example:
-# $ export FREETDSCONF='/opt/local/etc/freetds/freetds.conf'
-ICONV_VERSION = ENV['TINYTDS_ICONV_VERSION'] || "1.14"
-ICONV_SOURCE_URI = "http://ftp.gnu.org/pub/gnu/libiconv/libiconv-#{ICONV_VERSION}.tar.gz"
-
-OPENSSL_VERSION = ENV['TINYTDS_OPENSSL_VERSION'] || '1.0.2d'
-OPENSSL_SOURCE_URI = "http://www.openssl.org/source/openssl-#{OPENSSL_VERSION}.tar.gz"
-
-FREETDS_VERSION = ENV['TINYTDS_FREETDS_VERSION'] || "0.91"
-FREETDS_VERSION_INFO = Hash.new { |h,k|
-  h[k] = {:files => "ftp://ftp.freetds.org/pub/freetds/stable/freetds-#{k}.tar.gz"}
-}.merge({
-  "0.82" => {:files => "ftp://ftp.freetds.org/pub/freetds/old/0.82/freetds-0.82.tar.gz"},
-  "0.91" => {:files => "ftp://ftp.freetds.org/pub/freetds/stable/freetds-0.91.112.tar.gz"},
-  "0.92" => {:files => "ftp://ftp.freetds.org/pub/freetds/stable/freetds-0.92.405.tar.gz"},
-  "current" => {:files => "ftp://ftp.freetds.org/pub/freetds/current/freetds-current.tar.gz"}
-})
-FREETDS_SOURCE_URI = FREETDS_VERSION_INFO[FREETDS_VERSION][:files]
+require_relative './extconsts'
 
 # Shamelessly copied from nokogiri
 #
@@ -113,8 +95,14 @@ class BuildRecipe < MiniPortile
     ]
   end
 
+  # Use the same path for all recipes, so that only one include/lib path is required.
   def port_path
     "#{target}/#{host}"
+  end
+
+  # We use the same port_path for all recipes. That breaks the standard installed? method.
+  def installed?
+    false
   end
 
   # When using rake-compiler-dock on Windows, the underlying Virtualbox shared
@@ -207,7 +195,7 @@ end
 def define_freetds_recipe(host, libiconv, libssl, gnutls)
   BuildRecipe.new("freetds", FREETDS_VERSION, [FREETDS_SOURCE_URI])
              .tap do |recipe|
-    with_tdsver = FREETDS_VERSION =~ /0\.8/ ? "--with-tdsver=8.0" : "--with-tdsver=7.1"
+    with_tdsver = FREETDS_VERSION =~ /0\.91/ ? "--with-tdsver=7.1" : "--with-tdsver=7.3"
     for_windows = recipe.host =~ /mswin|mingw/i
     recipe.configure_options << '--with-pic'
     recipe.configure_options << "--with-libiconv-prefix=#{libiconv.path}" if libiconv

@@ -279,13 +279,13 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
           int year, month, day, hour, min, sec, msec;
           DBDATEREC date_rec;
           dbdatecrack(rwrap->client, &date_rec, (DBDATETIME *)data);
-          year  = date_rec.dateyear;
-          month = date_rec.datemonth+1;
-          day   = date_rec.datedmonth;
-          hour  = date_rec.datehour;
-          min   = date_rec.dateminute;
-          sec   = date_rec.datesecond;
-          msec  = date_rec.datemsecond;
+          year  = date_rec.year;
+          month = date_rec.month;
+          day   = date_rec.day;
+          hour  = date_rec.hour;
+          min   = date_rec.minute;
+          sec   = date_rec.second;
+          msec  = date_rec.millisecond;
           if (year+month+day+hour+min+sec+msec != 0) {
             // VALUE offset = (timezone == intern_local) ? rwrap->local_offset : opt_zero;
             // uint64_t seconds = (year*31557600ULL) + (month*2592000ULL) + (day*86400ULL) + (hour*3600ULL) + (min*60ULL) + sec;

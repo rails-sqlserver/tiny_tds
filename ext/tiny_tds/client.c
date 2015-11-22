@@ -68,7 +68,7 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
 
     case SYBEICONVO:
       dbfreebuf(dbproc);
-      break;
+      return return_value;
 
     case SYBETIME:
       /*

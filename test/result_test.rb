@@ -677,7 +677,6 @@ class ResultTest < TinyTds::TestCase
       end
 
       it 'must error gracefully from writing non-convertable characters' do
-        skip
         close_client
         @client = new_connection :encoding => 'ASCII'
         @client.charset.must_equal 'ASCII'
@@ -686,9 +685,9 @@ class ResultTest < TinyTds::TestCase
           @client.execute("DELETE FROM [datatypes] WHERE [nvarchar_50] IS NOT NULL").do
           action = lambda { @client.execute("INSERT INTO [datatypes] ([nvarchar_50]) VALUES ('#{text}')").do }
           assert_raise_tinytds_error(action) do |e|
-            e.message.must_match %r{Error converting characters into server's character set}i
-            e.severity.must_equal 4
-            e.db_error_number.must_equal 2402
+            e.message.must_match %r{Unclosed quotation mark}i
+            e.severity.must_equal 15
+            e.db_error_number.must_equal 105
           end
           assert_followup_query
         end

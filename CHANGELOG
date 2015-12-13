@@ -1,4 +1,4 @@
-* 0.9.0 *
+* 0.9.5 *
 
 * Default FreeTDS to 0.95. Support 0.91 Alternate Fixes #233
   - Allow our `tds_version` to mirror TDSVER env var. Ex '7.3' vs '73'.

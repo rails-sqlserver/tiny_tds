@@ -241,35 +241,164 @@ class SchemaTest < TinyTds::TestCase
 
     describe 'for 2008 and up' do
 
-      # These data types always come back as SYBTEXT and there is no way I can
-      # find out the column's human readable name.
-      #
-      #   * [date]
-      #   * [datetime2]
-      #   * [datetimeoffset]
-      #   * [time]
-      #
-      # I have tried the following and I only get back either "char" or 0/null.
-      #
-      #   rb_warn("SYBTEXT: dbprtype: %s", dbprtype(coltype));
-      #   rb_warn("SYBTEXT: dbcolutype: %s", dbcolutype(rwrap->client, col));
-      #   rb_warn("SYBTEXT: dbcolutype: %ld", dbcolutype(rwrap->client, col));
+      it 'casts date' do
+        # 0001-01-01
+        v = find_value 51, :date
+        if @client.tds_73?
+          assert_instance_of Date, v
+          assert_equal 1, v.year, 'Year'
+          assert_equal 1, v.month, 'Month'
+          assert_equal 1, v.day, 'Day'
+        else
+          assert_equal '0001-01-01', v
+        end
+        # 9999-12-31
+        v = find_value 52, :date
+        if @client.tds_73?
+          assert_instance_of Date, v
+          assert_equal 9999, v.year, 'Year'
+          assert_equal 12, v.month, 'Month'
+          assert_equal 31, v.day, 'Day'
+        else
+          assert_equal '9999-12-31', v
+        end
+      end
 
-      # it 'casts date' do
-      #   value = find_value 51, :date
-      #   assert_equal '', value
-      # end
-      #
-      # it 'casts datetime2' do
-      #   value = find_value 72, :datetime2_7
-      #   assert_equal '', value
-      # end
-      #
-      # it 'casts datetimeoffset' do
-      #   value = find_value 81, :datetimeoffset_2
-      #   assert_equal '', value
-      # end
-      #
+      it 'casts time' do
+        # 15:45:00.709714966
+        v = find_value 281, :time_2
+        if @client.tds_73?
+          assert_instance_of Time, v
+          assert_equal 1900,      v.year,  'Year'
+          assert_equal 1,         v.month, 'Month'
+          assert_equal 1,         v.day,   'Day'
+          assert_equal 15,        v.hour,  'Hour'
+          assert_equal 45,        v.min,   'Minute'
+          assert_equal 0,         v.sec,   'Second'
+          assert_equal 710000,    v.usec,  'Microseconds'
+          assert_equal 710000000, v.nsec,  'Nanoseconds'
+        else
+          assert_equal '15:45:00.71', v
+        end
+        # 04:20:00.288321545
+        v = find_value 282, :time_2
+        if @client.tds_73?
+          assert_instance_of Time, v
+          assert_equal 1900,      v.year,  'Year'
+          assert_equal 1,         v.month, 'Month'
+          assert_equal 1,         v.day,   'Day'
+          assert_equal 4,         v.hour,  'Hour'
+          assert_equal 20,        v.min,   'Minute'
+          assert_equal 0,         v.sec,   'Second'
+          assert_equal 290000,    v.usec,  'Microseconds'
+          assert_equal 290000000, v.nsec,  'Nanoseconds'
+        else
+          assert_equal '04:20:00.29', v
+        end
+        # 15:45:00.709714966
+        v = find_value 283, :time_7
+        if @client.tds_73?
+          assert_instance_of Time, v
+          assert_equal 1900,      v.year,  'Year'
+          assert_equal 1,         v.month, 'Month'
+          assert_equal 1,         v.day,   'Day'
+          assert_equal 15,        v.hour,  'Hour'
+          assert_equal 45,        v.min,   'Minute'
+          assert_equal 0,         v.sec,   'Second'
+          assert_equal 709715,    v.usec,  'Microseconds'
+          assert_equal 709715000, v.nsec,  'Nanoseconds'
+        else
+          assert_equal '15:45:00.7097150', v
+        end
+        # 04:20:00.288321545
+        v = find_value 284, :time_7
+        if @client.tds_73?
+          assert_instance_of Time, v
+          assert_equal 1900,      v.year,  'Year'
+          assert_equal 1,         v.month, 'Month'
+          assert_equal 1,         v.day,   'Day'
+          assert_equal 4,         v.hour,  'Hour'
+          assert_equal 20,        v.min,   'Minute'
+          assert_equal 0,         v.sec,   'Second'
+          assert_equal 288321,    v.usec,  'Microseconds'
+          assert_equal 288321500, v.nsec,  'Nanoseconds'
+        else
+          assert_equal '04:20:00.2883215', v
+        end
+      end
+
+      it 'casts datetime2' do
+        # 0001-01-01 00:00:00.0000000
+        v = find_value 71, :datetime2_7
+        if @client.tds_73?
+          assert_instance_of Time, v
+          assert_equal 1, v.year,  'Year'
+          assert_equal 1, v.month, 'Month'
+          assert_equal 1, v.day,   'Day'
+          assert_equal 0, v.hour,  'Hour'
+          assert_equal 0, v.min,   'Minute'
+          assert_equal 0, v.sec,   'Second'
+          assert_equal 0, v.usec,  'Microseconds'
+          assert_equal 0, v.nsec,  'Nanoseconds'
+        else
+          assert_equal '0001-01-01 00:00:00.0000000', v
+        end
+        # 1984-01-24 04:20:00.0000000
+        v = find_value 72, :datetime2_7
+        if @client.tds_73?
+          assert_instance_of Time, v
+          assert_equal 1984, v.year,  'Year'
+          assert_equal 1,    v.month, 'Month'
+          assert_equal 24,   v.day,   'Day'
+          assert_equal 4,    v.hour,  'Hour'
+          assert_equal 20,   v.min,   'Minute'
+          assert_equal 0,    v.sec,   'Second'
+          assert_equal 0,    v.usec,  'Microseconds'
+          assert_equal 0,    v.nsec,  'Nanoseconds'
+        else
+          assert_equal '1984-01-24 04:20:00.0000000', v
+        end
+        # 9999-12-31 23:59:59.9999999
+        v = find_value 73, :datetime2_7
+        if @client.tds_73?
+          assert_instance_of Time, v
+          assert_equal 9999,      v.year,  'Year'
+          assert_equal 12,        v.month, 'Month'
+          assert_equal 31,        v.day,   'Day'
+          assert_equal 23,        v.hour,  'Hour'
+          assert_equal 59,        v.min,   'Minute'
+          assert_equal 59,        v.sec,   'Second'
+          assert_equal 999999,    v.usec,  'Microseconds'
+          assert_equal 999999900, v.nsec,  'Nanoseconds'
+        else
+          assert_equal '9999-12-31 23:59:59.9999999', v
+        end
+      end
+
+      it 'casts datetimeoffset' do
+        # 1984-01-24T04:20:00.1234567-08:00
+        v = find_value 84, :datetimeoffset_7
+        if @client.tds_73?
+          assertions = lambda {
+            assert_instance_of Time, v
+            assert_equal 1984, v.year,       'Year'
+            assert_equal 1, v.month,         'Month'
+            assert_equal 24, v.day,          'Day'
+            assert_equal 4, v.hour,          'Hour'
+            assert_equal 20, v.min,          'Minute'
+            assert_equal 0, v.sec,           'Second'
+            assert_equal 123456, v.usec,     'Microseconds'
+            assert_equal 123456700, v.nsec,  'Nanoseconds'
+            assert_equal -480, v.utc_offset, 'Offset'
+          }
+          assertions.call
+          v = find_value 84, :datetimeoffset_7, timezone: :local
+          assertions.call # Ignores timezone query option.
+        else
+          assert_equal '1984-01-24 04:20:00.1234567 -08:00', v
+        end
+      end
+
       # it 'casts geography' do
       #   value = find_value 111, :geography
       #   assert_equal '', value
@@ -282,11 +411,6 @@ class SchemaTest < TinyTds::TestCase
       #
       # it 'casts hierarchyid' do
       #   value = find_value 131, :hierarchyid
-      #   assert_equal '', value
-      # end
-      #
-      # it 'casts time' do
-      #   value = find_value 283, :time_7
       #   assert_equal '', value
       # end
 

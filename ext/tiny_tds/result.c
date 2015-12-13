@@ -7,9 +7,9 @@
 VALUE cTinyTdsResult;
 extern VALUE mTinyTds, cTinyTdsClient, cTinyTdsError;
 VALUE cBigDecimal, cDate;
-VALUE opt_decimal_zero, opt_float_zero, opt_one, opt_zero, opt_four, opt_19hdr, opt_tenk, opt_onemil;
+VALUE opt_decimal_zero, opt_float_zero, opt_one, opt_zero, opt_four, opt_19hdr, opt_onek, opt_tenk, opt_onemil, opt_onebil;
 static ID intern_new, intern_utc, intern_local, intern_localtime, intern_merge,
-          intern_civil, intern_new_offset, intern_plus, intern_divide, intern_Rational;
+          intern_civil, intern_new_offset, intern_plus, intern_divide;
 static ID sym_symbolize_keys, sym_as, sym_array, sym_cache_rows, sym_first, sym_timezone, sym_local, sym_utc, sym_empty_sets;
 
 
@@ -277,20 +277,48 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
         }
         case SYBDATETIME: {
           int year, month, day, hour, min, sec, msec;
-          DBDATEREC date_rec;
-          dbdatecrack(rwrap->client, &date_rec, (DBDATETIME *)data);
-          year  = date_rec.year;
-          month = date_rec.month;
-          day   = date_rec.day;
-          hour  = date_rec.hour;
-          min   = date_rec.minute;
-          sec   = date_rec.second;
-          msec  = date_rec.millisecond;
-          if (year+month+day+hour+min+sec+msec != 0) {
-            // VALUE offset = (timezone == intern_local) ? rwrap->local_offset : opt_zero;
-            // uint64_t seconds = (year*31557600ULL) + (month*2592000ULL) + (day*86400ULL) + (hour*3600ULL) + (min*60ULL) + sec;
-            val = rb_funcall(rb_cTime, timezone, 7, INT2NUM(year), INT2NUM(month), INT2NUM(day), INT2NUM(hour), INT2NUM(min), INT2NUM(sec), INT2NUM(msec*1000));
+          DBDATEREC dr;
+          dbdatecrack(rwrap->client, &dr, (DBDATETIME *)data);
+          if (dr.year + dr.month + dr.day + dr.hour + dr.minute + dr.second + dr.millisecond != 0) {
+            val = rb_funcall(rb_cTime, timezone, 7, INT2NUM(dr.year), INT2NUM(dr.month), INT2NUM(dr.day), INT2NUM(dr.hour), INT2NUM(dr.minute), INT2NUM(dr.second), INT2NUM(dr.millisecond*1000));
           }
+          break;
+        }
+        case 40:   // SYBMSDATE
+        case 41:   // SYBMSTIME
+        case 42:   // SYBMSDATETIME2
+        case 43: { // SYBMSDATETIMEOFFSET
+          #ifdef DBVERSION_73
+            if (dbtds(rwrap->client) >= DBTDS_7_3) {
+              DBDATEREC2 dr2;
+              dbanydatecrack(rwrap->client, &dr2, coltype, data);
+              switch(coltype) {
+                case 40: { // SYBMSDATE
+                  val = rb_funcall(cDate, intern_new, 3, INT2NUM(dr2.year), INT2NUM(dr2.month), INT2NUM(dr2.day));
+                  break;
+                }
+                case 41: { // SYBMSTIME
+                  VALUE rational_nsec = rb_Rational(INT2NUM(dr2.nanosecond), opt_onek);
+                  val = rb_funcall(rb_cTime, timezone, 7, INT2NUM(1900), INT2NUM(1), INT2NUM(1), INT2NUM(dr2.hour), INT2NUM(dr2.minute), INT2NUM(dr2.second), rational_nsec);
+                  break;
+                }
+                case 42: { // SYBMSDATETIME2
+                  VALUE rational_nsec = rb_Rational(INT2NUM(dr2.nanosecond), opt_onek);
+                  val = rb_funcall(rb_cTime, timezone, 7, INT2NUM(dr2.year), INT2NUM(dr2.month), INT2NUM(dr2.day), INT2NUM(dr2.hour), INT2NUM(dr2.minute), INT2NUM(dr2.second), rational_nsec);
+                  break;
+                }
+                case 43: { // SYBMSDATETIMEOFFSET
+                  VALUE rational_sec = rb_Rational(INT2NUM(dr2.nanosecond), opt_onebil);
+                  val = rb_funcall(rb_cTime, intern_new, 7, INT2NUM(dr2.year), INT2NUM(dr2.month), INT2NUM(dr2.day), INT2NUM(dr2.hour), INT2NUM(dr2.minute), rational_sec, INT2NUM(dr2.tzone));
+                  break;
+                }
+              }
+            } else {
+              val = ENCODED_STR_NEW(data, data_len);
+            }
+          #else
+            val = ENCODED_STR_NEW(data, data_len);
+          #endif
           break;
         }
         case SYBCHAR:
@@ -550,7 +578,6 @@ void init_tinytds_result() {
   intern_new_offset = rb_intern("new_offset");
   intern_plus = rb_intern("+");
   intern_divide = rb_intern("/");
-  intern_Rational = rb_intern("Rational");
   /* Symbol Helpers */
   sym_symbolize_keys = ID2SYM(rb_intern("symbolize_keys"));
   sym_as = ID2SYM(rb_intern("as"));
@@ -570,8 +597,10 @@ void init_tinytds_result() {
   opt_zero = INT2NUM(0);
   opt_four = INT2NUM(4);
   opt_19hdr = INT2NUM(1900);
+  opt_onek = INT2NUM(1000);
   opt_tenk = INT2NUM(10000);
   opt_onemil = INT2NUM(1000000);
+  opt_onebil = INT2NUM(1000000000);
   /* Encoding */
   #ifdef HAVE_RUBY_ENCODING_H
     binaryEncoding = rb_enc_find("binary");

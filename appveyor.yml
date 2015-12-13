@@ -49,3 +49,4 @@ environment:
     - ruby_version: "22-x64"
 on_failure:
   - find -name compile.log | xargs cat
+

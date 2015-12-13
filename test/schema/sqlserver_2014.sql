@@ -70,13 +70,13 @@ INSERT INTO [datatypes] ([id], [date])              VALUES ( 52, '9999-12-31' )
 INSERT INTO [datatypes] ([id], [datetime])          VALUES ( 61, '1753-01-01T00:00:00.000' )
 INSERT INTO [datatypes] ([id], [datetime])          VALUES ( 62, '9999-12-31T23:59:59.997' )
 INSERT INTO [datatypes] ([id], [datetime])          VALUES ( 63, '2010-01-01T12:34:56.123' )
-INSERT INTO [datatypes] ([id], [datetime2_7])       VALUES ( 71, '0001-01-01T00:00:00.0000000Z' )
-INSERT INTO [datatypes] ([id], [datetime2_7])       VALUES ( 72, '1984-01-24T04:20:00.0000000-08:00' )
-INSERT INTO [datatypes] ([id], [datetime2_7])       VALUES ( 73, '9999-12-31T23:59:59.9999999Z' )
-INSERT INTO [datatypes] ([id], [datetimeoffset_2])  VALUES ( 81, '1984-01-24T04:20:00.0000000-08:00' ) -- 1984-01-24 04:20:00.00 -08:00
+INSERT INTO [datatypes] ([id], [datetime2_7])       VALUES ( 71, '0001-01-01 00:00:00.0000000' )
+INSERT INTO [datatypes] ([id], [datetime2_7])       VALUES ( 72, '1984-01-24 04:20:00.0000000' )
+INSERT INTO [datatypes] ([id], [datetime2_7])       VALUES ( 73, '9999-12-31 23:59:59.9999999' )
+INSERT INTO [datatypes] ([id], [datetimeoffset_2])  VALUES ( 81, '1984-01-24T04:20:00.1234567-08:00' ) -- 1984-01-24 04:20:00.00 -08:00
 INSERT INTO [datatypes] ([id], [datetimeoffset_2])  VALUES ( 82, '1984-01-24T04:20:00.0000000Z' )      -- 1984-01-24 04:20:00.00 +00:00
 INSERT INTO [datatypes] ([id], [datetimeoffset_2])  VALUES ( 83, '9999-12-31T23:59:59.9999999Z' )      -- 9999-12-31 23:59:59.99 +00:00
-INSERT INTO [datatypes] ([id], [datetimeoffset_7])  VALUES ( 84, '1984-01-24T04:20:00.0000000-08:00' ) -- 1984-01-24 04:20:00.0000000 -08:00
+INSERT INTO [datatypes] ([id], [datetimeoffset_7])  VALUES ( 84, '1984-01-24T04:20:00.1234567-08:00' ) -- 1984-01-24 04:20:00.1234567 -08:00
 INSERT INTO [datatypes] ([id], [datetimeoffset_7])  VALUES ( 85, '1984-01-24T04:20:00.0000000Z' )      -- 1984-01-24 04:20:00.0000000 +00:00
 INSERT INTO [datatypes] ([id], [datetimeoffset_7])  VALUES ( 86, '9999-12-31T23:59:59.9999999Z' )      -- 9999-12-31 23:59:59.9999999 +00:00
 INSERT INTO [datatypes] ([id], [decimal_9_2])       VALUES ( 91, 12345.01 )
@@ -120,10 +120,10 @@ INSERT INTO [datatypes] ([id], [smallmoney])        VALUES ( 251, 4.20 )
 INSERT INTO [datatypes] ([id], [smallmoney])        VALUES ( 252, -214748.3647 )
 INSERT INTO [datatypes] ([id], [smallmoney])        VALUES ( 253, 214748.3646 )
 INSERT INTO [datatypes] ([id], [text])              VALUES ( 271, 'test text' )
-INSERT INTO [datatypes] ([id], [time_2])            VALUES ( 281, '1901-01-01T15:45:00.0100001Z' )      -- 15:45:00.01
-INSERT INTO [datatypes] ([id], [time_2])            VALUES ( 282, '1984-01-24T04:20:00.0000001-08:00' ) -- 04:20:00.00
-INSERT INTO [datatypes] ([id], [time_7])            VALUES ( 283, '1901-01-01T15:45:00.0100001Z' )      -- 15:45:00.0100001
-INSERT INTO [datatypes] ([id], [time_7])            VALUES ( 284, '1984-01-24T04:20:00.0000001-08:00' ) -- 04:20:00.0000001
+INSERT INTO [datatypes] ([id], [time_2])            VALUES ( 281, '15:45:00.709714966' ) -- 15:45:00.71
+INSERT INTO [datatypes] ([id], [time_2])            VALUES ( 282, '04:20:00.288321545' ) -- 04:20:00.29
+INSERT INTO [datatypes] ([id], [time_7])            VALUES ( 283, '15:45:00.709714966' ) -- 15:45:00.709714900
+INSERT INTO [datatypes] ([id], [time_7])            VALUES ( 284, '04:20:00.288321545' ) -- 04:20:00.288321500
 INSERT INTO [datatypes] ([id], [tinyint])           VALUES ( 301, 0 )
 INSERT INTO [datatypes] ([id], [tinyint])           VALUES ( 302, 255 )
 INSERT INTO [datatypes] ([id], [uniqueidentifier])  VALUES ( 311, NEWID() )

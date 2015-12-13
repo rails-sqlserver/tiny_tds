@@ -43,7 +43,7 @@ If you use Windows, we pre-compile TinyTDS with static versions of FreeTDS, libi
 
 ## FreeTDS Compatibility & Configuration
 
-TinyTDS is developed against FreeTDS 0.91, and 0.95 current. Our default and recommended is 0.95. We also test with SQL Server 2000, 2005, 2008, 2014, and Azure. Below are a few QA style notes about installing FreeTDS.
+TinyTDS is developed against FreeTDS 0.91, 0.95, and 0.99 current. Our default and recommended is 0.95. We also test with SQL Server 2008, 2014, and Azure. However, usage of TinyTDS with SQL Server 2000 or 2005 should be just fine. Below are a few QA style notes about installing FreeTDS.
 
 **NOTE:** Windows users of our pre-compiled native gems need not worry about installing FreeTDS and its dependencies.
 
@@ -60,9 +60,11 @@ TinyTDS is developed against FreeTDS 0.91, and 0.95 current. Our default and rec
 
 ## Data Types
 
-Our goal is to support every SQL Server data type and covert it to a logical Ruby object. When dates or times are returned, they are instantiated to either `:utc` or `:local` time depending on the query options. All strings are associated the to the connection's encoding and all binary data types are associated to Ruby's `ASCII-8BIT/BINARY` encoding.
+Our goal is to support every SQL Server data type and covert it to a logical Ruby object. When dates or times are returned, they are instantiated to either `:utc` or `:local` time depending on the query options. Only [datetimeoffset] types are excluded. All strings are associated the to the connection's encoding and all binary data types are associated to Ruby's `ASCII-8BIT/BINARY` encoding.
 
-Below is a list of the data types we plan to support using future versions of FreeTDS. They are associated with SQL Server 2008 and up. All unsupported data types below are returned as strings.
+Below is a list of the data types we support when using the 7.3 TDS protocol version. You must be using the latest FreeTDS v0.95.74 or higher.
+
+Using a lower protocol version will result in these types being returned as strings.
 
 * [date]
 * [datetime2]

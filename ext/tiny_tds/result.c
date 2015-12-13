@@ -276,7 +276,6 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
           data_len = sizeof(new_data);
         }
         case SYBDATETIME: {
-          int year, month, day, hour, min, sec, msec;
           DBDATEREC dr;
           dbdatecrack(rwrap->client, &dr, (DBDATETIME *)data);
           if (dr.year + dr.month + dr.day + dr.hour + dr.minute + dr.second + dr.millisecond != 0) {

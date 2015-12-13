@@ -43,6 +43,10 @@ module TinyTds
       connect(opts)
     end
 
+    def tds_73?
+      tds_version >= 11
+    end
+
     def tds_version_info
       info = TDS_VERSIONS_GETTERS[tds_version]
       "#{info[:name]} - #{info[:description]}" if info
@@ -109,7 +113,8 @@ module TinyTds
       8  => {:name => 'DBTDS_7_0',            :description => 'Microsoft SQL Server 7.0'},
       9  => {:name => 'DBTDS_7_1/DBTDS_8_0',  :description => 'Microsoft SQL Server 2000'},
       10 => {:name => 'DBTDS_7_2/DBTDS_9_0',  :description => 'Microsoft SQL Server 2005'},
-      11 => {:name => 'DBTDS_7_3',            :description => 'Microsoft SQL Server 2008'}
+      11 => {:name => 'DBTDS_7_3',            :description => 'Microsoft SQL Server 2008'},
+      12 => {:name => 'DBTDS_7_4',            :description => 'Microsoft SQL Server 2012/2014'}
     }.freeze
 
   end

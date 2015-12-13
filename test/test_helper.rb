@@ -204,7 +204,6 @@ module TinyTds
       client.execute("ROLLBACK TRANSACTION").do
     end
 
-
   end
 end
 

@@ -1,16 +1,16 @@
 
 /*
 
-  * Binary Data - Our test binary data is a 1 pixel gif. The basic (raw) data is below. Quoting this data 
-    would involve this (encode) method and be (encoded) with the 0x prefix for raw SQL. In other clients the 
+  * Binary Data - Our test binary data is a 1 pixel gif. The basic (raw) data is below. Quoting this data
+    would involve this (encode) method and be (encoded) with the 0x prefix for raw SQL. In other clients the
     (raw_db) value without the 0x prefix would need to be (packed) again yield the original (raw) value.
-  
+
     (raw)     - "GIF89a\001\000\001\000\221\000\000\377\377\377\377\377\377\376\001\002\000\000\000!\371\004\004\024\000\377\000,\000\000\000\000\001\000\001\000\000\002\002D\001\000;"
     (encode)  - "0x#{raw.unpack("H*")[0]}"
     (encoded) - "0x47494638396101000100910000fffffffffffffe010200000021f904041400ff002c00000000010001000002024401003b"
     (raw_db)  - "47494638396101000100910000fffffffffffffe010200000021f904041400ff002c00000000010001000002024401003b"
     (packed)  - [raw_db].pack('H*')
-    
+
 */
 
 CREATE TABLE [datatypes] (
@@ -71,12 +71,12 @@ INSERT INTO [datatypes] ([id], [datetime])          VALUES ( 61, '1753-01-01T00:
 INSERT INTO [datatypes] ([id], [datetime])          VALUES ( 62, '9999-12-31T23:59:59.997' )
 INSERT INTO [datatypes] ([id], [datetime])          VALUES ( 63, '2010-01-01T12:34:56.123' )
 -- INSERT INTO [datatypes] ([id], [datetime2_7])       VALUES ( 71, '0001-01-01T00:00:00.0000000Z' )
--- INSERT INTO [datatypes] ([id], [datetime2_7])       VALUES ( 72, '1984-01-24T04:20:00.0000000-08:00' )
+-- INSERT INTO [datatypes] ([id], [datetime2_7])       VALUES ( 72, '1984-01-24T04:20:00.1234567-08:00' )
 -- INSERT INTO [datatypes] ([id], [datetime2_7])       VALUES ( 73, '9999-12-31T23:59:59.9999999Z' )
--- INSERT INTO [datatypes] ([id], [datetimeoffset_2])  VALUES ( 81, '1984-01-24T04:20:00.0000000-08:00' ) -- 1984-01-24 04:20:00.00 -08:00
+-- INSERT INTO [datatypes] ([id], [datetimeoffset_2])  VALUES ( 81, '1984-01-24T04:20:00.1234567-08:00' ) -- 1984-01-24 04:20:00.00 -08:00
 -- INSERT INTO [datatypes] ([id], [datetimeoffset_2])  VALUES ( 82, '1984-01-24T04:20:00.0000000Z' )      -- 1984-01-24 04:20:00.00 +00:00
 -- INSERT INTO [datatypes] ([id], [datetimeoffset_2])  VALUES ( 83, '9999-12-31T23:59:59.9999999Z' )      -- 9999-12-31 23:59:59.99 +00:00
--- INSERT INTO [datatypes] ([id], [datetimeoffset_7])  VALUES ( 84, '1984-01-24T04:20:00.0000000-08:00' ) -- 1984-01-24 04:20:00.0000000 -08:00
+-- INSERT INTO [datatypes] ([id], [datetimeoffset_7])  VALUES ( 84, '1984-01-24T04:20:00.1234567-08:00' ) -- 1984-01-24 04:20:00.1234567 -08:00
 -- INSERT INTO [datatypes] ([id], [datetimeoffset_7])  VALUES ( 85, '1984-01-24T04:20:00.0000000Z' )      -- 1984-01-24 04:20:00.0000000 +00:00
 -- INSERT INTO [datatypes] ([id], [datetimeoffset_7])  VALUES ( 86, '9999-12-31T23:59:59.9999999Z' )      -- 9999-12-31 23:59:59.9999999 +00:00
 INSERT INTO [datatypes] ([id], [decimal_9_2])       VALUES ( 91, 12345.01 )

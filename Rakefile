@@ -48,6 +48,7 @@ end
 task :compile
 
 task :build => [:clean, :compile]
+task(:build_quietly) { capture_stds { Rake::Task[:build].invoke } }
 
 task :default => [:build, :test]
 
@@ -94,4 +95,15 @@ task 'gem:windows' do
   RakeCompilerDock.sh <<-EOT
     rake cross native gem RUBY_CC_VERSION=2.0.0:2.1.6:2.2.2 CFLAGS="-Wall"
   EOT
+end
+
+def capture_stds
+  pstdout, $stdout = $stdout, StringIO.new
+  pstderr, $stderr = $stderr, StringIO.new
+  yield
+  $stdout.string
+  $stderr.string
+ensure
+  $stdout = pstdout
+  $stderr = pstderr
 end

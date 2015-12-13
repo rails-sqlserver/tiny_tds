@@ -1,6 +1,7 @@
 * 0.9.5 *
 
-* Add support for 2008 data types. Must use TDSVER 7.3 or higher. Fixes #227 #251
+* Binstub wrappers for `tsql`. Fixes #227 #251
+* Add support for 2008 data types. Must use TDSVER 7.3 or higher. Fixes #244 #251
   - [date]
   - [datetime2]
   - [datetimeoffset]

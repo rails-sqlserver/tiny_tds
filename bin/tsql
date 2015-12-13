@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+gem 'ptools' ; require 'ptools'
+
+path = File.symlink?(__FILE__) ? File.readlink(__FILE__) : __FILE__
+tsql = File.expand_path(File.join File.dirname(path), '..', 'exe', 'tsql')
+tsql = File.which('tsql') unless File.exists?(tsql)
+
+Kernel.system tsql, *ARGV

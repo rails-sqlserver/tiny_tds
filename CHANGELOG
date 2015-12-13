@@ -1,5 +1,10 @@
 * 0.9.5 *
 
+* Add support for 2008 data types. Must use TDSVER 7.3 or higher. Fixes #227 #251
+  - [date]
+  - [datetime2]
+  - [datetimeoffset]
+  - [time]
 * Default FreeTDS to 0.95. Support 0.91 Alternate Fixes #233
   - Allow our `tds_version` to mirror TDSVER env var. Ex '7.3' vs '73'.
   - Change error handler for `SYBEICONVO` to hard return INT_CANCEL.

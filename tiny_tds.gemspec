@@ -20,7 +20,6 @@ Gem::Specification.new do |s|
   s.license       = 'MIT'
   s.required_ruby_version = '>= 2.0.0'
   s.add_runtime_dependency     'mini_portile', '0.6.2'
-  s.add_runtime_dependency     'ptools'
   s.add_development_dependency 'rake', '~> 10.4'
   s.add_development_dependency 'rake-compiler', '0.9.5'
   s.add_development_dependency 'rake-compiler-dock', '~> 0.4.3'

@@ -5,7 +5,6 @@ ENV['RC_ARCHS'] = '' if RUBY_PLATFORM =~ /darwin/
 require 'mkmf'
 require 'mini_portile'
 require 'fileutils'
-require 'ptools'
 require_relative './extconsts'
 
 # Shamelessly copied from nokogiri
@@ -224,9 +223,9 @@ def define_freetds_recipe(host, libiconv, libssl, gnutls)
           bin_path = File.expand_path File.join(path, 'bin')
           exe_path = File.expand_path File.join(target, '..', 'exe')
           return unless File.directory?(bin_path)
-          $: << bin_path
+          ENV['PATH'] = "#{bin_path}#{File::PATH_SEPARATOR}#{ENV['PATH']}" unless ENV['PATH'].include?(bin_path)
           ['tsql'].each do |bin|
-            path = File.which(bin)
+            path = which(bin)
             next unless path.include?(bin_path)
             FileUtils.cp path, exe_path
           end

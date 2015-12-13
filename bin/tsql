@@ -1,9 +1,25 @@
 #!/usr/bin/env ruby
 
-gem 'ptools' ; require 'ptools'
+BIN   = 'tsql'
+ROOT  = File.expand_path(File.join File.dirname(File.symlink?(__FILE__) ? File.readlink(__FILE__) : __FILE__), '..')
+PATHS = ENV['PATH'].split(File::PATH_SEPARATOR)
+EXTS  = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
+SELF  = File.join ROOT, 'bin', BIN
+EXE   = File.join ROOT, 'exe', BIN
 
-path = File.symlink?(__FILE__) ? File.readlink(__FILE__) : __FILE__
-tsql = File.expand_path(File.join File.dirname(path), '..', 'exe', 'tsql')
-tsql = File.which('tsql') unless File.exists?(tsql)
+def which(cmd)
+  PATHS.each do |path|
+    EXTS.each do |ext|
+      exe = File.expand_path File.join(path, "#{cmd}#{ext}"), ROOT
+      next unless File.executable?(exe)
+      next if exe == SELF
+      return exe
+    end
+  end
+  return nil
+end
 
-Kernel.system tsql, *ARGV
+bin = File.exists?(EXE) ? EXE : which(BIN)
+puts "[TinyTds] #{BIN}: #{bin}"
+
+Kernel.system bin, *ARGV

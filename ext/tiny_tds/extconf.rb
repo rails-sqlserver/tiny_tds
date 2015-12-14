@@ -185,16 +185,14 @@ def define_libssl_recipe(host)
 end
 
 def define_libiconv_recipe(host)
-  BuildRecipe.new("libiconv", ICONV_VERSION, [ICONV_SOURCE_URI])
-             .tap do |recipe|
+  BuildRecipe.new("libiconv", ICONV_VERSION, [ICONV_SOURCE_URI]).tap do |recipe|
     # always produce position independent code
     recipe.configure_options << "CFLAGS=-fPIC"
   end
 end
 
 def define_freetds_recipe(host, libiconv, libssl, gnutls)
-  BuildRecipe.new("freetds", FREETDS_VERSION, [FREETDS_SOURCE_URI])
-             .tap do |recipe|
+  BuildRecipe.new("freetds", FREETDS_VERSION, [FREETDS_SOURCE_URI]).tap do |recipe|
     with_tdsver = FREETDS_VERSION =~ /0\.91/ ? "--with-tdsver=7.1" : "--with-tdsver=7.3"
     for_windows = recipe.host =~ /mswin|mingw/i
     recipe.configure_options << '--with-pic'
@@ -215,6 +213,28 @@ def define_freetds_recipe(host, libiconv, libssl, gnutls)
       recipe.configure_options << "\"CFLAGS=-I#{libiconv.path}/include\""
       recipe.configure_options << "\"LDFLAGS=-L#{libiconv.path}/lib -liconv\""
     end
+
+    class << recipe
+
+      def install
+        super_value = super
+        # Install binstub target binaries.
+        if super_value
+          bin_path = File.expand_path File.join(path, 'bin')
+          exe_path = File.expand_path File.join(target, '..', 'exe')
+          return unless File.directory?(bin_path)
+          ENV['PATH'] = "#{bin_path}#{File::PATH_SEPARATOR}#{ENV['PATH']}" unless ENV['PATH'].include?(bin_path)
+          ['tsql'].each do |bin|
+            path = which(bin)
+            next unless path.include?(bin_path)
+            FileUtils.cp path, exe_path
+          end
+        end
+        super_value
+      end
+
+    end
+
   end
 end
 

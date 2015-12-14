@@ -12,7 +12,7 @@
 * Made sure Azure logins are user@short vs. long domain. Fixes #229
 * Removed Ruby 1.9.3 from CI builds.
 * CI now tests Azure too.
-* Fixed compiler warnings on Darwin/OSX. Still a few on Windows.
+* Fixed compiler warnings on all platforms. Fixed #241
 * FreeTDS - Remove support for bad iconv.
 
 

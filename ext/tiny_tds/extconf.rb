@@ -3,8 +3,12 @@ ENV['RC_ARCHS'] = '' if RUBY_PLATFORM =~ /darwin/
 # :stopdoc:
 
 require 'mkmf'
-require 'mini_portile'
 require 'fileutils'
+
+# The gem version constraint in the gemspec is not respected at install time.
+# Keep this version in sync with the one in the gemspec !
+gem 'mini_portile2', '~> 2.0'
+require 'mini_portile2'
 require_relative './extconsts'
 
 # Shamelessly copied from nokogiri
@@ -210,8 +214,8 @@ def define_freetds_recipe(host, libiconv, libssl, gnutls)
     if libiconv
       # For some reason freetds doesn't honor --with-libiconv-prefix
       # so we have do add it by hand:
-      recipe.configure_options << "\"CFLAGS=-I#{libiconv.path}/include\""
-      recipe.configure_options << "\"LDFLAGS=-L#{libiconv.path}/lib -liconv\""
+      recipe.configure_options << "CFLAGS=-I#{libiconv.path}/include"
+      recipe.configure_options << "LDFLAGS=-L#{libiconv.path}/lib -liconv"
     end
 
     class << recipe

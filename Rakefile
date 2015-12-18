@@ -74,8 +74,9 @@ Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
       "libsybdb-5.dll",
     ]
     # We don't need the sources in a fat binary gem
-    spec.files = spec.files.reject{|f| f=~/^ports\/archives/ }
-    spec.files += dlls.map{|dll| "ports/#{host}/bin/#{File.basename(dll)}" }
+    spec.files = spec.files.reject { |f| f=~/^ports\/archives/ }
+    spec.files += dlls.map { |dll| "ports/#{host}/bin/#{File.basename(dll)}" }
+    spec.files += Dir.glob('exe/*')
     dlls.each do |dll|
       file "ports/#{host}/bin/#{dll}" do |t|
         sh "x86_64-w64-mingw32-strip", t.name

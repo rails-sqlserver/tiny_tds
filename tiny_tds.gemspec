@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.homepage      = 'http://github.com/rails-sqlserver/tiny_tds'
   s.summary       = 'TinyTDS - A modern, simple and fast FreeTDS library for Ruby using DB-Library.'
   s.description   = 'TinyTDS - A modern, simple and fast FreeTDS library for Ruby using DB-Library. Developed for the ActiveRecord SQL Server adapter.'
-  s.files         = `git ls-files`.split("\n") - ["tiny_tds.gemspec"]
+  s.files         = `git ls-files`.split("\n") + Dir.glob('exe/*')
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ['lib']

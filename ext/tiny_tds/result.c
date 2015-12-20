@@ -489,7 +489,7 @@ static VALUE rb_tinytds_result_cancel(VALUE self) {
   GET_RESULT_WRAPPER(self);
   userdata = (tinytds_client_userdata *)dbgetuserdata(rwrap->client);
   if (rwrap->client && !userdata->dbcancel_sent) {
-    RETCODE dbsqlok_rc = rb_tinytds_result_ok_helper(rwrap->client);
+    rb_tinytds_result_ok_helper(rwrap->client);
     dbcancel(rwrap->client);
     userdata->dbcancel_sent = 1;
     userdata->dbsql_sent = 0;

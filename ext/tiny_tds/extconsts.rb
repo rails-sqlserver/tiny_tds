@@ -5,7 +5,7 @@ ICONV_SOURCE_URI = "http://ftp.gnu.org/pub/gnu/libiconv/libiconv-#{ICONV_VERSION
 OPENSSL_VERSION = ENV['TINYTDS_OPENSSL_VERSION'] || '1.0.2e'
 OPENSSL_SOURCE_URI = "http://www.openssl.org/source/openssl-#{OPENSSL_VERSION}.tar.gz"
 
-FREETDS_VERSION = ENV['TINYTDS_FREETDS_VERSION'] || "0.95.75"
+FREETDS_VERSION = ENV['TINYTDS_FREETDS_VERSION'] || "0.95.76"
 FREETDS_VERSION_INFO = Hash.new { |h,k|
   h[k] = {files: "ftp://ftp.freetds.org/pub/freetds/stable/freetds-#{k}.tar.bz2"}
 }

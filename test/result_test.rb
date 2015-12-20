@@ -313,7 +313,7 @@ class ResultTest < TinyTds::TestCase
     it 'has properly encoded column names with symbol keys' do
       col_name = "öäüß"
       @client.execute("DROP TABLE [test_encoding]").do rescue nil
-      @client.execute("CREATE TABLE [dbo].[test_encoding] ( [#{col_name}] [nvarchar](10) NOT NULL )").do
+      @client.execute("CREATE TABLE [dbo].[test_encoding] ( [id] int NOT NULL IDENTITY(1,1) PRIMARY KEY, [#{col_name}] [nvarchar](10) NOT NULL )").do
       @client.execute("INSERT INTO [test_encoding] ([#{col_name}]) VALUES (N'#{col_name}')").do
       result = @client.execute("SELECT [#{col_name}] FROM [test_encoding]")
       row = result.each(:as => :hash, :symbolize_keys => true).first
@@ -321,7 +321,7 @@ class ResultTest < TinyTds::TestCase
       assert_equal col_name.to_sym, result.fields.first
       assert_instance_of Symbol, row.keys.first
       assert_equal col_name.to_sym, row.keys.first
-    end unless sqlserver_azure?
+    end
 
     it 'allows #return_code to work with stored procedures and reset per sql batch' do
       assert_nil @client.return_code

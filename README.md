@@ -402,3 +402,4 @@ My name is Ken Collins and I currently maintain the SQL Server adapter for Activ
 
 TinyTDS is Copyright (c) 2010-2015 Ken Collins, <ken@metaskills.net> and Will Bond (Veracross LLC) <wbond@breuer.com>. It is distributed under the MIT license. Windows binaries contain pre-compiled versions of FreeTDS <http://www.freetds.org/> which is licensed under the GNU LGPL license at <http://www.gnu.org/licenses/lgpl-2.0.html>
 
+

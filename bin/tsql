@@ -1,25 +1,7 @@
 #!/usr/bin/env ruby
 
-BIN   = 'tsql'
-ROOT  = File.expand_path(File.join File.dirname(File.symlink?(__FILE__) ? File.readlink(__FILE__) : __FILE__), '..')
-PATHS = ENV['PATH'].split(File::PATH_SEPARATOR)
-EXTS  = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
-SELF  = File.join ROOT, 'bin', BIN
-EXE   = File.join ROOT, 'exe', BIN
+require_relative '../lib/tiny_tds/bin'
 
-def which(cmd)
-  PATHS.each do |path|
-    EXTS.each do |ext|
-      exe = File.expand_path File.join(path, "#{cmd}#{ext}"), ROOT
-      next unless File.executable?(exe)
-      next if exe == SELF
-      return exe
-    end
-  end
-  return nil
-end
-
-bin = File.exists?(EXE) ? EXE : which(BIN)
-puts "[TinyTds] #{BIN}: #{bin}"
-
-Kernel.system bin, *ARGV
+bin = TinyTds::Bin.new 'tsql'
+puts bin.info
+Kernel.system bin.path, *ARGV

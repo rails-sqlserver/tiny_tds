@@ -285,6 +285,7 @@ TinyTDS takes an opinionated stance on how we handle encoding errors. First, we 
 The TinyTDS gem uses binstub wrappers which mirror compiled [FreeTDS Utilities](http://www.freetds.org/userguide/usefreetds.htm) binaries. These native executables are usually installed at the system level when installing FreeTDS. However, when using MiniPortile to install TinyTDS as we do with Windows binaries, these binstubs will find and prefer local gem `exe` directory executables. These are the following binstubs we wrap.
 
 * tsql - Used to test connections and debug compile time settings.
+* defncopy - Used to dump schema structures.
 
 
 ## Using TinyTDS With Rails & The ActiveRecord SQL Server adapter.

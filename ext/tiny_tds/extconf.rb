@@ -227,7 +227,7 @@ def define_freetds_recipe(host, libiconv, libssl, gnutls)
           bin_path = File.expand_path File.join(path, 'bin')
           exe_path = File.expand_path File.join(target, '..', 'exe')
           return unless File.directory?(bin_path)
-          ['tsql'].each do |bin|
+          ['tsql', 'defncopy'].each do |bin|
             ['.exe', ''].each do |ext|
               exe = File.join bin_path, "#{bin}#{ext}"
               next unless File.exists?(exe)

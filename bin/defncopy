@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/tiny_tds/bin'
+
+bin = TinyTds::Bin.new 'defncopy'
+puts bin.info
+Kernel.system bin.path, *ARGV

@@ -9,10 +9,11 @@ module TinyTds
 
     attr_reader :name
 
-    def initialize(name)
+    def initialize(name, options = {})
       @name = name
       @binstub = File.join ROOT, 'bin', @name
       @exefile = File.join ROOT, 'exe', @name
+      puts info unless options[:silent]
     end
 
     def path

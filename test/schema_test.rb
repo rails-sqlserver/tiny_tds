@@ -386,7 +386,7 @@ class SchemaTest < TinyTds::TestCase
           assert_equal 120000,    v.usec,  'Microseconds'
           assert_equal 120000000, v.nsec,  'Nanoseconds'
         else
-          assert_equal '9999-12-31 23:59:59.9999999', v
+          assert_equal '9999-12-31 23:59:59.12', v
         end
       end
 

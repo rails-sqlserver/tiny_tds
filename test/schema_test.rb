@@ -373,6 +373,21 @@ class SchemaTest < TinyTds::TestCase
         else
           assert_equal '9999-12-31 23:59:59.9999999', v
         end
+        # 9999-12-31 23:59:59.123456789
+        v = find_value 74, :datetime2_2
+        if @client.tds_73?
+          assert_instance_of Time, v
+          assert_equal 9999,      v.year,  'Year'
+          assert_equal 12,        v.month, 'Month'
+          assert_equal 31,        v.day,   'Day'
+          assert_equal 23,        v.hour,  'Hour'
+          assert_equal 59,        v.min,   'Minute'
+          assert_equal 59,        v.sec,   'Second'
+          assert_equal 120000,    v.usec,  'Microseconds'
+          assert_equal 120000000, v.nsec,  'Nanoseconds'
+        else
+          assert_equal '9999-12-31 23:59:59.9999999', v
+        end
       end
 
       it 'casts datetimeoffset' do

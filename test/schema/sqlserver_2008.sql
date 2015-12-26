@@ -22,6 +22,7 @@ CREATE TABLE [dbo].[datatypes] (
 	[date] [date] NULL,
 	[datetime] [datetime] NULL,
 	[datetime2_7] [datetime2](7) NULL,
+	[datetime2_2] [datetime2](2) NULL,
 	[datetimeoffset_2] [datetimeoffset](2) NULL,
 	[datetimeoffset_7] [datetimeoffset](7) NULL,
 	[decimal_9_2] [decimal](9, 2) NULL,
@@ -73,6 +74,7 @@ INSERT INTO [datatypes] ([id], [datetime])          VALUES ( 63, '2010-01-01T12:
 INSERT INTO [datatypes] ([id], [datetime2_7])       VALUES ( 71, '0001-01-01 00:00:00.0000000' )
 INSERT INTO [datatypes] ([id], [datetime2_7])       VALUES ( 72, '1984-01-24 04:20:00.0000000' )
 INSERT INTO [datatypes] ([id], [datetime2_7])       VALUES ( 73, '9999-12-31 23:59:59.9999999' )
+INSERT INTO [datatypes] ([id], [datetime2_2])       VALUES ( 74, '9999-12-31 23:59:59.123456789' )
 INSERT INTO [datatypes] ([id], [datetimeoffset_2])  VALUES ( 81, '1984-01-24T04:20:00.1234567-08:00' ) -- 1984-01-24 04:20:00.00 -08:00
 INSERT INTO [datatypes] ([id], [datetimeoffset_2])  VALUES ( 82, '1984-01-24T04:20:00.0000000Z' )      -- 1984-01-24 04:20:00.00 +00:00
 INSERT INTO [datatypes] ([id], [datetimeoffset_2])  VALUES ( 83, '9999-12-31T23:59:59.9999999Z' )      -- 9999-12-31 23:59:59.99 +00:00

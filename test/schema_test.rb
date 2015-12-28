@@ -396,15 +396,15 @@ class SchemaTest < TinyTds::TestCase
         if @client.tds_73?
           assertions = lambda {
             assert_instance_of Time, v
-            assert_equal 1984, v.year,       'Year'
-            assert_equal 1, v.month,         'Month'
-            assert_equal 24, v.day,          'Day'
-            assert_equal 4, v.hour,          'Hour'
-            assert_equal 20, v.min,          'Minute'
-            assert_equal 0, v.sec,           'Second'
-            assert_equal 123456, v.usec,     'Microseconds'
-            assert_equal 123456700, v.nsec,  'Nanoseconds'
-            assert_equal -480, v.utc_offset, 'Offset'
+            assert_equal 1984, v.year,         'Year'
+            assert_equal 1, v.month,           'Month'
+            assert_equal 24, v.day,            'Day'
+            assert_equal 4, v.hour,            'Hour'
+            assert_equal 20, v.min,            'Minute'
+            assert_equal 0, v.sec,             'Second'
+            assert_equal 123456, v.usec,       'Microseconds'
+            assert_equal 123456700, v.nsec,    'Nanoseconds'
+            assert_equal -28800, v.utc_offset, 'Offset'
           }
           assertions.call
           v = find_value 84, :datetimeoffset_7, timezone: :local

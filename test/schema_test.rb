@@ -391,7 +391,7 @@ class SchemaTest < TinyTds::TestCase
       end
 
       it 'casts datetimeoffset' do
-        skip 'datetimeoffset argument out of range' if ruby32bit? && host_windows?
+        skip 'datetimeoffset argument out of range' if windows_x86?
         # 1984-01-24T04:20:00.1234567-08:00
         v = find_value 84, :datetimeoffset_7
         if @client.tds_73?

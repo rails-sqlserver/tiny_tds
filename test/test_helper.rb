@@ -135,7 +135,7 @@ module TinyTds
     end
 
     def windows_x86?
-      RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ && RbConfig::CONFIG['host'] =~ /x86|i686/
+      RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ && RbConfig::CONFIG['host'] =~ /i386/
     end
 
     def rubyRbx?

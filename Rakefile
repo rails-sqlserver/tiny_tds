@@ -7,6 +7,11 @@ require 'rake/extensiontask'
 require 'rubygems/package_task'
 require_relative './ext/tiny_tds/extconsts'
 
+puts "DEBUG:\n\n\n"
+puts "RbConfig::CONFIG['host_os']: #{RbConfig::CONFIG['host_os'].inspect}"
+puts "RbConfig::CONFIG['host']: #{RbConfig::CONFIG['host'].inspect}"
+puts "DEBUG:\n\n\n"
+
 def test_libs
   ['lib','test']
 end

@@ -401,7 +401,7 @@ class SchemaTest < TinyTds::TestCase
             assert_equal 24, v.day,            'Day'
             assert_equal 4, v.hour,            'Hour'
             assert_equal 20, v.min,            'Minute'
-            assert_equal 0, v.sec,             'Second'
+            assert_equal 59, v.sec,            'Second'
             assert_equal 123456, v.usec,       'Microseconds'
             assert_equal 123456700, v.nsec,    'Nanoseconds'
             assert_equal -28800, v.utc_offset, 'Offset'
@@ -410,7 +410,7 @@ class SchemaTest < TinyTds::TestCase
           v = find_value 84, :datetimeoffset_7, timezone: :local
           assertions.call # Ignores timezone query option.
         else
-          assert_equal '1984-01-24 04:20:00.1234567 -08:00', v
+          assert_equal '1984-01-24 04:20:59.1234567 -08:00', v
         end
       end
 

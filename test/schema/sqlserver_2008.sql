@@ -78,7 +78,7 @@ INSERT INTO [datatypes] ([id], [datetime2_2])       VALUES ( 74, '9999-12-31 23:
 INSERT INTO [datatypes] ([id], [datetimeoffset_2])  VALUES ( 81, '1984-01-24T04:20:00.1234567-08:00' ) -- 1984-01-24 04:20:00.00 -08:00
 INSERT INTO [datatypes] ([id], [datetimeoffset_2])  VALUES ( 82, '1984-01-24T04:20:00.0000000Z' )      -- 1984-01-24 04:20:00.00 +00:00
 INSERT INTO [datatypes] ([id], [datetimeoffset_2])  VALUES ( 83, '9999-12-31T23:59:59.9999999Z' )      -- 9999-12-31 23:59:59.99 +00:00
-INSERT INTO [datatypes] ([id], [datetimeoffset_7])  VALUES ( 84, '1984-01-24T04:20:00.1234567-08:00' ) -- 1984-01-24 04:20:00.1234567 -08:00
+INSERT INTO [datatypes] ([id], [datetimeoffset_7])  VALUES ( 84, '1984-01-24T04:20:59.1234567-08:00' ) -- 1984-01-24 04:20:59.1234567 -08:00
 INSERT INTO [datatypes] ([id], [datetimeoffset_7])  VALUES ( 85, '1984-01-24T04:20:00.0000000Z' )      -- 1984-01-24 04:20:00.0000000 +00:00
 INSERT INTO [datatypes] ([id], [datetimeoffset_7])  VALUES ( 86, '9999-12-31T23:59:59.9999999Z' )      -- 9999-12-31 23:59:59.9999999 +00:00
 INSERT INTO [datatypes] ([id], [decimal_9_2])       VALUES ( 91, 12345.01 )

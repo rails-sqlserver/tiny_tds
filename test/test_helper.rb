@@ -134,8 +134,16 @@ module TinyTds
       assert_equal Encoding.find('UTF-8'), value.encoding
     end
 
+    def ruby32bit?
+      1.size == 4
+    end
+
     def rubyRbx?
       RUBY_DESCRIPTION =~ /rubinius/i
+    end
+
+    def host_windows?
+      RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
     end
 
     def load_current_schema

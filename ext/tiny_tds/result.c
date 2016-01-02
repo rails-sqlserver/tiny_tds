@@ -307,8 +307,9 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
                   break;
                 }
                 case 43: { // SYBMSDATETIMEOFFSET
-                  long long numerator = ((long)dr2.second * (long long)1000000000) + (long long)dr2.nanosecond;
-                  rb_warn("SYBMSDATETIMEOFFSET: %" LONG_LONG_FORMAT, numerator);
+                  // long long numerator = ((long)dr2.second * (long long)1000000000) + (long long)dr2.nanosecond;
+                  long numerator = 59123456700;
+                  rb_warn("LONG2NUM(numerator): %"PRIsVALUE, LONG2NUM(numerator));
                   VALUE rational_sec = rb_Rational(LONG2NUM(numerator), opt_onebil);
                   val = rb_funcall(rb_cTime, intern_new, 7, INT2NUM(dr2.year), INT2NUM(dr2.month), INT2NUM(dr2.day), INT2NUM(dr2.hour), INT2NUM(dr2.minute), rational_sec, INT2NUM(dr2.tzone*60));
                   break;

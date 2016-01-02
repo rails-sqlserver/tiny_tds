@@ -134,10 +134,6 @@ module TinyTds
       assert_equal Encoding.find('UTF-8'), value.encoding
     end
 
-    def windows_32bit?
-      RbConfig::CONFIG['host_os'] == 'mingw32' && RbConfig::CONFIG['host'] =~ /i686-pc/
-    end
-
     def rubyRbx?
       RUBY_DESCRIPTION =~ /rubinius/i
     end

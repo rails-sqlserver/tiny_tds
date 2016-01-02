@@ -391,29 +391,27 @@ class SchemaTest < TinyTds::TestCase
       end
 
       it 'casts datetimeoffset' do
-        Time.new(1984, 1, 24, 4, 20, Rational(((59 * 1000000000) + 123456700), 1000000000), -480*60)
-        # skip 'datetimeoffset argument out of range' if windows_32bit?
         # 1984-01-24T04:20:00.1234567-08:00
-        # v = find_value 84, :datetimeoffset_7
-        # if @client.tds_73?
-        #   assertions = lambda {
-        #     assert_instance_of Time, v
-        #     assert_equal 1984, v.year,         'Year'
-        #     assert_equal 1, v.month,           'Month'
-        #     assert_equal 24, v.day,            'Day'
-        #     assert_equal 4, v.hour,            'Hour'
-        #     assert_equal 20, v.min,            'Minute'
-        #     assert_equal 59, v.sec,            'Second'
-        #     assert_equal 123456, v.usec,       'Microseconds'
-        #     assert_equal 123456700, v.nsec,    'Nanoseconds'
-        #     assert_equal -28800, v.utc_offset, 'Offset'
-        #   }
-        #   assertions.call
-        #   # v = find_value 84, :datetimeoffset_7, timezone: :local
-        #   # assertions.call # Ignores timezone query option.
-        # else
-        #   assert_equal '1984-01-24 04:20:59.1234567 -08:00', v
-        # end
+        v = find_value 84, :datetimeoffset_7
+        if @client.tds_73?
+          assertions = lambda {
+            assert_instance_of Time, v
+            assert_equal 1984, v.year,         'Year'
+            assert_equal 1, v.month,           'Month'
+            assert_equal 24, v.day,            'Day'
+            assert_equal 4, v.hour,            'Hour'
+            assert_equal 20, v.min,            'Minute'
+            assert_equal 59, v.sec,            'Second'
+            assert_equal 123456, v.usec,       'Microseconds'
+            assert_equal 123456700, v.nsec,    'Nanoseconds'
+            assert_equal -28800, v.utc_offset, 'Offset'
+          }
+          assertions.call
+          v = find_value 84, :datetimeoffset_7, timezone: :local
+          assertions.call # Ignores timezone query option.
+        else
+          assert_equal '1984-01-24 04:20:59.1234567 -08:00', v
+        end
       end
 
       # it 'casts geography' do

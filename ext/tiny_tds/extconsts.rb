@@ -9,6 +9,6 @@ FREETDS_VERSION = ENV['TINYTDS_FREETDS_VERSION'] || "0.95.78"
 FREETDS_VERSION_INFO = Hash.new { |h,k|
   h[k] = {files: "ftp://ftp.freetds.org/pub/freetds/stable/freetds-#{k}.tar.bz2"}
 }
-FREETDS_VERSION_INFO['0.99'] = {files: 'ftp://ftp.freetds.org/pub/freetds/current/freetds-dev.0.99.479.tar.bz2'}
+FREETDS_VERSION_INFO['0.99'] = {files: 'ftp://ftp.freetds.org/pub/freetds/current/freetds-dev.0.99.536.tar.bz2'}
 FREETDS_VERSION_INFO['current'] = {files: 'https://github.com/FreeTDS/freetds/archive/master.zip'}
 FREETDS_SOURCE_URI = FREETDS_VERSION_INFO[FREETDS_VERSION][:files]

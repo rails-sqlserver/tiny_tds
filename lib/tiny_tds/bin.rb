@@ -9,11 +9,20 @@ module TinyTds
 
     attr_reader :name
 
+    class << self
+
+      def exe(name, *args)
+        bin = new(name)
+        puts bin.info
+        Kernel.system bin.path, *args if bin.path
+      end
+
+    end
+
     def initialize(name, options = {})
       @name = name
-      @binstub = File.join ROOT, 'bin', @name
-      @exefile = File.join ROOT, 'exe', @name
-      puts info unless options[:silent]
+      @binstub = find_bin
+      @exefile = find_exe
     end
 
     def path
@@ -27,6 +36,18 @@ module TinyTds
 
 
     private
+
+    def find_bin
+      File.join ROOT, 'bin', @name
+    end
+
+    def find_exe
+      EXTS.each do |ext|
+        f = File.join ROOT, 'exe', "#{@name}#{ext}"
+        return f if File.exists?(f)
+      end
+      nil
+    end
 
     def which
       PATHS.each do |path|

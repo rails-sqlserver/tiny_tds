@@ -1,6 +1,3 @@
 #!/usr/bin/env ruby
-
 require_relative '../lib/tiny_tds/bin'
-
-bin = TinyTds::Bin.new 'tsql'
-Kernel.system bin.path, *ARGV
+TinyTds::Bin.exe 'tsql', *ARGV

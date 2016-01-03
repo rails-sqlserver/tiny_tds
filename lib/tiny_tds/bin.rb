@@ -47,6 +47,7 @@ module TinyTds
     #
     def binary?(file)
       bytes = File.stat(file).blksize
+      return false unless bytes
       bytes = 4096 if bytes > 4096
       s = (File.read(file, bytes) || "")
       s = s.encode('US-ASCII', :undef => :replace).split(//)

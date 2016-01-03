@@ -3,9 +3,9 @@ require_relative './version'
 module TinyTds
   class Bin
 
-    ROOT  = File.expand_path '../..', __FILE__
+    ROOT  = File.expand_path '../../..', __FILE__
     PATHS = ENV['PATH'].split File::PATH_SEPARATOR
-    EXTS  = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
+    EXTS  = (ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']) | ['.exe']
 
     attr_reader :name
 
@@ -19,7 +19,7 @@ module TinyTds
 
     end
 
-    def initialize(name, options = {})
+    def initialize(name)
       @name = name
       @binstub = find_bin
       @exefile = find_exe
@@ -44,6 +44,7 @@ module TinyTds
     def find_exe
       EXTS.each do |ext|
         f = File.join ROOT, 'exe', "#{@name}#{ext}"
+        puts f.inspect
         return f if File.exists?(f)
       end
       nil

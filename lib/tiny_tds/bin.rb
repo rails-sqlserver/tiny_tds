@@ -27,7 +27,7 @@ module TinyTds
 
     def path
       return @path if defined?(@path)
-      @path = File.exists?(@exefile) ? @exefile : which
+      @path = @exefile && File.exists?(@exefile) ? @exefile : which
     end
 
     def info

@@ -44,7 +44,6 @@ module TinyTds
     def find_exe
       EXTS.each do |ext|
         f = File.join ROOT, 'exe', "#{@name}#{ext}"
-        puts f.inspect
         return f if File.exists?(f)
       end
       nil

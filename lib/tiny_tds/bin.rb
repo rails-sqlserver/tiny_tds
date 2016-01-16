@@ -1,4 +1,5 @@
 require_relative './version'
+require 'shellwords'
 
 module TinyTds
   class Bin
@@ -14,7 +15,7 @@ module TinyTds
       def exe(name, *args)
         bin = new(name)
         puts bin.info
-        Kernel.system bin.path, *args if bin.path
+        bin.run(*args)
       end
 
     end
@@ -23,6 +24,12 @@ module TinyTds
       @name = name
       @binstub = find_bin
       @exefile = find_exe
+    end
+
+    def run(*args)
+      return nil unless path
+      Kernel.system Shellwords.join(args.unshift(path))
+      $?.to_i
     end
 
     def path

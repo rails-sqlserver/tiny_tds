@@ -45,12 +45,12 @@ module TinyTds
     private
 
     def find_bin
-      File.join ROOT, 'bin', @name
+      File.join ROOT, 'bin', name
     end
 
     def find_exe
       EXTS.each do |ext|
-        f = File.join ROOT, 'exe', "#{@name}#{ext}"
+        f = File.join ROOT, 'exe', "#{name}#{ext}"
         return f if File.exists?(f)
       end
       nil

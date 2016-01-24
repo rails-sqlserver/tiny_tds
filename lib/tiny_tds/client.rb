@@ -64,10 +64,12 @@ module TinyTds
     end
 
     def parse_username(opts)
+      host = opts[:host]
       username = opts[:username]
       return username if username.nil? || !opts[:azure]
       return username if username.include?("@") && !username.include?("database.windows.net")
       user, domain = username.split("@")
+      domain ||= host
       "#{user}@#{domain.split('.').first}"
     end
 

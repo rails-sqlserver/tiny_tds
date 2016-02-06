@@ -41,7 +41,7 @@ test_script:
   - bundle exec rake TINYTDS_UNIT_HOST_TEST=%CI_AZURE_HOST% TINYTDS_UNIT_HOST=%CI_AZURE_HOST% TINYTDS_SCHEMA=sqlserver_azure TDSVER=7.3
 environment:
   CI_AZURE_HOST:
-    secure: Qkf6IJGISn6/WK9Feu71wLLQx7g0RMNfjj/YwNE+zJE=
+    secure: 8ydpYysZYKEBKvp6plKlYfepH98/zAuT27FFCaJ9Sss=
   TINYTDS_UNIT_AZURE_PASS:
     secure: fYKSKV4v+36OFQp2nZdX4DfUpgmy5cm0wuR73cgdmEk=
   matrix:

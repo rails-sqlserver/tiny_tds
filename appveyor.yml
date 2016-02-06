@@ -37,12 +37,11 @@ test_script:
   - bundle exec rake TINYTDS_UNIT_HOST_TEST=localhost TINYTDS_UNIT_DATASERVER="localhost\SQL2008R2SP2" TINYTDS_SCHEMA=sqlserver_2008
   - timeout /t 4 /nobreak > NUL
   - bundle exec rake TINYTDS_UNIT_HOST_TEST=%CI_AZURE_HOST% TINYTDS_UNIT_HOST=%CI_AZURE_HOST% TINYTDS_SCHEMA=sqlserver_azure
+  - timeout /t 4 /nobreak > NUL
   - bundle exec rake TINYTDS_UNIT_HOST_TEST=%CI_AZURE_HOST% TINYTDS_UNIT_HOST=%CI_AZURE_HOST% TINYTDS_SCHEMA=sqlserver_azure TDSVER=7.3
 environment:
   CI_AZURE_HOST:
     secure: Qkf6IJGISn6/WK9Feu71wLLQx7g0RMNfjj/YwNE+zJE=
-  TINYTDS_UNIT_AZURE_USER:
-    secure: a/9Rph59mNJMObcpJ7mrimqZ+pOth8NLY9iiroFUob4=
   TINYTDS_UNIT_AZURE_PASS:
     secure: fYKSKV4v+36OFQp2nZdX4DfUpgmy5cm0wuR73cgdmEk=
   matrix:

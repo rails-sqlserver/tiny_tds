@@ -207,7 +207,7 @@ def define_freetds_recipe(host, libiconv, libssl, gnutls)
       recipe.configure_options << "--with-openssl=#{libssl.path}"
     end
     recipe.configure_options << "--with-gnutls" if gnutls
-    recipe.configure_options << '--sysconfdir=C:\Sites' if for_windows
+    recipe.configure_options << '--sysconfdir="C:\Sites"' if for_windows
     recipe.configure_options << '--enable-sspi' if for_windows
     recipe.configure_options << "--disable-odbc"
     recipe.configure_options << with_tdsver

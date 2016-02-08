@@ -159,6 +159,16 @@ result = client.execute("SELECT * FROM [super_big_table]")
 result.cancel
 ```
 
+You can use results cancelation in conjunction with results lazy loading, no problem.
+
+```ruby
+result = client.execute("SELECT * FROM [super_big_table]")
+result.each_with_index do |row, i|
+  break if row > 10
+end
+result.cancel
+```
+
 If the SQL executed by the client returns affected rows, you can easily find out how many.
 
 ```ruby

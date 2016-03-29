@@ -356,6 +356,11 @@ The compiled gems will exist in `./pkg` directory.
 
 First make sure your local database has a `[tinytdstest]` database with a owner login named `[tinytds]` having no password. The following SQL run via the `sa` account should set that up for you.
 
+```bash
+$ tsql -H <host> -p 1433 -U sa -P <pass>
+$ sqsh -H <host> -p 1433 -U sa -P <pass>
+```
+
 ```sql
 CREATE DATABASE [tinytdstest];
 GO

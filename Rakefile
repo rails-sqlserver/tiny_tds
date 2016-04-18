@@ -68,8 +68,8 @@ Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
     gemplat = spec.platform.to_s
     host = platform_host_map[gemplat]
     dlls = [
-      "libeay32-1.0.2f-#{host}.dll",
-      "ssleay32-1.0.2f-#{host}.dll",
+      "libeay32-1.0.2g-#{host}.dll",
+      "ssleay32-1.0.2g-#{host}.dll",
       "libiconv-2.dll",
       "libsybdb-5.dll",
     ]

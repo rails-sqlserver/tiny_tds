@@ -1,0 +1,509 @@
+diff --git a/configure.ac b/configure.ac
+index 2271414..987108c 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -424,7 +424,7 @@ TYPE_SOCKLEN_T
+ AC_MSG_CHECKING([whether getopt has optreset support])
+ AC_TRY_LINK([#ifdef HAVE_GETOPT_H
+ #include <getopt.h>
+-#endif], [extern int optreset; optreset = 0;],
++#endif], [optreset = 0;],
+ [AC_MSG_RESULT(yes)
+ AC_DEFINE(HAVE_GETOPT_OPTRESET, 1, [Define if your getopt(3) defines and uses optreset])],
+ [AC_MSG_RESULT(no)]
+diff --git a/doc/htdoc/index.html b/doc/htdoc/index.html
+index a22aed8..fb9414f 100644
+--- a/doc/htdoc/index.html
++++ b/doc/htdoc/index.html
+@@ -58,7 +58,7 @@
+    <li><a
+  href="ftp://ftp.freetds.org/pub/freetds/stable/freetds-patched.tar.gz">Stable Release</a></li>
+    <li><a href="ftp://ftp.freetds.org/pub/freetds/current/freetds-current.tar.bz2">Nightly Snapshot</a></li>
+-   <li><a href="ftp://ftp.freetds.org/pub/freetds/stable/release_candidates/freetds-1.0rc1.tar.bz2">1.0 Release Candidate 1</a></li>
++   <li><a href="ftp://ftp.freetds.org/pub/freetds/stable/release_candidates/freetds-1.0rc2.tar.bz2">1.0 Release Candidate 2</a></li>
+  </ul>
+
+ <b>Documentation</b>
+diff --git a/doc/htdoc/news.html b/doc/htdoc/news.html
+index 3d36392..0687a23 100644
+--- a/doc/htdoc/news.html
++++ b/doc/htdoc/news.html
+@@ -35,12 +35,26 @@
+ <table summary="layout" width="80%" align="center">
+
+ <!--  item  -->
++<tr bgcolor="#c9c9ff"><td>Version 1.0 Release Candidate 2</td></tr>
++<tr>
++<td>
++
++<p>The second release candidate for version 1.0 is <a href="ftp://ftp.freetds.org/pub/freetds/stable/release_candidates/">available</a> for testing.
++Mainly minor changes and documentation updates. Changed "use utf-16" default to yes.
++20 Apr 2016.</p>
++<br />
++
++</td>
++</tr>
++
++<!--  item  -->
+ <tr bgcolor="#c9c9ff"><td>Version 1.0 Release Candidate 1</td></tr>
+ <tr>
+ <td>
+
+ <p>The first release candidate for version 1.0 is <a href="ftp://ftp.freetds.org/pub/freetds/stable/release_candidates/">available</a> for testing.
+-17 Apr 2016. You can see changes at <a href="https://raw.githubusercontent.com/FreeTDS/freetds/Branch-1_00/NEWS">NEWS</a>.</p>
++You can see changes at <a href="https://raw.githubusercontent.com/FreeTDS/freetds/Branch-1_00/NEWS">NEWS</a>.
++17 Apr 2016.</p>
+ <br />
+
+ </td>
+diff --git a/doc/userguide.sgml b/doc/userguide.sgml
+index e042479..5daea31 100644
+--- a/doc/userguide.sgml
++++ b/doc/userguide.sgml
+@@ -574,10 +574,7 @@ Once project files are created you can open them with your environment.</para>
+
+          <listitem><para>MingW</para></listitem>
+
+-         <listitem><para><application>gcc</> under <application>cygwin</>.</para></listitem>
+-
+          </itemizedlist>
+-<para>From the Department of Double Emulation: &freetds; builds as a <filename>.dll</> under <productname>WINE</> and as a <filename>.a</> under <productname>Interix</>.  See the mailing list archives (second half of 2003) for details.</para>
+        </sect3>
+
+      <sect3><title>Download Windows&reg; binaries</title>
+@@ -645,41 +642,36 @@ and register the driver as a standard component.</para>
+      </sect2>
+    <sect2 id="osx"><title>OS X&reg;</title>
+
+-<para>As of this writing (&ug.date;), the regular distribution compiles on OS X.  </para>
+-
+-<![ %comment [
+- <!-- cf http://www.is-thought.co.uk/book/sgml-8.htm -->
+-     <sect3 id="OSX.Build.Update">
+-       <title>Alternative build procedure</title>
+-<para>On  11 March 2004, <email><ulink url="mailto:dimo@angelhill.net">Dmitri Fedortchenko</ulink></email> offered the following approach, using a local <command>libtool</>.  It is included here as a source of clues, in case you encounter trouble.</para>
+-
+-       <procedure id="OSX.new.libtool">
+-         <title>Installing with libtool 1.5.2</title>
+-         <step><para>Install the latest <command>libtool</> from GNU into <filename>/usr/local</>, so as not to interfere with the Apple-original.</para></step>
+-         <step><para>Make sure <filename>/usr/local/bin</> is in your <envar>PATH</envar> and <filename>/usr/local/lib</> is in your <envar>LIBRARY_PATH</envar>.</para></step>
+-         <step><para>Go to the &freetds; source directory and generate the <filename>Makefile</>s
+-<screen>
+- <prompt>$ </prompt><userinput>./configure --disable-libiconv --disable-odbc</userinput></screen>
+-</para></step>
+- <step><para>Overwrite &freetds;'s <filename>libtool</> with a symbolic link to your (better) one
+-<screen>
+- <footnote><para> If you run <command>configure</> again, you'll need to perform this step
+- again, because <command>libtool</> will have been regenerated in its fossilized state.</para></footnote>
+- <prompt>$ </prompt><userinput>ln -sf /usr/local/bin/libtool</userinput></screen></para></step>
++<para>The regular distribution compiles on OS X.</para>
+
+-         <step performance="optional"><para>To check that you've done everything correctly up to this
+-             point,
++     <sect3 id="OSX.Build.LinkIssues">
++       <title>Possible linker problems</title>
++<para>On 18 April 2016, a problem was reported causing linker issues.
+ <screen>
+- <prompt>$ </prompt><userinput>./libtool --version</userinput></screen>
+- <command>libtool</> should report version 1.5.2 (or whatever version you downloaded, and <emphasis>not</> 1.4).</para></step>
+- <step><para>And finally, of course
+-<screen>
+- <prompt>$ </prompt><userinput>make &amp;&amp; make install</userinput></screen>
+-</para></step>
++ Undefined symbols for architecture x86_64:
++
++   "___strlcpy_chk", referenced from:
++       _tdsdbopen in libsybdb_64.a(dblib.o)
++       _db_env_chg in libsybdb_64.a(dblib.o)
++       _dbcolinfo in libsybdb_64.a(dblib.o)
++       _dbtablecolinfo in libsybdb_64.a(dblib.o)
++       _tds_alloc_dynamic in libsybdb_64.a(mem.o)
++       _tds7_get_instance_port in libsybdb_64.a(net.o)
++       _tds_get_locale in libsybdb_64.a(locale.o)
++       ...
++</screen>
++</para>
++<para>
++This is due to some mismatch on different project releases. To solve these issue set the target release like
++<screen> <userinput>CFLAGS="-mmacosx-version-min=10.8" ./configure
++ make</userinput></screen>
++or
++<screen> <userinput>export MACOSX_DEPLOYMENT_TARGET=10.8
++ ./configure
++ make</userinput></screen>
++</para>
+
+-         </procedure>
+        </sect3>
+-]]>
+      </sect2>
+
+    <sect2 id="AIX"><title>AIX&reg;</title>
+diff --git a/include/replacements.h b/include/replacements.h
+index 3bdfcb2..b8483d6 100644
+--- a/include/replacements.h
++++ b/include/replacements.h
+@@ -139,6 +139,14 @@ char *tds_basename(char *path);
+ int tds_gettimeofday (struct timeval *tv, void *tz);
+ #define gettimeofday tds_gettimeofday
+
++/* Older Mingw-w64 versions don't define these flags. */
++#if defined(__MINGW32__) && !defined(AI_ADDRCONFIG)
++#  define AI_ADDRCONFIG 0x00000400
++#endif
++#if defined(__MINGW32__) && !defined(AI_V4MAPPED)
++#  define AI_V4MAPPED 0x00000800
++#endif
++
+ #endif
+
+ #if !HAVE_GETOPT
+diff --git a/m4/check_openssl.m4 b/m4/check_openssl.m4
+index 2e5fa73..c40696f 100644
+--- a/m4/check_openssl.m4
++++ b/m4/check_openssl.m4
+@@ -4,11 +4,13 @@ dnl $Id: check_openssl.m4,v 1.2 2006-03-27 07:22:54 jklowden Exp $
+ AC_DEFUN([CHECK_OPENSSL],
+ [AC_MSG_CHECKING(if openssl is wanted)
+ AC_ARG_WITH(openssl, AS_HELP_STRING([--with-openssl], [--with-openssl=DIR build with OpenSSL (license NOT compatible cf. User Guide)]))
+-if test "$with_openssl" != "no" -a "$cross_compiling" != "yes"; then
++if test "$with_openssl" != "no"; then
+     AC_MSG_RESULT(yes)
++    old_NETWORK_LIBS="$NETWORK_LIBS"
+     PKG_CHECK_MODULES(OPENSSL, [openssl], [found_ssl=yes
+ CFLAGS="$CFLAGS $OPENSSL_CFLAGS"
+ NETWORK_LIBS="$NETWORK_LIBS $OPENSSL_LIBS"], [found_ssl=no
++    if test "$cross_compiling" != "yes"; then
+         for dir in $withval /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr; do
+             ssldir="$dir"
+             if test -f "$dir/include/openssl/ssl.h"; then
+@@ -19,12 +21,21 @@ NETWORK_LIBS="$NETWORK_LIBS $OPENSSL_LIBS"], [found_ssl=no
+                 LDFLAGS="$LDFLAGS -L$ssldir/lib"
+                 break
+             fi
+-    done])
+-    if test x$found_ssl != xyes; then
++        done
++    fi])
++    if test x$found_ssl = xyes; then
++ ACX_PUSH_LIBS("$NETWORK_LIBS")
++        AC_TRY_LINK([#include <openssl/ssl.h>], [SSL_read(NULL, NULL, 100);], [], [found_ssl=no])
++ ACX_POP_LIBS
++    fi
++    if test x$found_ssl != xyes -a "$with_openssl" != ""; then
+         AC_MSG_ERROR(Cannot find OpenSSL libraries)
+-    else
++        NETWORK_LIBS="$old_NETWORK_LIBS"
++    elif test x$found_ssl = xyes; then
+         HAVE_OPENSSL=yes
+         AC_DEFINE(HAVE_OPENSSL, 1, [Define if you have the OpenSSL.])
++    else
++        NETWORK_LIBS="$old_NETWORK_LIBS"
+     fi
+     AC_SUBST(HAVE_OPENSSL)
+ else
+diff --git a/src/apps/defncopy.c b/src/apps/defncopy.c
+index edc4f7a..2973c27 100644
+--- a/src/apps/defncopy.c
++++ b/src/apps/defncopy.c
+@@ -337,6 +337,7 @@ print_ddl(DBPROCESS *dbproc, PROCEDURE *procedure)
+  for (iresultset=1; (erc = dbresults(dbproc)) != NO_MORE_RESULTS; iresultset++) {
+    if (erc == FAIL) {
+      fprintf(stderr, "%s:%d: dbresults(), result set %d failed\n", options.appname, __LINE__, iresultset);
++     fclose(create_index);
+      return 0;
+    }
+
+diff --git a/src/apps/freebcp.c b/src/apps/freebcp.c
+index 9ed94b7..ee37f2f 100644
+--- a/src/apps/freebcp.c
++++ b/src/apps/freebcp.c
+@@ -713,7 +713,7 @@ setoptions(DBPROCESS * dbproc, BCPPARAMDATA * params)
+      }
+    } else {
+      while (fgets (optBuf, sizeof(optBuf), optFile) != NULL) {
+-       if (dbfcmd(dbproc, optBuf) == FAIL) {
++       if (dbcmd(dbproc, optBuf) == FAIL) {
+          fprintf(stderr, "setoptions() failed preparing options at %s:%d\n", __FILE__, __LINE__);
+          fclose(optFile);
+          return FALSE;
+diff --git a/src/apps/tsql.c b/src/apps/tsql.c
+index 83b5626..588f41f 100644
+--- a/src/apps/tsql.c
++++ b/src/apps/tsql.c
+@@ -469,6 +469,7 @@ populate_login(TDSLOGIN * login, int argc, char **argv)
+      confile = strdup(optarg);
+      break;
+    case 'J':
++     free(charset);
+      charset = strdup(optarg);
+      break;
+    case 'p':
+diff --git a/src/ctlib/unittests/datafmt.c b/src/ctlib/unittests/datafmt.c
+index 0ae4587..57c74ec 100644
+--- a/src/ctlib/unittests/datafmt.c
++++ b/src/ctlib/unittests/datafmt.c
+@@ -9,9 +9,6 @@
+ #include <ctpublic.h>
+ #include "common.h"
+
+-static char software_version[] = "$Id: datafmt.c,v 1.5 2011-05-16 08:51:40 freddy77 Exp $";
+-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+-
+ /* Testing: data truncation behavior of ct_fetch */
+ int
+ main(int argc, char *argv[])
+diff --git a/src/dblib/dblib.c b/src/dblib/dblib.c
+index 7bb8b39..e370771 100644
+--- a/src/dblib/dblib.c
++++ b/src/dblib/dblib.c
+@@ -7274,7 +7274,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
+          memcpy(dest, src, srclen);
+          dest[srclen] = '\0';
+          break;
+-       case STRINGBIND:   /* pad with blanks, null term */
++       case STRINGBIND:   /* pad with blanks, NUL term */
+          if (limited_dest_space) {
+            if (srclen + 1 > destlen) {
+              dbperror(dbproc, SYBECOFL, 0);
+@@ -7289,7 +7289,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
+            dest[i] = ' ';
+          dest[i] = '\0';
+          break;
+-       case CHARBIND:   /* pad with blanks, NO null term */
++       case CHARBIND:   /* pad with blanks, NO NUL term */
+          if (limited_dest_space) {
+            if (srclen > destlen) {
+              dbperror(dbproc, SYBECOFL, 0);
+@@ -7303,7 +7303,7 @@ copy_data_to_host_var(DBPROCESS * dbproc, int srctype, const BYTE * src, DBINT s
+          for (i = srclen; i < destlen; i++)
+            dest[i] = ' ';
+          break;
+-       case VARYCHARBIND: /* strip trailing blanks, NO null term */
++       case VARYCHARBIND: /* strip trailing blanks, NO NUL term */
+          if (limited_dest_space) {
+            if (srclen > destlen) {
+              dbperror(dbproc, SYBECOFL, 0);
+diff --git a/src/odbc/unittests/array_out.c b/src/odbc/unittests/array_out.c
+index 23a44e5..fdcdbad 100644
+--- a/src/odbc/unittests/array_out.c
++++ b/src/odbc/unittests/array_out.c
+@@ -3,9 +3,6 @@
+
+ /* Test using array binding */
+
+-static char software_version[] = "$Id: array_out.c,v 1.19 2011-07-12 10:16:59 freddy77 Exp $";
+-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+-
+ static const char *test_query = NULL;
+ static int trunc = 0;
+ static int record_bind = 0;
+diff --git a/src/odbc/unittests/binary_test.c b/src/odbc/unittests/binary_test.c
+index d552418..a4914c5 100644
+--- a/src/odbc/unittests/binary_test.c
++++ b/src/odbc/unittests/binary_test.c
+@@ -7,9 +7,6 @@
+ #include "common.h"
+ #include <assert.h>
+
+-static char software_version[] = "$Id: binary_test.c,v 1.10 2011-07-12 10:16:59 freddy77 Exp $";
+-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+-
+ #define ERR_BUF_SIZE 256
+ /*
+    Name of table used by the test. Should contain single column,
+diff --git a/src/odbc/unittests/connect2.c b/src/odbc/unittests/connect2.c
+index c8865f2..0639dd7 100644
+--- a/src/odbc/unittests/connect2.c
++++ b/src/odbc/unittests/connect2.c
+@@ -5,9 +5,6 @@
+  * either SQLConnect and SQLDriverConnect
+  */
+
+-static char software_version[] = "$Id: connect2.c,v 1.10 2012-03-04 11:33:07 freddy77 Exp $";
+-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+-
+ static int failed = 0;
+
+ static void init_connect(void);
+diff --git a/src/odbc/unittests/testodbc.c b/src/odbc/unittests/testodbc.c
+index 009691c..0d42475 100644
+--- a/src/odbc/unittests/testodbc.c
++++ b/src/odbc/unittests/testodbc.c
+@@ -10,9 +10,6 @@
+
+ #include "common.h"
+
+-static char software_version[] = "$Id: testodbc.c,v 1.16 2011-07-12 10:16:59 freddy77 Exp $";
+-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+-
+ #ifdef DEBUG
+ # define AB_FUNCT(x)  do { printf x; printf("\n"); } while(0)
+ # define AB_PRINT(x)  do { printf x; printf("\n"); } while(0)
+diff --git a/src/odbc/unittests/transaction2.c b/src/odbc/unittests/transaction2.c
+index 7de5dbd..b69f80e 100644
+--- a/src/odbc/unittests/transaction2.c
++++ b/src/odbc/unittests/transaction2.c
+@@ -3,9 +3,6 @@
+
+ /* Test transaction types */
+
+-static char software_version[] = "$Id: transaction2.c,v 1.11 2011-07-12 10:16:59 freddy77 Exp $";
+-static void *no_unused_var_warn[] = { software_version, no_unused_var_warn };
+-
+ static void
+ ReadErrorConn(void)
+ {
+diff --git a/src/pool/main.c b/src/pool/main.c
+index 62d91d2..d645276 100644
+--- a/src/pool/main.c
++++ b/src/pool/main.c
+@@ -120,9 +120,9 @@ pool_init(const char *name)
+    fprintf(stderr, "%s\n", err);
+    exit(EXIT_FAILURE);
+  }
+- check_field(name, pool->user,   "user");
+- check_field(name, pool->server, "server");
+- check_field(name, pool->port,   "port");
++ check_field(name, pool->user != NULL,   "user");
++ check_field(name, pool->server != NULL, "server");
++ check_field(name, pool->port != 0,   "port");
+
+  if (pool->max_open_conn < pool->min_open_conn) {
+    fprintf(stderr, "Max connections less than minimum\n");
+@@ -366,7 +366,7 @@ int
+ main(int argc, char **argv)
+ {
+  int opt;
+-#ifndef _WIN32
++#ifdef HAVE_FORK
+  bool daemonize = false;
+ #  define DAEMON_OPT "d"
+ #else
+@@ -386,7 +386,7 @@ main(int argc, char **argv)
+    case 'l':
+      logfile_name = optarg;
+      break;
+-#ifndef _WIN32
++#ifdef HAVE_FORK
+    case 'd':
+      daemonize = true;
+      break;
+@@ -401,7 +401,7 @@ main(int argc, char **argv)
+    return EXIT_FAILURE;
+  }
+  pool = pool_init(argv[optind]);
+-#ifndef _WIN32
++#ifdef HAVE_FORK
+  if (daemonize) {
+    if (daemon(0, 0) < 0) {
+      fprintf(stderr, "Failed to daemonize %s\n", argv[0]);
+diff --git a/vms/descrip_mms.template b/vms/descrip_mms.template
+index d8caa32..63a7f4d 100644
+--- a/vms/descrip_mms.template
++++ b/vms/descrip_mms.template
+@@ -20,8 +20,8 @@
+
+ # OpenVMS description file for FreeTDS
+
+-# To override default TDS version of 5.0 specify /MACRO="TDSVER=TDSxx"
+-# where xx is one of 42, 46, 50, 70, or 80.
++# To override default TDS version of "auto" specify /MACRO="TDSVER=TDSxx=1"
++# where xx is one of 42, 46, 50, 70, 71, 72, 73, or 74.
+
+ # To build with ODBC support do MM(K|S)/MACRO="ODBC"=1
+ # This presupposes the existence of an ODBC library in the location pointed to
+@@ -32,10 +32,6 @@
+
+ # To build with MSDBLIB-compatbile dblib structures, do MM(K|S)/MACRO="MSDBLIB"=1
+
+-.IFDEF TDSVER
+-.ELSE
+-TDSVER = TDS50
+-.ENDIF
+
+ OBJ = .OBJ
+ E = .EXE
+@@ -72,20 +68,49 @@ CC = CC/DECC
+
+ @ENABLE_THREAD_SAFE@
+ .IFDEF ENABLE_THREAD_SAFE
+-PTHREAD_CDEFINE = ,"_THREAD_SAFE"=1
++PTHREAD_CDEFINE = "_THREAD_SAFE"=1
+ PTHREAD_LINK_FLAGS = /THREADS=UPCALLS
+ .ELSE
+ PTHREAD_CDEFINE =
+ PTHREAD_LINK_FLAGS =
+ .ENDIF
+
++CDEFINE =
++
++.IFDEF TDSVER
++CDEFINE = $(TDSVER)
++.ENDIF
++
+ .IFDEF ODBC
+-CDEFINE = "$(TDSVER)","UNIXODBC"$(PTHREAD_CDEFINE)
++ODBC_CDEFINE = "UNIXODBC"
+ CODBCFLAGS = /NAMES=(AS_IS,SHORTENED)
+ .ELSE
+-CDEFINE = $(TDSVER)$(PTHREAD_CDEFINE)
++ODBC_CDEFINE =
+ CODBCFLAGS = /NAMES=SHORTENED
+ .ENDIF
++
++.IFDEF ODBC_CDEFINE
++.IFDEF CDEFINE
++CDEFINE = $(CDEFINE),$(ODBC_CDEFINE)
++.ELSE
++CDEFINE = $(ODBC_CDEFINE)
++.ENDIF
++.ENDIF
++
++.IFDEF PTHREAD_CDEFINE
++.IFDEF CDEFINE
++CDEFINE = $(CDEFINE),$(PTHREAD_CDEFINE)
++.ELSE
++CDEFINE = $(PTHREAD_CDEFINE)
++.ENDIF
++.ENDIF
++
++.IFDEF CDEFINE
++CDEFINE_QUAL = /DEFINE=($(CDEFINE))
++.ELSE
++CDEFINE_QUAL =
++.ENDIF
++
+ CPREFIX = ALL
+ CINCLUDE = "./","./include"$(ODBC_INC)
+
+@@ -97,7 +122,7 @@ CDBGFLAGS =
+ LDBGFLAGS = /NOTRACE
+ .ENDIF
+
+-CFLAGS = /DEFINE=($(CDEFINE))/PREFIX=($(CPREFIX))/FLOAT=IEEE/IEEE=DENORM/OBJECT=$(MMS$TARGET_NAME)$(OBJ) $(CODBCFLAGS) $(CDBGFLAGS)
++CFLAGS = $(CDEFINE_QUAL)/PREFIX=($(CPREFIX))/FLOAT=IEEE/IEEE=DENORM/OBJECT=$(MMS$TARGET_NAME)$(OBJ) $(CODBCFLAGS) $(CDBGFLAGS)
+ LINKFLAGS = $(LDBGFLAGS)$(PTHREAD_LINK_FLAGS)
+
+ .c$(OBJ) :
+@@ -124,9 +149,9 @@ TDSOBJS = [.src.tds]bulk$(OBJ), [.src.tds]challenge$(OBJ), [.src.tds]config$(OBJ
+  [.src.tds]threadsafe$(OBJ), [.src.tds]token$(OBJ), [.src.tds]util$(OBJ), \
+  [.src.tds]vstrbuild$(OBJ), [.src.tds]write$(OBJ), [.src.tds]md5$(OBJ), \
+  [.src.tds]net$(OBJ), [.src.tds]tls$(OBJ), [.src.tds]log$(OBJ), [.src.tds]packet$(OBJ), \
+- [.src.tds]stream$(OBJ), [.src.tds]random$(OBJ), \
++ [.src.tds]stream$(OBJ), [.src.tds]random$(OBJ), [.src.tds]sec_negotiate$(OBJ), \
+  [.src.replacements]strlcpy$(OBJ), [.src.replacements]getpassarg$(OBJ), \
+- [.src.replacements]sleep$(OBJ), \
++ [.src.replacements]sleep$(OBJ), [.src.replacements]strlcat$(OBJ), \
+  $(ASPRINTFOBJ) $(VASPRINTFOBJ) $(SNPRINTFOBJ) $(STRTOK_ROBJ) $(LIBICONVOBJ) $(SOCKETPAIROBJ) \
+  [.vms]getpass$(OBJ)
+
+@@ -1488,7 +1513,7 @@ odbctests : [.src.odbc.unittests]t0001$(E) [.src.odbc.unittests]t0002$(E) [.src.
+ distclean :
+  @ if f$search("[...]*$(OBJ)") .nes. "" then delete/noconfirm [...]*$(OBJ);*
+  @ if f$search("[...]*.LIS") .nes. "" then delete/noconfirm [...]*.LIS;*
+- @ if f$search("[...]*.MAP") .nes. "" then delete/noconfirm [...]*.MAP;*
++ @ if f$search("[...]*.MAP") .nes. "" then delete/noconfirm [...]*.MAP;*/exclude=[.doc...]*.MAP
+  @ if f$search("[...unittests]*$(E)") .nes. "" then delete/noconfirm [...unittests]*$(E);*
+  @ if f$search("[.src.odbc._libs]*$(E)") .nes. "" then delete/noconfirm [.src.odbc._libs]*$(E);*
+  @ if f$search("[...unittests]*.ini") .nes. "" then delete/noconfirm [...unittests]*.ini;*

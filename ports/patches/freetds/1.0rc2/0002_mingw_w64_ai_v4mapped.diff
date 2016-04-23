@@ -1,0 +1,32 @@
+diff --git a/configure.ac b/configure.ac
+index 2271414..987108c 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -424,7 +424,7 @@ TYPE_SOCKLEN_T
+ AC_MSG_CHECKING([whether getopt has optreset support])
+ AC_TRY_LINK([#ifdef HAVE_GETOPT_H
+ #include <getopt.h>
+-#endif], [extern int optreset; optreset = 0;],
++#endif], [optreset = 0;],
+ [AC_MSG_RESULT(yes)
+ AC_DEFINE(HAVE_GETOPT_OPTRESET, 1, [Define if your getopt(3) defines and uses optreset])],
+ [AC_MSG_RESULT(no)]
+diff --git a/include/replacements.h b/include/replacements.h
+index 3bdfcb2..b8483d6 100644
+--- a/include/replacements.h
++++ b/include/replacements.h
+@@ -139,6 +139,14 @@ char *tds_basename(char *path);
+ int tds_gettimeofday (struct timeval *tv, void *tz);
+ #define gettimeofday tds_gettimeofday
+ 
++/* Older Mingw-w64 versions don't define these flags. */
++#if defined(__MINGW32__) && !defined(AI_ADDRCONFIG)
++#  define AI_ADDRCONFIG 0x00000400
++#endif
++#if defined(__MINGW32__) && !defined(AI_V4MAPPED)
++#  define AI_V4MAPPED 0x00000800
++#endif
++
+ #endif
+ 
+ #if !HAVE_GETOPT

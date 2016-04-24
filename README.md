@@ -326,6 +326,18 @@ SET ANSI_WARNINGS ON
 Also, please read the [Azure SQL Database General Guidelines and Limitations](https://msdn.microsoft.com/en-us/library/ee336245.aspx) MSDN article to understand the differences. Specifically, the connection constraints section!
 
 
+## Emoji Support 😍
+
+This is possible using FreeTDS version 0.95 or higher. You must add the following config to your `freetds.conf` in either the global section or a specfic dataserver. If you are on Windows, the default location for your conf file will be in `C:\Sites`.
+
+```ini
+[global]
+  use utf-16 = true
+```
+
+Good news! If you are using FreeTDS v1.0 or later, then `use utf-16` is set true by default!
+
+
 ## Using MiniPortile
 
 MiniPortile is a minimalistic implementation of a port/recipe system. <https://github.com/luislavena/mini_portile>

@@ -1,6 +1,7 @@
 * 1.0.0 *
 
-* Tested with FreeTDS 1.0rc2.
+* Tested with FreeTDS 1.0.
+* Add emoji support by default using FreeTDS v1.0 in docs.
 
 
 * 0.9.5 * (release candidates only)

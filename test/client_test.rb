@@ -148,10 +148,11 @@ class ClientTest < TinyTds::TestCase
     end
 
     it 'raises TinyTds exception with wrong :username' do
+      skip if sqlserver_azure?
       options = connection_options :username => 'willnotwork'
       action = lambda { new_connection(options) }
       assert_raise_tinytds_error(action) do |e|
-        assert_equal sybase_ase? ? 4002 : (ruby_windows? && sqlserver_azure? ? 20004 : 18456), e.db_error_number
+        assert_equal sybase_ase? ? 4002 : 18456, e.db_error_number
         assert_equal 14, e.severity
         assert_match %r{login failed}i, e.message, 'ignore if non-english test run'
       end

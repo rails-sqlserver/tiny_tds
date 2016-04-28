@@ -1,3 +1,8 @@
+* 1.0.1 *
+
+* Fix ruby exe's in non-platform gem.
+
+
 * 1.0.0 *
 
 * Tested with FreeTDS 1.0.

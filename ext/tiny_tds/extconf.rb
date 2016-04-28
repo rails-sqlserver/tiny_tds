@@ -11,6 +11,8 @@ gem 'mini_portile2', '~> 2.0'
 require 'mini_portile2'
 require_relative './extconsts'
 
+OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
+
 # Shamelessly copied from nokogiri
 #
 

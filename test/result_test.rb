@@ -122,7 +122,7 @@ class ResultTest < TinyTds::TestCase
 
     it 'must insert and find unicode data' do
       rollback_transaction(@client) do
-        text = '✓'
+        text = '😍'
         @client.execute("DELETE FROM [datatypes] WHERE [nvarchar_50] IS NOT NULL").do
         @client.execute("INSERT INTO [datatypes] ([nvarchar_50]) VALUES (N'#{text}')").do
         row = @client.execute("SELECT [nvarchar_50] FROM [datatypes] WHERE [nvarchar_50] IS NOT NULL").each.first

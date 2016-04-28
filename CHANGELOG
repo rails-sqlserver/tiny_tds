@@ -1,4 +1,10 @@
-* 0.9.5 *
+* 1.0.0 *
+
+* Tested with FreeTDS 1.0.
+* Add emoji support by default using FreeTDS v1.0 in docs.
+
+
+* 0.9.5 * (release candidates only)
 
 * Binstub wrappers for `tsql`. Fixes #227 #251
 * Add support for 2008 data types. Must use TDSVER 7.3 or higher. Fixes #244 #251

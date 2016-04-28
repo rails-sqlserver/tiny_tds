@@ -148,6 +148,7 @@ class ClientTest < TinyTds::TestCase
     end
 
     it 'raises TinyTds exception with wrong :username' do
+      skip if ENV['CI'] && sqlserver_azure? # Some issue with db_error_number.
       options = connection_options :username => 'willnotwork'
       action = lambda { new_connection(options) }
       assert_raise_tinytds_error(action) do |e|

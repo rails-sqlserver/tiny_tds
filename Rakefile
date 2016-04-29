@@ -94,7 +94,7 @@ desc "Build the windows binary gems per rake-compiler-dock"
 task 'gem:windows' do
   require 'rake_compiler_dock'
   RakeCompilerDock.sh <<-EOT
-    bundle && rake cross native gem RUBY_CC_VERSION=2.0.0:2.1.6:2.2.2 CFLAGS="-Wall"
+    bundle && rake cross native gem RUBY_CC_VERSION=2.0.0:2.1.6:2.2.2:2.3.0 CFLAGS="-Wall"
   EOT
 end
 

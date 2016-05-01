@@ -1,6 +1,7 @@
 * 1.0.2 *
 
 * Cross compile w/2.3.0 using rake-compiler-dock ~> 0.5.1. Fixes #268 #270.
+* Use FreeTDS 1.0rc4 for cross compile windows gems.
 
 
 * 1.0.1 *

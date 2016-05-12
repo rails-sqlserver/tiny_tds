@@ -1,6 +1,7 @@
 * 1.0.3 *
 
 * Use FreeTDS 1.0rc5 for cross compile windows gems.
+* Ensure we only work with latest FreeTDS v0.95.x or higher.
 
 
 * 1.0.2 *

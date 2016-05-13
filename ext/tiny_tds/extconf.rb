@@ -292,13 +292,17 @@ else
 end
 
 def asplode(lib)
-  abort "-----\n#{lib} is missing.\n-----"
+  msg = "-----\n"
+  msg << "#{lib} is missing.\n"
+  msg << "Do you have FreeTDS 0.95.80 or higher installed?\n" if lib == 'freetds'
+  msg << "-----"
+  abort(msg)
 end
 
 def freetds_usable?(lib_prefix)
   have_header('sybfront.h') && have_header('sybdb.h') &&
     find_library("#{lib_prefix}sybdb", 'tdsdbopen') &&
-    find_library("#{lib_prefix}ct",    'ct_bind')
+    find_library("#{lib_prefix}sybdb", 'dbanydatecrack')
 end
 
 # We use freetds, when available already, and fallback to compilation of ports

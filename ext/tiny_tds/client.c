@@ -110,8 +110,8 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
     */
     if (!userdata->nonblocking_error.is_set) {
       userdata->nonblocking_error.cancel = cancel;
-      strcpy(userdata->nonblocking_error.error, dberrstr);
-      strcpy(userdata->nonblocking_error.source, source);
+      strncpy(userdata->nonblocking_error.error, dberrstr, ERROR_MSG_SIZE);
+      strncpy(userdata->nonblocking_error.source, source, ERROR_MSG_SIZE);
       userdata->nonblocking_error.severity = severity;
       userdata->nonblocking_error.dberr = dberr;
       userdata->nonblocking_error.oserr = oserr;
@@ -133,8 +133,8 @@ int tinytds_msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severi
     if (userdata && userdata->nonblocking) {
       if (!userdata->nonblocking_error.is_set) {
         userdata->nonblocking_error.cancel = 1;
-        strcpy(userdata->nonblocking_error.error, msgtext);
-        strcpy(userdata->nonblocking_error.source, source);
+        strncpy(userdata->nonblocking_error.error, msgtext, ERROR_MSG_SIZE);
+        strncpy(userdata->nonblocking_error.source, source, ERROR_MSG_SIZE);
         userdata->nonblocking_error.severity = severity;
         userdata->nonblocking_error.dberr = msgno;
         userdata->nonblocking_error.oserr = msgstate;

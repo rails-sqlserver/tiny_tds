@@ -4,11 +4,13 @@
 
 void init_tinytds_client();
 
+#define ERROR_MSG_SIZE 1024
+
 typedef struct {
   short int is_set;
   int cancel;
-  char error[1024];
-  char source[1024];
+  char error[ERROR_MSG_SIZE];
+  char source[ERROR_MSG_SIZE];
   int severity;
   int dberr;
   int oserr;

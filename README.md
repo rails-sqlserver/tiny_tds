@@ -92,6 +92,7 @@ Creating a new client takes a hash of options. For valid iconv encoding options,
 * :timeout - Seconds to wait for a response to a SQL command. Default 5 seconds.
 * :encoding - Any valid iconv value like CP1251 or ISO-8859-1. Default UTF-8.
 * :azure - Pass true to signal that you are connecting to azure.
+* :simple_username - Always use only :username.  Will not add @domain to username.
 
 Use the `#active?` method to determine if a connection is good. The implementation of this method may change but it should always guarantee that a connection is good. Current it checks for either a closed or dead connection.
 

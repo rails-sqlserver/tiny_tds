@@ -212,6 +212,7 @@ class ClientTest < TinyTds::TestCase
 
     it '#parse_username returns simple username if simple_username is true' do
       client.send(:parse_username,
+        simple_username: true,
         username: 'user',
         host: 'abc123.database.windows.net',
         azure: true

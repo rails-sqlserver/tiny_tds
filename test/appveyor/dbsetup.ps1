@@ -5,7 +5,7 @@ Write-Output "Setting up..."
 
 Write-Output "Setting variables..."
 $serverName = $env:COMPUTERNAME
-$instances = @('SQL2008R2SP2', 'SQL2012SP1', 'SQL2014')
+$instances = @('SQL2012SP1', 'SQL2014', 'SQL2016')
 $smo = 'Microsoft.SqlServer.Management.Smo.'
 $wmi = new-object ($smo + 'Wmi.ManagedComputer')
 

@@ -325,6 +325,15 @@ SET ANSI_WARNINGS ON
 Also, please read the [Azure SQL Database General Guidelines and Limitations](https://msdn.microsoft.com/en-us/library/ee336245.aspx) MSDN article to understand the differences. Specifically, the connection constraints section!
 
 
+## Thread Safety
+
+TinyTDS must be used with a connection pool for thread safety. If you use ActiveRecord or the [Sequel](https://github.com/jeremyevans/sequel) gem this is done for you. However, if you are using TinyTDS on your own, we recommend using the ConnectionPool gem when using threads:
+
+* ConnectionPool Gem - https://github.com/mperham/connection_pool
+
+Please read our [thread_test.rb](https://github.com/rails-sqlserver/tiny_tds/blob/master/test/thread_test.rb) file for details on how we test its usage.
+
+
 ## Emoji Support 😍
 
 This is possible using FreeTDS version 0.95 or higher. You must add the following config to your `freetds.conf` in either the global section or a specfic dataserver. If you are on Windows, the default location for your conf file will be in `C:\Sites`.

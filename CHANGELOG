@@ -4,6 +4,7 @@
 * Appveyor tests 2012, 2014, 2016.
 * Error messages greater than 1024 chars generates a buffer overflow. Fixes #293.
 * Ensures numeric options are treated numerically Fixes #303.
+* New `:contained` login option. May deprecate `:azure`. Fixes #292.
 
 
 * 1.0.4 *

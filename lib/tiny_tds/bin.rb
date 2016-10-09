@@ -29,18 +29,17 @@ module TinyTds
     def run(*args)
       return nil unless path
       Kernel.system Shellwords.join(args.unshift(path))
-      $?.to_i
+      $CHILD_STATUS.to_i
     end
 
     def path
       return @path if defined?(@path)
-      @path = @exefile && File.exists?(@exefile) ? @exefile : which
+      @path = @exefile && File.exist?(@exefile) ? @exefile : which
     end
 
     def info
       "[TinyTds][v#{TinyTds::VERSION}][#{name}]: #{path}"
     end
-
 
     private
 
@@ -51,7 +50,7 @@ module TinyTds
     def find_exe
       EXTS.each do |ext|
         f = File.join ROOT, 'exe', "#{name}#{ext}"
-        return f if File.exists?(f)
+        return f if File.exist?(f)
       end
       nil
     end
@@ -61,12 +60,12 @@ module TinyTds
         EXTS.each do |ext|
           exe = File.expand_path File.join(path, "#{name}#{ext}"), ROOT
           next if exe == @binstub
-          next if !File.executable?(exe)
-          next if !binary?(exe)
+          next unless File.executable?(exe)
+          next unless binary?(exe)
           return exe
         end
       end
-      return nil
+      nil
     end
 
     # Implementation directly copied from ptools.
@@ -77,9 +76,9 @@ module TinyTds
       bytes = File.stat(file).blksize
       return false unless bytes
       bytes = 4096 if bytes > 4096
-      s = (File.read(file, bytes) || "")
-      s = s.encode('US-ASCII', :undef => :replace).split(//)
-      ((s.size - s.grep(" ".."~").size) / s.size.to_f) > 0.30
+      s = (File.read(file, bytes) || '')
+      s = s.encode('US-ASCII', undef: :replace).split(//)
+      ((s.size - s.grep(' '..'~').size) / s.size.to_f) > 0.30
     end
 
   end

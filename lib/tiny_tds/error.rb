@@ -10,6 +10,5 @@ module TinyTds
       @os_error_number = nil
     end
 
-
   end
 end

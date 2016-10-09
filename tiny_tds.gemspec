@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
-$:.push File.expand_path("../lib", __FILE__)
-require "tiny_tds/version"
+$LOAD_PATH.push File.expand_path('../lib', __FILE__)
+require 'tiny_tds/version'
 
 Gem::Specification.new do |s|
   s.name          = 'tiny_tds'
@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.description   = 'TinyTDS - A modern, simple and fast FreeTDS library for Ruby using DB-Library. Developed for the ActiveRecord SQL Server adapter.'
   s.files         = `git ls-files`.split("\n") + Dir.glob('exe/*')
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
-  s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
+  s.executables   = `git ls-files -- bin/*`.split("\n").map { |f| File.basename(f) }
   s.require_paths = ['lib']
   s.rdoc_options  = ['--charset=UTF-8']
   s.extensions    = ['ext/tiny_tds/extconf.rb']

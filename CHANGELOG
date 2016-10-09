@@ -3,6 +3,7 @@
 * Windows Static Builds - Use FreeTDS 1.00.15, OpenSSL 1.0.2j.
 * Appveyor tests 2012, 2014, 2016.
 * Error messages greater than 1024 chars generates a buffer overflow. Fixes #293.
+* Ensures numeric options are treated numerically Fixes #303.
 
 
 * 1.0.4 *

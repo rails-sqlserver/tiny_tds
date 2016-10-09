@@ -40,9 +40,8 @@ module TinyTds
       opts[:encoding] = (opts[:encoding].nil? || opts[:encoding].downcase == 'utf8') ? 'UTF-8' : opts[:encoding].upcase
       opts[:port] ||= 1433
       opts[:dataserver] = "#{opts[:host]}:#{opts[:port]}" if opts[:dataserver].to_s.empty?
-      [:login_timeout, :port, :timeout].each do |key|
-        opts[key] = opts[key].to_i # Ensure numeric options are actually numeric
-      end
+      forced_integer_keys = [:login_timeout, :port, :timeout]
+      forced_integer_keys.each { |k| opts[k] = opts[k].to_i if opts[k] }
       connect(opts)
     end
 

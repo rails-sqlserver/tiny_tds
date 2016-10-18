@@ -3,7 +3,7 @@
 
 VALUE cTinyTdsClient;
 extern VALUE mTinyTds, cTinyTdsError;
-static ID sym_username, sym_password, sym_dataserver, sym_database, sym_appname, sym_tds_version, sym_login_timeout, sym_timeout, sym_encoding, sym_azure;
+static ID sym_username, sym_password, sym_dataserver, sym_database, sym_appname, sym_tds_version, sym_login_timeout, sym_timeout, sym_encoding, sym_azure, sym_contained, sym_use_utf16;
 static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, intern_os_error_number_eql;
 static ID intern_new, intern_dup, intern_transpose_iconv_encoding, intern_local_offset, intern_gsub;
 VALUE opt_escape_regex, opt_escape_dblquote;
@@ -110,8 +110,8 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
     */
     if (!userdata->nonblocking_error.is_set) {
       userdata->nonblocking_error.cancel = cancel;
-      strcpy(userdata->nonblocking_error.error, dberrstr);
-      strcpy(userdata->nonblocking_error.source, source);
+      strncpy(userdata->nonblocking_error.error, dberrstr, ERROR_MSG_SIZE);
+      strncpy(userdata->nonblocking_error.source, source, ERROR_MSG_SIZE);
       userdata->nonblocking_error.severity = severity;
       userdata->nonblocking_error.dberr = dberr;
       userdata->nonblocking_error.oserr = oserr;
@@ -133,8 +133,8 @@ int tinytds_msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severi
     if (userdata && userdata->nonblocking) {
       if (!userdata->nonblocking_error.is_set) {
         userdata->nonblocking_error.cancel = 1;
-        strcpy(userdata->nonblocking_error.error, msgtext);
-        strcpy(userdata->nonblocking_error.source, source);
+        strncpy(userdata->nonblocking_error.error, msgtext, ERROR_MSG_SIZE);
+        strncpy(userdata->nonblocking_error.source, source, ERROR_MSG_SIZE);
         userdata->nonblocking_error.severity = severity;
         userdata->nonblocking_error.dberr = msgno;
         userdata->nonblocking_error.oserr = msgstate;
@@ -293,7 +293,7 @@ static VALUE rb_tinytds_identity_sql(VALUE self) {
 
 static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   /* Parsing options hash to local vars. */
-  VALUE user, pass, dataserver, database, app, version, ltimeout, timeout, charset, azure;
+  VALUE user, pass, dataserver, database, app, version, ltimeout, timeout, charset, azure, contained, use_utf16;
   GET_CLIENT_WRAPPER(self);
 
   user = rb_hash_aref(opts, sym_username);
@@ -306,6 +306,8 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   timeout = rb_hash_aref(opts, sym_timeout);
   charset = rb_hash_aref(opts, sym_encoding);
   azure = rb_hash_aref(opts, sym_azure);
+  contained = rb_hash_aref(opts, sym_contained);
+  use_utf16 = rb_hash_aref(opts, sym_use_utf16);
   /* Dealing with options. */
   if (dbinit() == FAIL) {
     rb_raise(cTinyTdsError, "failed dbinit() function");
@@ -328,13 +330,28 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
     dbsettime(NUM2INT(timeout));
   if (!NIL_P(charset))
     DBSETLCHARSET(cwrap->login, StringValueCStr(charset));
-  if (!NIL_P(database) && (azure == Qtrue)) {
-    #ifdef DBSETLDBNAME
-      DBSETLDBNAME(cwrap->login, StringValueCStr(database));
-    #else
-      rb_warn("TinyTds: Azure connections not supported in this version of FreeTDS.\n");
-    #endif
+  if (!NIL_P(database)) {
+    if (azure == Qtrue || contained == Qtrue) {
+      #ifdef DBSETLDBNAME
+        DBSETLDBNAME(cwrap->login, StringValueCStr(database));
+      #else
+        if (azure == Qtrue) {
+          rb_warn("TinyTds: :azure option is not supported in this version of FreeTDS.\n");
+        }
+        if (contained == Qtrue) {
+          rb_warn("TinyTds: :contained option is not supported in this version of FreeTDS.\n");
+        }
+      #endif
+    }
   }
+  #ifdef DBSETUTF16
+    if (use_utf16 == Qtrue)  { DBSETLUTF16(cwrap->login, 1); }
+    if (use_utf16 == Qfalse) { DBSETLUTF16(cwrap->login, 0); }
+  #else
+    if (use_utf16 == Qtrue || use_utf16 == Qfalse) {
+      rb_warn("TinyTds: :use_utf16 option not supported in this version of FreeTDS.\n");
+    }
+  #endif
   cwrap->client = dbopen(cwrap->login, StringValueCStr(dataserver));
   if (cwrap->client) {
     VALUE transposed_encoding;
@@ -391,6 +408,7 @@ void init_tinytds_client() {
   sym_timeout = ID2SYM(rb_intern("timeout"));
   sym_encoding = ID2SYM(rb_intern("encoding"));
   sym_azure = ID2SYM(rb_intern("azure"));
+  sym_contained = ID2SYM(rb_intern("contained"));
   /* Intern TinyTds::Error Accessors */
   intern_source_eql = rb_intern("source=");
   intern_severity_eql = rb_intern("severity=");

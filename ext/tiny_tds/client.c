@@ -409,6 +409,7 @@ void init_tinytds_client() {
   sym_encoding = ID2SYM(rb_intern("encoding"));
   sym_azure = ID2SYM(rb_intern("azure"));
   sym_contained = ID2SYM(rb_intern("contained"));
+  sym_use_utf16 = ID2SYM(rb_intern("use_utf16"));
   /* Intern TinyTds::Error Accessors */
   intern_source_eql = rb_intern("source=");
   intern_severity_eql = rb_intern("severity=");

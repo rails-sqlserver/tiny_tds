@@ -412,12 +412,18 @@ If you do not want to use MiniPortile to compile a local project version of Free
 $ rake TINYTDS_SKIP_PORTS=1
 ```
 
+#### Docker
+
+The quickest way to get setup for local development
+https://docs.docker.com/engine/getstarted/step_one/
+https://www.docker.com/products/docker-toolbox
+
 
 ## Help & Support
 
 * Github Source: http://github.com/rails-sqlserver/tiny_tds
 * Github Issues: http://github.com/rails-sqlserver/tiny_tds/issues
-* Google Group: http://groups.google.com/group/rails-sqlserver-adapter
+* Gitter Chat: https://gitter.im/rails-sqlserver/activerecord-sqlserver-adapter
 * IRC Room: #rails-sqlserver on irc.freenode.net
 
 

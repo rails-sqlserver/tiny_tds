@@ -14,5 +14,7 @@ docker exec $container apt-get install wget --assume-yes
 docker cp test/bin/install-freetds-1.00.21.sh $container:~/root
 docker exec $container /root/install-freetds-1.00.21.sh
 
-bundle install
-bundle exec ruby test/bin/setup.rb
+docker exec $container apt-get install sqsh --assume-yes
+docker exec $container sqsh -U sa -P super01S3cUr3 -S localhost -C "$(< test/bin/db-teardown.sql)"
+docker exec $container sqsh -U sa -P super01S3cUr3 -S localhost -C "$(< test/bin/db-create.sql)"
+docker exec $container sqsh -U sa -P super01S3cUr3 -S localhost -C "$(< test/bin/db-login.sql)"

@@ -1,0 +1,19 @@
+general:
+  branches:
+    ignore:
+      - /dev.*/
+
+machine:
+  environment:
+    TESTOPTS: -v
+  services:
+    - docker
+
+dependencies:
+  post:
+    - docker info
+
+database:
+  post:
+    - ./test/bin/setup.sh
+

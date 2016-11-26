@@ -17,3 +17,6 @@ database:
   post:
     - ./test/bin/setup.sh
 
+test:
+  override:
+    - bundle exec rake

@@ -6,6 +6,7 @@ general:
 machine:
   environment:
     TESTOPTS: -v
+    TINYTDS_UNIT_HOST_TEST: localhost
   services:
     - docker
 

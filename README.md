@@ -375,34 +375,51 @@ The compiled gems will exist in `./pkg` directory.
 
 ## Development & Testing
 
-First make sure your local database has a `[tinytdstest]` database with a owner login named `[tinytds]` having no password. The following SQL run via the `sa` account should set that up for you.
+First, clone the repo using the command line or your Git GUI of choice.
 
-```bash
-$ tsql -H <host> -p 1433 -U sa -P <pass>
-$ sqsh -H <host> -p 1433 -U sa -P <pass>
+```shell
+$ git clone git@github.com:rails-sqlserver/tiny_tds.git
 ```
+
+After that, the quickest way to get setup for development is to use [Docker](https://www.docker.com/). Assuming you have [downloaded docker](https://www.docker.com/products/docker) for your platform and you have , you can run our test setup script.
+
+```shell
+$ ./test/bin/setup.sh
+```
+
+This will download our SQL Server for Linux Docker image based from [microsoft/mssql-server-linux/](https://hub.docker.com/r/microsoft/mssql-server-linux/). Our image already has the `[tinytdstest]` DB and `tinytds` users created. Basically, it does the following.
+
+```shell
+$ docker pull metaskills/mssql-server-linux-tinytds
+$ docker run -p 1433:1433 -d metaskills/mssql-server-linux-tinytds
+```
+
+If you are using your own database. Make sure to run these SQL commands as SA to get the test database and user installed.
 
 ```sql
 CREATE DATABASE [tinytdstest];
-GO
-CREATE LOGIN [tinytds] WITH PASSWORD = '', CHECK_POLICY = OFF, DEFAULT_DATABASE = [tinytdstest];
-GO
-USE [tinytdstest];
-CREATE USER [tinytds] FOR LOGIN [tinytds];
-GO
-EXEC sp_addrolemember N'db_owner', N'tinytds';
-GO
 ```
 
-We use bundler for development. Simply run `bundle install` then `rake` to build the gem and run the unit tests. Before running the test rake task, you may need to define a pair of environment variables that help the client connect to your specific FreeTDS database server name and which schema (2000, 2005, 2008, 2014, Azure or Sybase ASE) to use. For example:
+```sql
+CREATE LOGIN [tinytds] WITH PASSWORD = '', CHECK_POLICY = OFF, DEFAULT_DATABASE = [tinytdstest];
+USE [tinytdstest];
+CREATE USER [tinytds] FOR LOGIN [tinytds];
+EXEC sp_addrolemember N'db_owner', N'tinytds';
+```
+
+From here you can now run the tests. This assumes you have both Ruby & the needed FreeTDS installed.
+
+```shell
+$ bundle install
+$ bundle exec rake
+```
+
+Examples us using enviornment variables to customize the test task.
 
 ```
 $ rake TINYTDS_UNIT_DATASERVER=mydbserver
-  or
 $ rake TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2008
-  or
 $ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_SCHEMA=sqlserver_azure
-  or
 $ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_UNIT_PORT=5000 TINYTDS_SCHEMA=sybase_ase
 ```
 
@@ -411,12 +428,6 @@ If you do not want to use MiniPortile to compile a local project version of Free
 ```
 $ rake TINYTDS_SKIP_PORTS=1
 ```
-
-#### Docker
-
-The quickest way to get setup for local development
-https://docs.docker.com/engine/getstarted/step_one/
-https://www.docker.com/products/docker-toolbox
 
 
 ## Help & Support

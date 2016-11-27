@@ -25,7 +25,21 @@ Installing with rubygems should just work. TinyTDS is currently tested on Ruby v
 $ gem install tiny_tds
 ```
 
-If you use Windows, we pre-compile TinyTDS with static versions of FreeTDS, libiconv, and OpenSSL. On all other platforms, we will find these dependencies. If none exist, our native extension will use MiniPortile to install any missing dependencies listed above for your specific platform. These dependencies will be built and linked within the installed TinyTDS gem. Please read the MiniPortile and/or Windows sections at the end of this file for advanced configuration options past the following:
+If you use Windows, we pre-compile TinyTDS with static versions of FreeTDS and supporting libraries. On all other platforms, we will find these dependencies. It is recommended that you install the latest FreeTDS via your method of choice. For example, here is how to install FreeTDS on Ubuntu. You might also need the `build-essential` and possibly the `libc6-dev` packages.
+
+```shell
+$ apt-get install build-essential
+$ apt-get install libc6-dev
+
+$ wget ftp://ftp.freetds.org/pub/freetds/stable/freetds-1.00.21.tar.gz
+$ tar -xzf freetds-1.00.21.tar.gz
+$ cd freetds-1.00.21
+$ ./configure --prefix=/usr/local --with-tdsver=7.3
+$ make
+$ make install
+```
+
+If none exist, our native extension will use MiniPortile to install any missing dependencies listed above for your specific platform. These dependencies will be built and linked within the installed TinyTDS gem. Please read the MiniPortile and/or Windows sections at the end of this file for advanced configuration options past the following:
 
 ```
 --enable-system-freetds / --disable-system-freetds

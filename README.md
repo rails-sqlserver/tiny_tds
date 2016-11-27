@@ -28,6 +28,7 @@ $ gem install tiny_tds
 If you use Windows, we pre-compile TinyTDS with static versions of FreeTDS and supporting libraries. On all other platforms, we will find these dependencies. It is recommended that you install the latest FreeTDS via your method of choice. For example, here is how to install FreeTDS on Ubuntu. You might also need the `build-essential` and possibly the `libc6-dev` packages.
 
 ```shell
+$ apt-get wget
 $ apt-get install build-essential
 $ apt-get install libc6-dev
 

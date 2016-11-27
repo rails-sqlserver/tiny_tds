@@ -14,7 +14,7 @@ module TinyTds
 
       def exe(name, *args)
         bin = new(name)
-        puts bin.info
+        puts bin.info unless args.any? { |x| x == '-q' }
         bin.run(*args)
       end
 

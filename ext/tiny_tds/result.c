@@ -216,6 +216,7 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
           val = INT2NUM(*(DBINT *)data);
           break;
         case SYBINT8:
+        case 98: // https://git.io/v1ItA
           val = LL2NUM(*(DBBIGINT *)data);
           break;
         case SYBBIT:

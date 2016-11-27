@@ -335,6 +335,11 @@ class ResultTest < TinyTds::TestCase
       assert_nil result.return_code
     end
 
+    it 'with LOGINPROPERTY function' do
+      v = @client.execute("SELECT LOGINPROPERTY('sa', 'IsLocked') as v").first['v']
+      v.must_equal 0
+    end
+
     describe 'with multiple result sets' do
 
       before do

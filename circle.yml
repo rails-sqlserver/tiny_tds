@@ -1,0 +1,29 @@
+general:
+  branches:
+    ignore:
+      - /dev.*/
+
+machine:
+  environment:
+    TESTOPTS: -v
+    TINYTDS_UNIT_HOST: localhost
+  services:
+    - docker
+
+dependencies:
+  override:
+    - rvm-exec 2.1.9 bundle install
+    - rvm-exec 2.2.5 bundle install
+    - rvm-exec 2.3.1 bundle install
+  post:
+    - docker info
+
+database:
+  post:
+    - ./test/bin/setup.sh
+
+test:
+  override:
+    - rvm-exec 2.1.9 bundle exec rake
+    - rvm-exec 2.2.5 bundle exec rake
+    - rvm-exec 2.3.1 bundle exec rake

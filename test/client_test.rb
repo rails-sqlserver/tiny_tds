@@ -84,9 +84,16 @@ class ClientTest < TinyTds::TestCase
       options = connection_options :login_timeout => 1, :dataserver => 'DOESNOTEXIST'
       action = lambda { new_connection(options) }
       assert_raise_tinytds_error(action) do |e|
-        assert_equal 20009, e.db_error_number
-        assert_equal 9, e.severity
-        assert_match %r{is unavailable or does not exist}i, e.message, 'ignore if non-english test run'
+        # Not sure why tese are different.
+        if ruby_darwin?
+          assert_equal 20009, e.db_error_number
+          assert_equal 9, e.severity
+          assert_match %r{is unavailable or does not exist}i, e.message, 'ignore if non-english test run'
+        else
+          assert_equal 20012, e.db_error_number
+          assert_equal 2, e.severity
+          assert_match %r{server name not found in configuration files}i, e.message, 'ignore if non-english test run'
+        end
       end
       assert_new_connections_work
     end

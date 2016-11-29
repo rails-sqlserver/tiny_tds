@@ -213,7 +213,6 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
           val = INT2FIX(*(DBSMALLINT *)data);
           break;
         case SYBINT4:
-        case 98: // https://git.io/v1ItA
           val = INT2NUM(*(DBINT *)data);
           break;
         case SYBINT8:
@@ -326,6 +325,15 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
         case SYBTEXT:
           val = ENCODED_STR_NEW(data, data_len);
           break;
+        case 98: { // SYBVARIANT
+          if (data_len == 4) {
+            val = INT2NUM(*(DBINT *)data);
+            break;
+          } else {
+            val = ENCODED_STR_NEW(data, data_len);
+            break;
+          }
+        }
         default:
           val = ENCODED_STR_NEW(data, data_len);
           break;

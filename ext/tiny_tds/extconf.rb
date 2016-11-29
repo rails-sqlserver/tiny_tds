@@ -166,6 +166,19 @@ def define_libssl_recipe(host)
         execute "configure", "sh -c \"#{args.join(" ")}\""
       end
 
+      def dllwrap(dllname, outputlib, deffile, linkto)
+        gcc = consolidated_host(RbConfig::CONFIG["CC"])
+
+        #RbConfig does not provide dlltool, but it should exist where dllwrap lives
+        dlltool = consolidated_host(RbConfig::CONFIG["DLLWRAP"]).sub('dllwrap','dlltool')
+
+        execute "gcc-#{dllname}-compile", "#{gcc} -Wl,--base-file,#{dllname}.base -mdll -o #{dllname}.dll --leading-underscore #{linkto}"
+        execute "dlltool-#{dllname}-exp", "#{dlltool} --base-file #{dllname}.base --output-exp #{dllname}.exp --dllname #{dllname}.dll --def #{deffile}"
+        execute "gcc-#{dllname}-dll", "#{gcc} -Wl,--base-file,#{dllname}.base #{dllname}.exp -mdll -o #{dllname}.dll --leading-underscore #{linkto}"
+        execute "dlltool-#{dllname}-outputlib", "#{dlltool} --base-file #{dllname}.base --output-exp #{dllname}.exp --dllname #{dllname}.dll --def #{deffile} --output-lib #{outputlib}"
+        execute "gcc-#{dllname}-link", "#{gcc} #{dllname}.exp -mdll -o #{dllname}.dll --leading-underscore #{linkto}"
+      end
+
       def compile
         super
         # OpenSSL DLLs are called "libeay32.dll" and "ssleay32.dll" per default,
@@ -174,9 +187,8 @@ def define_libssl_recipe(host)
         # with our own naming scheme.
         execute "mkdef-libeay32", "(perl util/mkdef.pl 32 libeay >libeay32.def)"
         execute "mkdef-ssleay32", "(perl util/mkdef.pl 32 ssleay >ssleay32.def)"
-        dllwrap = consolidated_host(RbConfig::CONFIG["DLLWRAP"])
-        execute "dllwrap-libeay32", "#{dllwrap} --dllname libeay32-#{version}-#{host}.dll --output-lib libcrypto.dll.a --def libeay32.def libcrypto.a -lwsock32 -lgdi32 -lcrypt32"
-        execute "dllwrap-ssleay32", "#{dllwrap} --dllname ssleay32-#{version}-#{host}.dll --output-lib libssl.dll.a --def ssleay32.def libssl.a libcrypto.dll.a"
+        dllwrap("libeay32-#{version}-#{host}", "libcrypto.dll.a", "libeay32.def", "libcrypto.a -lws2_32 -lgdi32 -lcrypt32")
+        dllwrap("ssleay32-#{version}-#{host}", "libssl.dll.a", "ssleay32.def", "libssl.a libcrypto.dll.a")
       end
 
       def install

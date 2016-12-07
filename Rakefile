@@ -68,8 +68,8 @@ Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
     gemplat = spec.platform.to_s
     host = platform_host_map[gemplat]
     dlls = [
-      "libeay32-1.0.2g-#{host}.dll",
-      "ssleay32-1.0.2g-#{host}.dll",
+      "libeay32-#{OPENSSL_VERSION}-#{host}.dll",
+      "ssleay32-#{OPENSSL_VERSION}-#{host}.dll",
       'libiconv-2.dll',
       'libsybdb-5.dll'
     ]
@@ -77,11 +77,6 @@ Rake::ExtensionTask.new('tiny_tds', gemspec) do |ext|
     spec.files = spec.files.reject { |f| f =~ %r{^ports\/archives/} }
     spec.files += dlls.map { |dll| "ports/#{host}/bin/#{File.basename(dll)}" }
     spec.files += Dir.glob('exe/*')
-    dlls.each do |dll|
-      file "ports/#{host}/bin/#{dll}" do |t|
-        sh 'x86_64-w64-mingw32-strip', t.name
-      end
-    end
   end
 end
 

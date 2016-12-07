@@ -39,5 +39,8 @@ environment:
     secure: fYKSKV4v+36OFQp2nZdX4DfUpgmy5cm0wuR73cgdmEk=
   matrix:
     - ruby_version: "23-x64"
+    - ruby_version: "23"
+    - ruby_version: "22-x64"
+    - ruby_version: "22"
 on_failure:
   - find -name compile.log | xargs cat

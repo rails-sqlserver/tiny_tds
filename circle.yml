@@ -10,23 +10,14 @@ machine:
     TINYTDS_UNIT_HOST: localhost
   services:
     - docker
-  post:
-    - $HOME/tiny_tds/test/bin/env-circleci.sh
 
 dependencies:
-  cache_directories:
-    - build/$($OPENSSL_VERSION)
-    - build/$($FREETDS_VERSION)
-  pre:
-    - openssl version
-    - sudo find / -name "openssl" || echo -n ''
   override:
     - rvm-exec 2.1.9 bundle install
     - rvm-exec 2.2.5 bundle install
     - rvm-exec 2.3.1 bundle install
     - sudo ./test/bin/install-openssl.sh
     - openssl version
-    - sudo find / -name "openssl" || echo -n ''
     - sudo ./test/bin/install-freetds.sh
     - tsql -C
 

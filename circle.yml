@@ -14,7 +14,6 @@ dependencies:
   pre:
     - openssl version
     - sudo find / -name "openssl" || echo -n ''
-    - tsql -C
   override:
     - rvm-exec 2.1.9 bundle install
     - rvm-exec 2.2.5 bundle install

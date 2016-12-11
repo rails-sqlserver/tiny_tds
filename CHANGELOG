@@ -1,5 +1,6 @@
 * 1.0.6 *
 
+* Use rake-compiler-dock v0.6.0
 * Handle SYBVARIANT types from SQL function. Fixes #317. Fixed #321.
 * Fix `use_utf16` optoin for booleans. Fixes #314
 * Add `-q` check for bin puts. Fixes #318

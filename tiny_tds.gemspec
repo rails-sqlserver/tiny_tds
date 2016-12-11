@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency     'mini_portile2', '~> 2.0' # Keep this version in sync with the one in extconf.rb !
   s.add_development_dependency 'rake', '~> 10.4'
   s.add_development_dependency 'rake-compiler', '0.9.5'
-  s.add_development_dependency 'rake-compiler-dock', '~> 0.5.1'
+  s.add_development_dependency 'rake-compiler-dock', '0.6.0'
   s.add_development_dependency 'minitest', '~> 5.6'
   s.add_development_dependency 'connection_pool', '~> 2.2'
 end

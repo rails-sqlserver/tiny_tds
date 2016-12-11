@@ -4,8 +4,6 @@ general:
       - /dev.*/
 
 machine:
-  pre:
-    - $HOME/tiny_tds/test/bin/env-circleci.sh
   environment:
     PATH: /opt/local/bin:${PATH}
     TESTOPTS: -v
@@ -13,9 +11,7 @@ machine:
   services:
     - docker
   post:
-    - cat ~/.circlerc
-    - echo $OPENSSL_VERSION
-    - echo $FREETDS_VERSION
+    - $HOME/tiny_tds/test/bin/env-circleci.sh
 
 dependencies:
   cache_directories:

@@ -4,15 +4,16 @@ general:
       - /dev.*/
 
 machine:
+  pre:
+    - ./test/bin/env-circleci.sh
   environment:
     PATH: /opt/local/bin:${PATH}
     TESTOPTS: -v
     TINYTDS_UNIT_HOST: localhost
-    OPENSSL_VERSION: echo $(ruby -r "./ext/tiny_tds/extconsts.rb" -e "puts OPENSSL_VERSION")
-    FREETDS_VERSION: echo $(ruby -r "./ext/tiny_tds/extconsts.rb" -e "puts FREETDS_VERSION")
   services:
     - docker
   post:
+    - cat ~/.circlerc
     - echo $OPENSSL_VERSION
     - echo $FREETDS_VERSION
 

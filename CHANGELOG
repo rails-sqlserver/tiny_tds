@@ -2,6 +2,7 @@
 
 * Fix `use_utf16` optoin for booleans. Fixes #314
 * Add `-q` check for bin puts. Fixes #318
+* Use FreeTDS 1.00.21.
 * Appveyor tests only 2012, 2014 with one Ruby, 23-x64.
 * CircleCI tests 2016.
 

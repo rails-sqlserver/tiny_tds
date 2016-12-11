@@ -7,7 +7,6 @@ if [ -z "$FREETDS_VERSION" ]; then
   FREETDS_VERSION=$(ruby -r "./ext/tiny_tds/extconsts.rb" -e "puts FREETDS_VERSION")
 fi
 
-cd build
 wget ftp://ftp.freetds.org/pub/freetds/stable/freetds-$FREETDS_VERSION.tar.gz
 tar -xzf freetds-$FREETDS_VERSION.tar.gz
 cd freetds-$FREETDS_VERSION

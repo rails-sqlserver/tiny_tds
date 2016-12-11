@@ -1,7 +1,3 @@
-# IMPORTANT - Duplicate versions for each
-# of `OPENSSL_VERSION` and the `FREETDS_VERSION`
-# to both circle.yml and appveyor.yml these
-# are used for cache diretories.
 
 ICONV_VERSION = ENV['TINYTDS_ICONV_VERSION'] || "1.14"
 ICONV_SOURCE_URI = "http://ftp.gnu.org/pub/gnu/libiconv/libiconv-#{ICONV_VERSION}.tar.gz"

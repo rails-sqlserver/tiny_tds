@@ -1,9 +1,18 @@
 #!/usr/bin/env bash
 
-version=$(ruby -r "./ext/tiny_tds/extconsts.rb" -e "puts OPENSSL_VERSION")
+set -x
+set -e
 
-wget https://www.openssl.org/source/openssl-$version.tar.gz
-tar -xzf openssl-$version.tar.gz
-cd openssl-$version
-./config --prefix=/opt/local
-make && make install
+if [ -z "$OPENSSL_VERSION" ]; then
+  OPENSSL_VERSION=$(ruby -r "./ext/tiny_tds/extconsts.rb" -e "puts OPENSSL_VERSION")
+fi
+
+if [ ! -d openssl-$OPENSSL_VERSION ]; then
+  wget https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
+  tar -xzf openssl-$OPENSSL_VERSION.tar.gz
+  cd openssl-$OPENSSL_VERSION
+  ./config --prefix=/opt/local
+  make
+fi
+
+make install

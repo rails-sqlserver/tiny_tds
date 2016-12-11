@@ -8,10 +8,15 @@ machine:
     PATH: /opt/local/bin:${PATH}
     TESTOPTS: -v
     TINYTDS_UNIT_HOST: localhost
+    OPENSSL_VERSION: $(ruby -r "./ext/tiny_tds/extconsts.rb" -e "puts OPENSSL_VERSION")
+    FREETDS_VERSION: $(ruby -r "./ext/tiny_tds/extconsts.rb" -e "puts FREETDS_VERSION")
   services:
     - docker
 
 dependencies:
+  cache_directories:
+    - $($OPENSSL_VERSION)
+    - $($FREETDS_VERSION)
   pre:
     - openssl version
     - sudo find / -name "openssl" || echo -n ''

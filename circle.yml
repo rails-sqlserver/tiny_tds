@@ -8,11 +8,12 @@ machine:
     PATH: /opt/local/bin:${PATH}
     TESTOPTS: -v
     TINYTDS_UNIT_HOST: localhost
-    OPENSSL_VERSION: '$(ruby -r "./ext/tiny_tds/extconsts.rb" -e "puts OPENSSL_VERSION")'
-    FREETDS_VERSION: '$(ruby -r "./ext/tiny_tds/extconsts.rb" -e "puts FREETDS_VERSION")'
+    OPENSSL_VERSION: $(echo ruby -r "./ext/tiny_tds/extconsts.rb" -e "puts OPENSSL_VERSION")
+    FREETDS_VERSION: $(echo ruby -r "./ext/tiny_tds/extconsts.rb" -e "puts FREETDS_VERSION")
   services:
     - docker
   post:
+    - echo $TESTOPTS
     - echo $OPENSSL_VERSION
     - echo $FREETDS_VERSION
 

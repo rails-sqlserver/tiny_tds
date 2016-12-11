@@ -5,6 +5,7 @@ general:
 
 machine:
   environment:
+    PATH: /opt/local:${PATH}
     TESTOPTS: -v
     TINYTDS_UNIT_HOST: localhost
   services:

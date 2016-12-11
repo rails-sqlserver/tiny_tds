@@ -16,5 +16,6 @@ Gemfile.lock
 misc
 *.gem
 /exe/*
+/build/*
 /ports/*
 !/ports/patches/

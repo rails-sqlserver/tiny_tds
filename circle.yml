@@ -13,7 +13,7 @@ machine:
 dependencies:
   pre:
     - openssl version
-    - sudo find / -name "openssl"
+    - sudo find / -name "openssl" || :
     - tsql -C
   override:
     - rvm-exec 2.1.9 bundle install
@@ -21,7 +21,7 @@ dependencies:
     - rvm-exec 2.3.1 bundle install
     - sudo ./test/bin/install-openssl.sh
     - openssl version
-    - sudo find / -name "openssl"
+    - sudo find / -name "openssl" || :
     - sudo ./test/bin/install-freetds.sh
     - tsql -C
 

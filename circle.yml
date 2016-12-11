@@ -5,7 +5,7 @@ general:
 
 machine:
   pre:
-    - ./test/bin/env-circleci.sh
+    - $HOME/tiny_tds/test/bin/env-circleci.sh
   environment:
     PATH: /opt/local/bin:${PATH}
     TESTOPTS: -v

@@ -5,6 +5,7 @@ init:
   - SET TESTOPTS='-v'
 clone_depth: 5
 skip_tags: true
+skip_branch_with_pr: true
 matrix:
   fast_finish: true
 install:

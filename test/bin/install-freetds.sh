@@ -15,3 +15,6 @@ cd freetds-$FREETDS_VERSION
             --with-tdsver=7.3
 make
 make install
+cd ..
+rm -rf freetds-$FREETDS_VERSION
+rm freetds-$FREETDS_VERSION.tar.gz

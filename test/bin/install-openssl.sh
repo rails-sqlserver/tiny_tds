@@ -13,3 +13,6 @@ cd openssl-$OPENSSL_VERSION
 ./config --prefix=/opt/local
 make
 make install
+cd ..
+rm -rf openssl-$OPENSSL_VERSION
+rm openssl-$OPENSSL_VERSION.tar.gz

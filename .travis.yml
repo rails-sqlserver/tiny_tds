@@ -2,6 +2,10 @@ sudo: required
 cache: bundler
 services:
   - docker
+env:
+  global:
+    - TESTOPTS="-v"
+    - TINYTDS_UNIT_HOST=localhost
 rvm:
   - 2.1.9
   - 2.2.5

@@ -5,8 +5,6 @@ set -e
 
 docker pull metaskills/mssql-server-linux-tinytds
 
-docker ps -a -q --filter ancestor=metaskills/mssql-server-linux-tinytds
-
 container=$(docker ps -a -q --filter ancestor=metaskills/mssql-server-linux-tinytds)
 if [[ -z $container ]]; then
   docker run -p 1433:1433 -d metaskills/mssql-server-linux-tinytds && sleep 10

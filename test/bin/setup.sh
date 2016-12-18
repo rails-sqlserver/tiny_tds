@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
+
+set -x
 set -e
 
 docker pull metaskills/mssql-server-linux-tinytds
+
+docker ps -a -q --filter ancestor=metaskills/mssql-server-linux-tinytds
 
 container=$(docker ps -a -q --filter ancestor=metaskills/mssql-server-linux-tinytds)
 if [[ -z $container ]]; then

@@ -1,0 +1,21 @@
+sudo: required
+cache: bundler
+services:
+  - docker
+rvm:
+  - 2.1.9
+  - 2.2.5
+  - 2.3.1
+before_install:
+  - docker info
+  - sudo ./test/bin/setup.sh
+  - sudo ./test/bin/install-openssl.sh
+  - openssl version
+  - sudo ./test/bin/install-freetds.sh
+  - tsql -C
+install:
+  - gem install bundler
+  - bundle --version
+  - bundle install
+script:
+  - bundle exec rake

@@ -1,6 +1,6 @@
 # TinyTDS - Simple and fast FreeTDS bindings for Ruby using DB-Library.
 
-[![TravisCI](https://travis-ci.org/rails-sqlserver/tiny_tds.svg?branch=master)
+[![TravisCI](https://travis-ci.org/rails-sqlserver/tiny_tds.svg?branch=master)](https://travis-ci.org/rails-sqlserver/tiny_tds)
 [![CircleCI](https://circleci.com/gh/rails-sqlserver/tiny_tds/tree/master.svg?style=svg)](https://circleci.com/gh/rails-sqlserver/tiny_tds/tree/master)
 [![Build Status](https://ci.appveyor.com/api/projects/status/g2bhhbsdkx0mal55/branch/master?svg=true)](https://ci.appveyor.com/project/rails-sqlserver/tiny-tds/branch/master)
 [![Code Climate](https://codeclimate.com/github/rails-sqlserver/tiny_tds/badges/gpa.svg)](https://codeclimate.com/github/rails-sqlserver/tiny_tds)

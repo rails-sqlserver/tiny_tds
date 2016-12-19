@@ -1,0 +1,27 @@
+sudo: required
+cache: bundler
+services:
+  - docker
+env:
+  global:
+    - TESTOPTS="-v"
+    - TINYTDS_UNIT_HOST=localhost
+rvm:
+  - 2.1.9
+  - 2.2.5
+  - 2.3.1
+before_install:
+  - export PATH=/opt/local/bin:$PATH
+  - docker info
+  - sudo ./test/bin/setup.sh
+  - sudo ./test/bin/install-openssl.sh
+  - openssl version
+  - sudo ./test/bin/install-freetds.sh
+  - tsql -C
+install:
+  - export PATH=/opt/local/bin:$PATH
+  - gem install bundler
+  - bundle --version
+  - bundle install
+script:
+  - bundle exec rake

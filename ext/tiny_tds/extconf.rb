@@ -205,7 +205,9 @@ end
 def define_libiconv_recipe(host)
   BuildRecipe.new("libiconv", ICONV_VERSION, [ICONV_SOURCE_URI]).tap do |recipe|
     # always produce position independent code
-    recipe.configure_options << "CFLAGS=-fPIC"
+    # and set an explicit optimization to avoid inline functions being optimized
+    # out of libiconv
+    recipe.configure_options << "CFLAGS=-fPIC -O2"
   end
 end
 

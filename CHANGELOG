@@ -1,4 +1,4 @@
-* 1.0.6 *
+* 1.1.0 *
 
 * Use rake-compiler-dock v0.6.0
 * Handle SYBVARIANT types from SQL function. Fixes #317. Fixed #321.
@@ -6,7 +6,7 @@
 * Add `-q` check for bin puts. Fixes #318
 * Use FreeTDS 1.00.21.
 * Appveyor tests only 2012, 2014 with one Ruby, 23-x64.
-* CircleCI tests 2016.
+* CircleCI & TravisCI both test 2016.
 
 
 * 1.0.5 *

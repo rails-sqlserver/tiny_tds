@@ -333,7 +333,9 @@ unless system_freetds
   libssl = define_libssl_recipe(host).cook_and_activate unless system_openssl
   libiconv = define_libiconv_recipe(host).cook_and_activate unless system_iconv
   freetds = define_freetds_recipe(host, libiconv, libssl || enable_openssl, enable_gnutls).cook_and_activate
-  dir_config('freetds', freetds.path + "/include", freetds.path + "/lib")
+  # Use libraries in lib64 if it exists, otherwise fall back to lib
+  lib_suffix = Dir.exist?(freetds.path + "/lib64") ? "/lib64" : "/lib"
+  dir_config('freetds', freetds.path + "/include", freetds.path + lib_suffix)
 end
 
 asplode 'freetds'  unless freetds_usable?(lib_prefix)

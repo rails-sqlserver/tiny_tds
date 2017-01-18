@@ -3,7 +3,7 @@
 set -x
 set -e
 
-docker pull metaskills/mssql-server-linux-tinytds
+docker pull metaskills/mssql-server-linux-tinytds:1.1
 
 container=$(docker ps -a -q --filter ancestor=metaskills/mssql-server-linux-tinytds)
 if [[ -z $container ]]; then

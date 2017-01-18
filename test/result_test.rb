@@ -578,7 +578,7 @@ class ResultTest < TinyTds::TestCase
 
       it 'returns nil for NULL' do
         value = @client.execute('SELECT NULL AS [null]').each.first['null']
-        assert_equal nil, value
+        assert_nil value
       end
 
     end

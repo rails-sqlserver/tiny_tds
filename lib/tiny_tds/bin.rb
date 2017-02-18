@@ -1,40 +1,39 @@
 require_relative './version'
+require_relative './gem'
 require 'shellwords'
 
 module TinyTds
   class Bin
 
-    ROOT  = File.expand_path '../../..', __FILE__
-    PATHS = ENV['PATH'].split File::PATH_SEPARATOR
-    EXTS  = (ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']) | ['.exe']
-
     attr_reader :name
 
     class << self
-
       def exe(name, *args)
         bin = new(name)
         puts bin.info unless args.any? { |x| x == '-q' }
         bin.run(*args)
       end
-
     end
 
     def initialize(name)
+      @root = Gem.root_path
+      @exts = (ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']) | ['.exe']
+
       @name = name
       @binstub = find_bin
       @exefile = find_exe
     end
 
     def run(*args)
-      return nil unless path
-      Kernel.system Shellwords.join(args.unshift(path))
-      $CHILD_STATUS.to_i
+      with_ports_paths do
+        return nil unless path
+        Kernel.system Shellwords.join(args.unshift(path))
+        $CHILD_STATUS.to_i
+      end
     end
 
     def path
-      return @path if defined?(@path)
-      @path = @exefile && File.exist?(@exefile) ? @exefile : which
+      @path ||= @exefile && File.exist?(@exefile) ? @exefile : which
     end
 
     def info
@@ -43,22 +42,43 @@ module TinyTds
 
     private
 
+    def search_paths
+      ENV['PATH'].split File::PATH_SEPARATOR
+    end
+
+    def with_ports_paths
+      old_path = ENV['PATH']
+
+      begin
+        ENV['PATH'] = [
+          Gem.ports_bin_paths,
+          old_path
+        ].flatten.join File::PATH_SEPARATOR
+
+        yield if block_given?
+      ensure
+        ENV['PATH'] = old_path
+      end
+    end
+
     def find_bin
-      File.join ROOT, 'bin', name
+      File.join @root, 'bin', name
     end
 
     def find_exe
-      EXTS.each do |ext|
-        f = File.join ROOT, 'exe', "#{name}#{ext}"
-        return f if File.exist?(f)
+      Gem.ports_bin_paths.each do |bin|
+        @exts.each do |ext|
+          f = File.join bin, "#{name}#{ext}"
+          return f if File.exist?(f)
+        end
       end
       nil
     end
 
     def which
-      PATHS.each do |path|
-        EXTS.each do |ext|
-          exe = File.expand_path File.join(path, "#{name}#{ext}"), ROOT
+      search_paths.each do |path|
+        @exts.each do |ext|
+          exe = File.expand_path File.join(path, "#{name}#{ext}"), @root
           next if exe == @binstub
           next unless File.executable?(exe)
           next unless binary?(exe)
@@ -80,6 +100,5 @@ module TinyTds
       s = s.encode('US-ASCII', undef: :replace).split(//)
       ((s.size - s.grep(' '..'~').size) / s.size.to_f) > 0.30
     end
-
   end
 end

@@ -4,6 +4,7 @@ services:
   - docker
 env:
   global:
+    - PATH=/opt/local/bin:$PATH
     - TESTOPTS="-v"
     - TINYTDS_UNIT_HOST=localhost
 rvm:
@@ -11,15 +12,11 @@ rvm:
   - 2.2.5
   - 2.3.1
 before_install:
-  - export PATH=/opt/local/bin:$PATH
   - docker info
-  - sudo ./test/bin/setup.sh
   - sudo ./test/bin/install-openssl.sh
-  - openssl version
   - sudo ./test/bin/install-freetds.sh
-  - tsql -C
+  - sudo ./test/bin/setup.sh
 install:
-  - export PATH=/opt/local/bin:$PATH
   - gem install bundler
   - bundle --version
   - bundle install

@@ -9,12 +9,15 @@ skip_branch_with_pr: true
 matrix:
   fast_finish: true
 install:
+  # Output debugging info
   - ps: Update-AppveyorBuild -Version "$(Get-Content $env:appveyor_build_folder\VERSION).$env:appveyor_build_number"
   - perl --version
   - ruby --version
   - gem --version
+
+  # Set up project prerequisits
   - bundle install
-  - bundle exec rake build
+  - bundle exec rake ports
 build: off
 branches:
   except:
@@ -26,13 +29,13 @@ test_script:
   - ps: Start-Service 'MSSQL$SQL2014'
   - timeout /t 4 /nobreak > NUL
   - sqlcmd -S ".\SQL2014" -U sa -P Password12! -i %APPVEYOR_BUILD_FOLDER%\test\appveyor\dbsetup.sql
-  - bundle exec rake TINYTDS_UNIT_HOST_TEST=localhost TINYTDS_UNIT_DATASERVER="localhost\SQL2014" TINYTDS_SCHEMA=sqlserver_2014 TDSVER=7.1
-  - bundle exec rake TINYTDS_UNIT_HOST_TEST=localhost TINYTDS_UNIT_DATASERVER="localhost\SQL2014" TINYTDS_SCHEMA=sqlserver_2014
+  - bundle exec rake ports build test TINYTDS_UNIT_HOST_TEST=localhost TINYTDS_UNIT_DATASERVER="localhost\SQL2014" TINYTDS_SCHEMA=sqlserver_2014 TDSVER=7.1
+  - bundle exec rake ports build test TINYTDS_UNIT_HOST_TEST=localhost TINYTDS_UNIT_DATASERVER="localhost\SQL2014" TINYTDS_SCHEMA=sqlserver_2014
   - ps: Stop-Service 'MSSQL$SQL2014'
   - ps: Start-Service 'MSSQL$SQL2012SP1'
   - timeout /t 4 /nobreak > NUL
   - sqlcmd -S ".\SQL2012SP1" -U sa -P Password12! -i %APPVEYOR_BUILD_FOLDER%\test\appveyor\dbsetup.sql
-  - bundle exec rake TINYTDS_UNIT_HOST_TEST=localhost TINYTDS_UNIT_DATASERVER="localhost\SQL2012SP1" TINYTDS_SCHEMA=sqlserver_2014
+  - bundle exec rake ports build test TINYTDS_UNIT_HOST_TEST=localhost TINYTDS_UNIT_DATASERVER="localhost\SQL2012SP1" TINYTDS_SCHEMA=sqlserver_2014
 environment:
   CI_AZURE_HOST:
     secure: 8ydpYysZYKEBKvp6plKlYfepH98/zAuT27FFCaJ9Sss=

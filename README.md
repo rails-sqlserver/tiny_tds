@@ -34,7 +34,10 @@ Installing with rubygems should just work. TinyTDS is currently tested on Ruby v
 $ gem install tiny_tds
 ```
 
-If you use Windows, we pre-compile TinyTDS with static versions of FreeTDS and supporting libraries. On all other platforms, we will find these dependencies. It is recommended that you install the latest FreeTDS via your method of choice. For example, here is how to install FreeTDS on Ubuntu. You might also need the `build-essential` and possibly the `libc6-dev` packages.
+If you use Windows, we pre-compile TinyTDS with static versions of FreeTDS and supporting libraries.
+If you're using RubyInstaller the binary gem will require that devkit is installed and in your path to operate properly.
+
+On all other platforms, we will find these dependencies. It is recommended that you install the latest FreeTDS via your method of choice. For example, here is how to install FreeTDS on Ubuntu. You might also need the `build-essential` and possibly the `libc6-dev` packages.
 
 ```shell
 $ apt-get wget
@@ -52,20 +55,8 @@ $ make install
 If none exist, our native extension will use MiniPortile to install any missing dependencies listed above for your specific platform. These dependencies will be built and linked within the installed TinyTDS gem. Please read the MiniPortile and/or Windows sections at the end of this file for advanced configuration options past the following:
 
 ```
---enable-system-freetds / --disable-system-freetds
---enable-system-iconv   / --disable-system-iconv
---enable-system-openssl / --disable-system-openssl
-  Force use of system or builtin freetds/iconv/openssl library.
-  Default is to prefer system libraries and fallback to builtin.
-
 --with-freetds-dir=DIR
   Use the freetds library placed under DIR.
-
---enable-lookup
-  Search for freetds through all paths in the PATH environment variable.
-
---enable-cross-build
-  Do cross-build.
 ```
 
 
@@ -403,19 +394,6 @@ This is possible using FreeTDS version 0.95 or higher. You must use the `use_utf
 The default is true and since FreeTDS v1.0 would do this as well.
 
 
-## Using MiniPortile
-
-MiniPortile is a minimalistic implementation of a port/recipe system. <https://github.com/luislavena/mini_portile>
-
-The TinyTDS project uses MiniPortile so that we can easily install a local version of FreeTDS and supporting libraries to link against when building a test version of TinyTDS. This same system is also used when installing TinyTDS with Rubygems and building native extensions. It is possible to build TinyTDS with a specific version of FreeTDS using the `TINYTDS_FREETDS_VERSION` environment variable. Here are some exampbles of possible values.
-
-```
-$ rake TDSVER='7.1' TINYTDS_FREETDS_VERSION='0.95' -- --disable-system-freetds --disable-system-iconv
-```
-
-To find out more about the FreeTDS release system [visit this thread](http://lists.ibiblio.org/pipermail/freetds/2012q1/027756.html) on their mailing list. You can also browse thier FTP server [ftp://ftp.astron.com/pub/freetds/](ftp://ftp.astron.com/pub/freetds/) for version number strings.
-
-
 ## Compiling Gems for Windows
 
 For the convenience of Windows users, TinyTDS ships pre-compiled gems for Ruby 2.0, 2.1, 2.2, and 2.3 on Windows. In order to generate these gems, [rake-compiler-dock](https://github.com/rake-compiler/rake-compiler-dock) is used. This project provides a [Docker image](https://registry.hub.docker.com/u/larskanis/rake-compiler-dock/) with rvm, cross-compilers and a number of different target versions of Ruby.
@@ -463,7 +441,7 @@ CREATE USER [tinytds] FOR LOGIN [tinytds];
 EXEC sp_addrolemember N'db_owner', N'tinytds';
 ```
 
-From here you can now run the tests. This assumes you have both Ruby & the needed FreeTDS installed.
+From here you can build and run tests against an installed version of FreeTDS.
 
 ```shell
 $ bundle install
@@ -478,13 +456,6 @@ $ rake TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2008
 $ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_SCHEMA=sqlserver_azure
 $ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_UNIT_PORT=5000 TINYTDS_SCHEMA=sybase_ase
 ```
-
-If you do not want to use MiniPortile to compile a local project version of FreeTDS and instead use your local system version, use the `TINYTDS_SKIP_PORTS` environment variable. This will ignore any port tasks and will instead build and link to your system's FreeTDS installation as a normal gem install would.
-
-```
-$ rake TINYTDS_SKIP_PORTS=1
-```
-
 
 ## Help & Support
 

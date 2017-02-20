@@ -1,6 +1,7 @@
 init:
   - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
   - SET PATH=C:\MinGW\msys\1.0\bin;%PATH%
+  - SET PATH=C:\Perl\bin
   - SET RAKEOPT=-rdevkit
   - SET TESTOPTS='-v'
 clone_depth: 5
@@ -10,7 +11,6 @@ matrix:
   fast_finish: true
 install:
   - ps: Update-AppveyorBuild -Version "$(Get-Content $env:appveyor_build_folder\VERSION).$env:appveyor_build_number"
-  - dir C:\Perl
   - perl --version
   - ruby --version
   - gem --version

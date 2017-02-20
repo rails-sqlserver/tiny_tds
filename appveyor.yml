@@ -10,6 +10,7 @@ matrix:
   fast_finish: true
 install:
   - ps: Update-AppveyorBuild -Version "$(Get-Content $env:appveyor_build_folder\VERSION).$env:appveyor_build_number"
+  - dir C:\Perl
   - perl --version
   - ruby --version
   - gem --version

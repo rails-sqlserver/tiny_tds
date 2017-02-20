@@ -12,7 +12,7 @@ matrix:
   fast_finish: true
 install:
   - ps: Update-AppveyorBuild -Version "$(Get-Content $env:appveyor_build_folder\VERSION).$env:appveyor_build_number"
-  - dir C:\mingw-w64
+  - dir C:\mingw-w64\i686-5.3.0-posix-dwarf-rt_v4-rev0
   - perl --version
   - ruby --version
   - gem --version

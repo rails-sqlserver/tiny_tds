@@ -10,7 +10,7 @@ fi
 wget https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
 tar -xzf openssl-$OPENSSL_VERSION.tar.gz
 cd openssl-$OPENSSL_VERSION
-./config --prefix=/opt/local
+./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl
 make
 make install
 cd ..

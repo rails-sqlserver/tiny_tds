@@ -151,6 +151,19 @@ def define_libssl_recipe(host)
         end
       end
 
+      def execute(action, command, options={})
+        prev_path = ENV['PATH']
+        if host=~/mingw/
+          git_perl = 'C:/Program Files/Git/usr/bin'
+          if File.directory?(git_perl)
+            ENV['PATH'] = git_perl + ';' + ENV['PATH']
+            ENV['PERL'] = 'perl'
+          end
+        end
+        super
+        ENV['PATH'] = prev_path
+      end
+
       def configure
         config = if host=~/mingw/
           host=~/x86_64/ ? 'mingw64' : 'mingw'

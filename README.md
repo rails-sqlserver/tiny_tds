@@ -332,19 +332,38 @@ TinyTDS is fully tested with the Azure platform. You must set the `azure: true` 
 
 **IMPORTANT**: Do not use `username@server.database.windows.net` for the username connection option! You must use the shorter `username@server` instead!
 
-We recommend the following settings when using TinyTDS with Azure. These are the same settings used in the ActiveRecord SQL Server adapter.
+Also, please read the [Azure SQL Database General Guidelines and Limitations](https://msdn.microsoft.com/en-us/library/ee336245.aspx) MSDN article to understand the differences. Specifically, the connection constraints section!
+
+## Connection Settings
+
+A DBLIB connection does not have the same default SET options for a standard SMS SQL Server connection. Hence, we recommend the following options post establishing your connection.
+
+#### SQL Server
+
+```sql
+SET ANSI_DEFAULTS ON
+
+SET QUOTED_IDENTIFIER ON
+SET CURSOR_CLOSE_ON_COMMIT OFF
+SET IMPLICIT_TRANSACTIONS OFF
+SET TEXTSIZE 2147483647
+SET CONCAT_NULL_YIELDS_NULL ON
+```
+
+#### Azure
 
 ```sql
 SET ANSI_NULLS ON
-SET CURSOR_CLOSE_ON_COMMIT OFF
 SET ANSI_NULL_DFLT_ON ON
-SET IMPLICIT_TRANSACTIONS OFF
 SET ANSI_PADDING ON
-SET QUOTED_IDENTIFIER ON
 SET ANSI_WARNINGS ON
-```
 
-Also, please read the [Azure SQL Database General Guidelines and Limitations](https://msdn.microsoft.com/en-us/library/ee336245.aspx) MSDN article to understand the differences. Specifically, the connection constraints section!
+SET QUOTED_IDENTIFIER ON
+SET CURSOR_CLOSE_ON_COMMIT OFF
+SET IMPLICIT_TRANSACTIONS OFF
+SET TEXTSIZE 2147483647
+SET CONCAT_NULL_YIELDS_NULL ON
+```
 
 
 ## Thread Safety

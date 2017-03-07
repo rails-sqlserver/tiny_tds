@@ -326,8 +326,6 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
     dbsetlapp(cwrap->login, StringValueCStr(app));
   if (!NIL_P(ltimeout))
     dbsetlogintime(NUM2INT(ltimeout));
-  if (!NIL_P(timeout))
-    dbsettime(NUM2INT(timeout));
   if (!NIL_P(charset))
     DBSETLCHARSET(cwrap->login, StringValueCStr(charset));
   if (!NIL_P(database)) {
@@ -354,12 +352,18 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   #endif
   cwrap->client = dbopen(cwrap->login, StringValueCStr(dataserver));
   if (cwrap->client) {
-    VALUE transposed_encoding;
+    VALUE transposed_encoding, timeout_string;
 
     cwrap->closed = 0;
     cwrap->charset = charset;
     if (!NIL_P(version))
       dbsetversion(NUM2INT(version));
+    if (!NIL_P(timeout)) {
+      timeout_string = rb_sprintf("%"PRIsVALUE"", timeout);
+      if (dbsetopt(cwrap->client, DBSETTIME, StringValueCStr(timeout_string), 0) == FAIL) {
+        dbsettime(NUM2INT(timeout));
+      }
+    }
     dbsetuserdata(cwrap->client, (BYTE*)cwrap->userdata);
     cwrap->userdata->closed = 0;
     if (!NIL_P(database) && (azure != Qtrue)) {

@@ -1,3 +1,8 @@
+* 1.2.0
+
+* Use OpenSSL v1.1.0e & FreeTDS v1.00.27 for Windows builds.
+
+
 * 1.1.0 *
 
 * Use rake-compiler-dock v0.6.0

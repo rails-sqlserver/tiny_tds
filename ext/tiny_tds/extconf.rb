@@ -151,6 +151,19 @@ def define_libssl_recipe(host)
         end
       end
 
+      def execute(action, command, options={})
+        prev_path = ENV['PATH']
+        if host=~/mingw/
+          git_perl = 'C:/Program Files/Git/usr/bin'
+          if File.directory?(git_perl)
+            ENV['PATH'] = git_perl + ';' + ENV['PATH']
+            ENV['PERL'] = 'perl'
+          end
+        end
+        super
+        ENV['PATH'] = prev_path
+      end
+
       def configure
         config = if host=~/mingw/
           host=~/x86_64/ ? 'mingw64' : 'mingw'
@@ -181,20 +194,20 @@ def define_libssl_recipe(host)
 
       def compile
         super
-        # OpenSSL DLLs are called "libeay32.dll" and "ssleay32.dll" per default,
+        # OpenSSL DLLs are called "libcrypto32.dll" and "libssl32.dll" per default,
         # regardless to the version. This is best suited to meet the Windows DLL hell.
         # To avoid any conflicts we do a static build and build DLLs afterwards,
         # with our own naming scheme.
-        execute "mkdef-libeay32", "(perl util/mkdef.pl 32 libeay >libeay32.def)"
-        execute "mkdef-ssleay32", "(perl util/mkdef.pl 32 ssleay >ssleay32.def)"
-        dllwrap("libeay32-#{version}-#{host}", "libcrypto.dll.a", "libeay32.def", "libcrypto.a -lws2_32 -lgdi32 -lcrypt32")
-        dllwrap("ssleay32-#{version}-#{host}", "libssl.dll.a", "ssleay32.def", "libssl.a libcrypto.dll.a")
+        execute "mkdef-crypto32", "(perl util/mkdef.pl crypto 32 >libcrypto32.def)"
+        execute "mkdef-ssl32", "(perl util/mkdef.pl ssl 32 >libssl32.def)"
+        dllwrap("libcrypto32-#{version}-#{host}", "libcrypto.dll.a", "libcrypto32.def", "libcrypto.a -lws2_32 -lgdi32 -lcrypt32")
+        dllwrap("libssl32-#{version}-#{host}", "libssl.dll.a", "libssl32.def", "libssl.a libcrypto.dll.a")
       end
 
       def install
         super
-        FileUtils.cp "#{work_path}/libeay32-#{version}-#{host}.dll", "#{path}/bin/"
-        FileUtils.cp "#{work_path}/ssleay32-#{version}-#{host}.dll", "#{path}/bin/"
+        FileUtils.cp "#{work_path}/libcrypto32-#{version}-#{host}.dll", "#{path}/bin/"
+        FileUtils.cp "#{work_path}/libssl32-#{version}-#{host}.dll", "#{path}/bin/"
         FileUtils.cp "#{work_path}/libcrypto.dll.a", "#{path}/lib/"
         FileUtils.cp "#{work_path}/libssl.dll.a", "#{path}/lib/"
       end

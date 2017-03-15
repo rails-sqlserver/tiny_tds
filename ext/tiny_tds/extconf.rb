@@ -205,7 +205,9 @@ def define_libssl_recipe(host)
       end
 
       def install
-        super
+        unless installed?
+          execute('install', %Q(#{make_cmd} install_sw install_ssldirs))
+        end
         FileUtils.cp "#{work_path}/libcrypto32-#{version}-#{host}.dll", "#{path}/bin/"
         FileUtils.cp "#{work_path}/libssl32-#{version}-#{host}.dll", "#{path}/bin/"
         FileUtils.cp "#{work_path}/libcrypto.dll.a", "#{path}/lib/"

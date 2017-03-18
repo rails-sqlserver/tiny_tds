@@ -251,6 +251,16 @@ def define_freetds_recipe(host, libiconv, libssl, gnutls)
 
     class << recipe
 
+      def configure
+        cross = enable_config("cross-build")
+        if cross
+          prev_cc = ENV['CC']
+          ENV['CC'] = consolidated_host(gcc_cmd) + ' -static-libgcc'
+        end
+        super
+        ENV['CC'] = prev_cc if cross
+      end
+
       def install
         super_value = super
         # Install binstub target binaries.

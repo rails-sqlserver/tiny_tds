@@ -1,3 +1,8 @@
+* 1.3.0
+
+* FreeTDS: Link libgcc statically for Windows. (#351) Fixes #349.
+
+
 * 1.2.0
 
 * Use OpenSSL v1.1.0e & FreeTDS v1.00.27 for Windows builds.

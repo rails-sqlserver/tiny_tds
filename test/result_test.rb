@@ -135,10 +135,10 @@ class ResultTest < TinyTds::TestCase
         text = 'test affected rows sql'
         @client.execute("DELETE FROM [datatypes]").do
         afrows = @client.execute("SELECT @@ROWCOUNT AS AffectedRows").each.first['AffectedRows']
-        assert_instance_of Fixnum, afrows
+        ['Fixnum', 'Integer'].must_include afrows.class.name
         @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
         pk1 = @client.execute(@client.identity_sql).each.first['Ident']
-        assert_instance_of Fixnum, pk1, 'we it be able to CAST to bigint'
+        ['Fixnum', 'Integer'].must_include pk1.class.name, 'we it be able to CAST to bigint'
         @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
         afrows = @client.execute("SELECT @@ROWCOUNT AS AffectedRows").each.first['AffectedRows']
         assert_equal 1, afrows

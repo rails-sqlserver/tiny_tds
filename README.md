@@ -8,6 +8,13 @@
 * [![Dependency Status](https://dependencyci.com/github/rails-sqlserver/tiny_tds/badge)](https://dependencyci.com/github/rails-sqlserver/tiny_tds) - Dependency Status
 * [![Gitter chat](https://img.shields.io/badge/%E2%8A%AA%20GITTER%20-JOIN%20CHAT%20%E2%86%92-brightgreen.svg?style=flat)](https://gitter.im/rails-sqlserver/activerecord-sqlserver-adapter) - Community
 
+## Supporting TinyTDS/Adapter
+
+Both TinyTDS and the Rails SQL Server Adapter are MIT-licensed open source projects. Its ongoing development is made possible thanks to the support by these awesome [backers](https://github.com/rails-sqlservers/tiny_tds/blob/BACKERS.md). If you'd like to join them, check out [MetaSkills Patreon Campaign](https://www.patreon.com/metaskills).
+
+
+## About TinyTDS
+
 The TinyTDS gem is meant to serve the extremely common use-case of connecting, querying and iterating over results to Microsoft SQL Server or Sybase databases from Ruby using the FreeTDS's DB-Library API.
 
 TinyTDS offers automatic casting to Ruby primitives along with proper encoding support. It converts all SQL Server datatypes to native Ruby primitives while supporting :utc or :local time zones for time-like types. To date it is the only Ruby client library that allows client encoding options, defaulting to UTF-8, while connecting to SQL Server. It also  properly encodes all string and binary data. The motivation for TinyTDS is to become the de-facto low level connection mode for the SQL Server Adapter for ActiveRecord.

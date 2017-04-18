@@ -10,7 +10,7 @@
 
 ## Supporting TinyTDS/Adapter
 
-Both TinyTDS and the Rails SQL Server Adapter are MIT-licensed open source projects. Its ongoing development is made possible thanks to the support by these awesome [backers](https://github.com/rails-sqlservers/tiny_tds/blob/BACKERS.md). If you'd like to join them, check out [MetaSkills Patreon Campaign](https://www.patreon.com/metaskills).
+Both TinyTDS and the Rails SQL Server Adapter are MIT-licensed open source projects. Its ongoing development is made possible thanks to the support by these awesome [backers](https://github.com/rails-sqlserver/tiny_tds/blob/master/BACKERS.md). If you'd like to join them, check out [MetaSkills Patreon Campaign](https://www.patreon.com/metaskills).
 
 
 ## About TinyTDS

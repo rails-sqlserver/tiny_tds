@@ -62,6 +62,15 @@ If none exist, our native extension will use MiniPortile to install any missing 
 ```
 
 
+## Getting Started
+
+Optionally, Microsoft has done a great job writing some articls on how to get started with SQL Server and Ruby using TinyTDS. Please checkout one of the following posts that match your platform.
+
+* [SQL Server on a Mac](https://www.microsoft.com/en-us/sql-server/developer-get-started/ruby-mac)
+* [SQL Server on RHEL](https://www.microsoft.com/en-us/sql-server/developer-get-started/ruby-rhel)
+* [SQL Server on Ubuntu](https://www.microsoft.com/en-us/sql-server/developer-get-started/ruby-ubuntu)
+
+
 ## FreeTDS Compatibility & Configuration
 
 TinyTDS is developed against FreeTDS 0.95, 0.99, and 1.0 current. Our default and recommended is 1.0. We also test with SQL Server 2008, 2014, and Azure. However, usage of TinyTDS with SQL Server 2000 or 2005 should be just fine. Below are a few QA style notes about installing FreeTDS.

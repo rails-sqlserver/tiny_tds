@@ -71,11 +71,11 @@ If none exist, our native extension will use MiniPortile to install any missing 
 
 ## Getting Started
 
-Optionally, Microsoft has done a great job writing some articls on how to get started with SQL Server and Ruby using TinyTDS. Please checkout one of the following posts that match your platform.
+Optionally, Microsoft has done a great job writing some articles on how to get started with SQL Server and Ruby using TinyTDS. Please checkout one of the following posts that match your platform.
 
-* [SQL Server on a Mac](https://www.microsoft.com/en-us/sql-server/developer-get-started/ruby-mac)
-* [SQL Server on RHEL](https://www.microsoft.com/en-us/sql-server/developer-get-started/ruby-rhel)
-* [SQL Server on Ubuntu](https://www.microsoft.com/en-us/sql-server/developer-get-started/ruby-ubuntu)
+* [SQL Server on a Mac](https://www.microsoft.com/en-us/sql-server/developer-get-started/ruby/mac)
+* [SQL Server on RHEL](https://www.microsoft.com/en-us/sql-server/developer-get-started/ruby/rhel)
+* [SQL Server on Ubuntu](https://www.microsoft.com/en-us/sql-server/developer-get-started/ruby/ubuntu)
 
 
 ## FreeTDS Compatibility & Configuration

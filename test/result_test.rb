@@ -614,6 +614,36 @@ class ResultTest < TinyTds::TestCase
 
       if sqlserver?
 
+        describe 'using :message_handler' do
+          messages = []
+
+          before do
+            close_client
+            @client = new_connection message_handler: Proc.new { |m| messages << m }
+          end
+
+          after do
+            messages.clear
+          end
+
+          it 'calls the provided message handler when severity is 10 or less' do
+            (1..10).to_a.each do |severity|
+              messages.clear
+
+              msg = "Test #{severity} severity"
+              state = rand(1..255)
+              @client.execute("RAISERROR(N'#{msg}', #{severity}, #{state})").do
+
+              m = messages.first
+              assert_equal 1, messages.length, 'there should be one message after one raiserror'
+              assert_equal msg, m.message, 'message text'
+              assert_equal severity, m.severity, 'message severity'
+              assert_equal state, m.os_error_number, 'message state'
+            end
+          end
+
+        end
+
         it 'must not raise an error when severity is 10 or less' do
           (1..10).to_a.each do |severity|
             @client.execute("RAISERROR(N'Test #{severity} severity', #{severity}, 1)").do

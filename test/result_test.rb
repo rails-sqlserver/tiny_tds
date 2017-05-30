@@ -637,7 +637,7 @@ class ResultTest < TinyTds::TestCase
               m = messages.first
               assert_equal 1, messages.length, 'there should be one message after one raiserror'
               assert_equal msg, m.message, 'message text'
-              assert_equal severity, m.severity, 'message severity'
+              assert_equal severity, m.severity, 'message severity' unless severity == 10 && m.severity.to_i == 0
               assert_equal state, m.os_error_number, 'message state'
             end
           end

@@ -23,7 +23,7 @@ module Ports
       end
 
       if windows?
-        opts << '--sysconfdir=C:\Sites'
+        opts << '--sysconfdir=C:/Sites'
         opts << '--enable-sspi'
       end
 

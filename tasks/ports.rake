@@ -43,6 +43,9 @@ namespace :ports do
       # freetds doesn't have an option that will provide an rpath
       # so we do it manually
       ENV['OPENSSL_CFLAGS'] = "-Wl,-rpath -Wl,#{openssl.path}/lib"
+      # Add the pkgconfig file with MSYS2'ish path, to prefer our ports build
+      # over MSYS2 system OpenSSL.
+      ENV['PKG_CONFIG_PATH'] = "#{openssl.path.gsub(/^(\w):/i){"/"+$1.downcase}}/lib/pkgconfig:#{ENV['PKG_CONFIG_PATH']}"
       freetds.configure_options << "--with-openssl=#{openssl.path}"
     end
 

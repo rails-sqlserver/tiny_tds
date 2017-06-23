@@ -29,6 +29,9 @@ Rake::ExtensionTask.new('tiny_tds', SPEC) do |ext|
 
   # Add dependent DLLs to the cross gems
   ext.cross_compiling do |spec|
+    # The fat binary gem doesn't depend on the freetds package, since it bundles the library.
+    spec.metadata.delete('msys2_mingw_dependencies')
+
     platform_host_map = GEM_PLATFORM_HOSTS
     gemplat = spec.platform.to_s
     host = platform_host_map[gemplat]

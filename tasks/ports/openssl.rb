@@ -28,8 +28,11 @@ module Ports
     private
 
     def execute(action, command, options={})
+      # OpenSSL Requires Perl >= 5.10, while the Ruby devkit uses MSYS1 with Perl 5.8.8.
+      # To overcome this, prepend Git's usr/bin to the PATH.
+      # It has MSYS2 with a recent version of perl.
       prev_path = ENV['PATH']
-      if host =~ /mingw/
+      if host =~ /mingw/ && IO.popen(["perl", "-e", "print($])"], &:read).to_f < 5.010
         git_perl = 'C:/Program Files/Git/usr/bin'
         if File.directory?(git_perl)
           ENV['PATH'] = "#{git_perl}#{File::PATH_SEPARATOR}#{ENV['PATH']}"

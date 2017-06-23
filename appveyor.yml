@@ -3,6 +3,7 @@ init:
   - SET PATH=C:\MinGW\msys\1.0\bin;%PATH%
   - SET RAKEOPT=-rdevkit
   - SET TESTOPTS='-v'
+  - SET MAKE=make V=1
 clone_depth: 5
 skip_tags: true
 skip_branch_with_pr: true
@@ -42,8 +43,8 @@ environment:
   TINYTDS_UNIT_AZURE_PASS:
     secure: fYKSKV4v+36OFQp2nZdX4DfUpgmy5cm0wuR73cgdmEk=
   matrix:
-    - ruby_version: "23-x64"
-    - ruby_version: "23"
+    - ruby_version: "24-x64"
+    - ruby_version: "24"
     - ruby_version: "22-x64"
     - ruby_version: "22"
 on_failure:

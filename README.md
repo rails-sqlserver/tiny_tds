@@ -120,6 +120,7 @@ Creating a new client takes a hash of options. For valid iconv encoding options,
 * :timeout - Seconds to wait for a response to a SQL command. Default 5 seconds.
 * :encoding - Any valid iconv value like CP1251 or ISO-8859-1. Default UTF-8.
 * :azure - Pass true to signal that you are connecting to azure.
+* :simple_username - Always use only :username.  Will not add @domain to username.
 * :contained - Pass true to signal that you are connecting with a contained database user.
 * :use_utf16 - Instead of using UCS-2 for database wide character encoding use UTF-16. Newer Windows versions use this encoding instead of UCS-2. Default true.
 

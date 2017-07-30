@@ -1,25 +1,25 @@
-* 2.1.0 *
+## 2.1.0
 
 * Support RubyInstaller2 for Windows. Fixes #365.
 * Support the FREETDS_DIR environment variable. Fixes #371.
 
 
-* 2.0.0 *
+## 2.0.0
 
 * Stop building FreeTDS as a part of the extension build.
 
 
-* 1.3.0 *
+## 1.3.0
 
 * FreeTDS: Link libgcc statically for Windows. (#351) Fixes #349.
 
 
-* 1.2.0 *
+## 1.2.0
 
 * Use OpenSSL v1.1.0e & FreeTDS v1.00.27 for Windows builds.
 
 
-* 1.1.0 *
+## 1.1.0
 
 * Use rake-compiler-dock v0.6.0
 * Handle SYBVARIANT types from SQL function. Fixes #317. Fixed #321.
@@ -30,7 +30,7 @@
 * CircleCI & TravisCI both test 2016.
 
 
-* 1.0.5 *
+## 1.0.5
 
 * Windows Static Builds - Use FreeTDS 1.00.15, OpenSSL 1.0.2j.
 * Appveyor tests 2012, 2014, 2016.
@@ -40,29 +40,29 @@
 * New `:use_utf16` login option. Toggle UCS-2 or UTF-16. Default true.
 
 
-* 1.0.4 *
+## 1.0.4
 
 * Use FreeTDS 1.0 final
 
 
-* 1.0.3 *
+## 1.0.3
 
 * Use FreeTDS 1.0rc5 for cross compile windows gems.
 * Ensure we only work with latest FreeTDS v0.95.x or higher.
 
 
-* 1.0.2 *
+## 1.0.2
 
 * Cross compile w/2.3.0 using rake-compiler-dock ~> 0.5.1. Fixes #268 #270.
 * Use FreeTDS 1.0rc4 for cross compile windows gems.
 
 
-* 1.0.1 *
+## 1.0.1
 
 * Fix ruby exe's in non-platform gem.
 
 
-* 1.0.0 *
+## 1.0.0
 
 * Tested with FreeTDS 1.0.
 * Add emoji support by default using FreeTDS v1.0 in docs.
@@ -86,7 +86,7 @@
 * FreeTDS - Remove support for bad iconv.
 
 
-* 0.7.0 *
+## 0.7.0
 
 * Refactor build of FreeTDS & Iconv recipes. Add OpenSSL. Merged #207.
 * Ensure zero terminated strings, where C-str pointers are expected. Use StringValueCStr() Fixes #208.
@@ -98,7 +98,7 @@
 * Remove Ruby 1.8.6 support. We always use Time vs edge case DateTime.
 
 
-* 0.6.2 *
+## 0.6.2
 
 * Support an optional environment variable to find FreeTDS. Fixes #128.
 * Allow Support for 31+ Character Usernames/Passwords. Fixes #134. Thanks @wbond.
@@ -108,12 +108,12 @@
   as backups and restores. Fixes #150.
 
 
-* 0.6.1 *
+## 0.6.1
 
 Use both dbsetversion() vs. dbsetlversion. Partially reverts #62.
 
 
-* 0.6.0 *
+## 0.6.0
 
 * Use dbsetversion() vs. dbsetlversion. Fixes #62.
 * Remove Ruby 1.8 support.
@@ -130,12 +130,12 @@ Use both dbsetversion() vs. dbsetlversion. Partially reverts #62.
 * Raise and handle encoding errors on DB writes. Fixes #89.
 
 
-* 0.5.1 *
+## 0.5.1
 
 * Change how we configure with iconv, basically it is always needed. Fixes #11 & #69.
 
 
-* 0.5.0 *
+## 0.5.0
 
 * Copy mysql2s handling of Time and Datetime so 64bit systems are leveraged. Fixes #46 and #47. Thanks @lsylvester!
 * Add CFLAGS='-fPIC' for libtool. Fix TDS version configs in our ports file. Document. Fixes #45
@@ -149,7 +149,7 @@ Use both dbsetversion() vs. dbsetlversion. Partially reverts #62.
 * Do not raise a TinyTds::Error with our message handler unless the severity is greater than 10.
 
 
-* 0.4.5 *
+## 0.4.5
 
 * Includes precompiled Windows binaries for FreeTDS 0.91rc2 & LibIconv. No precompiled OpenSSL yet for Windows to SQL Azure.
 * Fixed symbolized unicode column names.
@@ -158,19 +158,19 @@ Use both dbsetversion() vs. dbsetlversion. Partially reverts #62.
 * Change how :host/:port are implemented. Now sending "host:port" to :dataserver.
 
 
-* 0.4.4 *
+## 0.4.4
 
 * New :host/:port connection options. Removes need for freetds.conf file.
 
 
-* 0.4.3 *
+## 0.4.3
 
 * New Client#active? method to check for good connection. Always use this abstract method.
 * Better SYBEWRIT "Write to SQL Server failed." error handling. New Client#dead? check.
 * Azure tested using latest FreeTDS with submitted patch. https://gist.github.com/889190
 
 
-* 0.4.2 *
+## 0.4.2
 
 * Iconv is a dep only when compiling locally. However, left in the ability to configure
   it for native gem installation but you must use
@@ -178,12 +178,12 @@ Use both dbsetversion() vs. dbsetlversion. Partially reverts #62.
 * Really fix what 0.4.1 was supposed to do, force SYBDBLIB compile.
 
 
-* 0.4.1 *
+## 0.4.1
 
 * Undefine MSDBLIB in case others have explicitly compiled FreeTDS with "MS db-lib source compatibility: yes".
 
 
-* 0.4.0 *
+## 0.4.0
 
 * Allow SYBEICONVI errors to pass thru so that bad data is converted to ? marks.
 * Build native deps using MiniPortile [Luis Lavena]
@@ -194,40 +194,40 @@ Use both dbsetversion() vs. dbsetlversion. Partially reverts #62.
 * Look for the syb headers only.
 
 
-* 0.3.2 *
+## 0.3.2
 
 * Small changes while testing JRuby. Using options hash for connect vs many args.
 
 
-* 0.3.1 *
+## 0.3.1
 
 * Fix bad gem build.
 
 
-* 0.3.0 *
+## 0.3.0
 
 * Access stored procedure return codes.
 * Make sure dead or not enabled connections are handled.
 * Fix bad client after timeout & read from server errors.
 
 
-* 0.2.3 *
+## 0.2.3
 
 *  Do not use development ruby/version, but simple memoize an eval check on init to find out, for 1.8.6 reflection.
 
 
-* 0.2.2 *
+## 0.2.2
 
 * Fixed failing test in Ruby 1.8.6. DateTime doesn't support fractional seconds greater than 59.
   See: http://redmine.ruby-lang.org/issues/show/1490 [Erik Bryn]
 
 
-* 0.2.1 *
+## 0.2.1
 
 * Compatibility with 32-bit systems. Better cross language testing. [Klaus Gundermann]
 
 
-* 0.2.0 *
+## 0.2.0
 
 * Convert GUID's in a more compatible way. [Klaus Gundermann]
 * Handle multiple result sets in command buffer or stored procs. [Ken Collins]
@@ -236,5 +236,5 @@ Use both dbsetversion() vs. dbsetlversion. Partially reverts #62.
 * Properly encode column names in 1.9. [Erik Bryn]
 
 
-* 0.1.0 Initial release!
+## 0.1.0 Initial release!
 

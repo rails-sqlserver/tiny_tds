@@ -2,6 +2,7 @@
 
 * Support RubyInstaller2 for Windows. Fixes #365.
 * Support the FREETDS_DIR environment variable. Fixes #371.
+* Rename binstubs to tsql-ttds and defncopy-ttds
 
 
 ## 2.0.0

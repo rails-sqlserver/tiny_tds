@@ -642,6 +642,17 @@ class ResultTest < TinyTds::TestCase
             end
           end
 
+          it 'calls the provided message handler for `print` messages' do
+            messages.clear
+
+            msg = 'hello'
+            @client.execute("PRINT '#{msg}'").do
+
+            m = messages.first
+            assert_equal 1, messages.length, 'there should be one message after one print statement'
+            assert_equal msg, m.message, 'message text'
+          end
+
         end
 
         it 'must not raise an error when severity is 10 or less' do

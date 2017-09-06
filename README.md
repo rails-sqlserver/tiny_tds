@@ -117,7 +117,7 @@ Creating a new client takes a hash of options. For valid iconv encoding options,
 * :appname - Short string seen in SQL Servers process/activity window.
 * :tds_version - TDS version. Defaults to "7.3".
 * :login_timeout - Seconds to wait for login. Default to 60 seconds.
-* :timeout - Seconds to wait for a response to a SQL command. Default 5 seconds.
+* :timeout - Seconds to wait for a response to a SQL command. Default 5 seconds. Prior to 1.0rc5, FreeTDS was unable to set the timeout on a per-client basis, permitting only a global timeout value. This means that if you're using an older version, the timeout values for all clients will be overwritten each time you instantiate a new `TinyTds::Client` object. If you are using 1.0rc5 or later, all clients will have an independent timeout setting as you'd expect.
 * :encoding - Any valid iconv value like CP1251 or ISO-8859-1. Default UTF-8.
 * :azure - Pass true to signal that you are connecting to azure.
 * :contained - Pass true to signal that you are connecting with a contained database user.
@@ -482,5 +482,3 @@ My name is Ken Collins and I currently maintain the SQL Server adapter for Activ
 ## License
 
 TinyTDS is Copyright (c) 2010-2015 Ken Collins, <ken@metaskills.net> and Will Bond (Veracross LLC) <wbond@breuer.com>. It is distributed under the MIT license. Windows binaries contain pre-compiled versions of FreeTDS <http://www.freetds.org/> which is licensed under the GNU LGPL license at <http://www.gnu.org/licenses/lgpl-2.0.html>
-
-

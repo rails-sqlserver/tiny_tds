@@ -614,8 +614,8 @@ class ResultTest < TinyTds::TestCase
 
       if sqlserver?
 
-        describe 'using :message_handler' do
-          messages = []
+        describe 'using :message_handler option' do
+          let(:messages) { Array.new }
 
           before do
             close_client
@@ -626,14 +626,16 @@ class ResultTest < TinyTds::TestCase
             messages.clear
           end
 
+          it 'has a message handler that responds to call' do
+            assert @client.message_handler.respond_to?(:call)
+          end
+
           it 'calls the provided message handler when severity is 10 or less' do
             (1..10).to_a.each do |severity|
               messages.clear
-
               msg = "Test #{severity} severity"
               state = rand(1..255)
               @client.execute("RAISERROR(N'#{msg}', #{severity}, #{state})").do
-
               m = messages.first
               assert_equal 1, messages.length, 'there should be one message after one raiserror'
               assert_equal msg, m.message, 'message text'
@@ -644,15 +646,54 @@ class ResultTest < TinyTds::TestCase
 
           it 'calls the provided message handler for `print` messages' do
             messages.clear
-
             msg = 'hello'
             @client.execute("PRINT '#{msg}'").do
-
             m = messages.first
             assert_equal 1, messages.length, 'there should be one message after one print statement'
             assert_equal msg, m.message, 'message text'
           end
+        end
 
+        describe 'using an initializer block' do
+          let(:messages) { Array.new }
+
+          before do
+            close_client
+            @client = new_connection do |m|
+              messages << m
+            end
+          end
+
+          after do
+            messages.clear
+          end
+
+          it 'has a message handler that responds to call' do
+            assert @client.message_handler.respond_to?(:call)
+          end
+
+          it 'calls the provided message handler when severity is 10 or less' do
+            (1..10).to_a.each do |severity|
+              messages.clear
+              msg = "Test #{severity} severity"
+              state = rand(1..255)
+              @client.execute("RAISERROR(N'#{msg}', #{severity}, #{state})").do
+              m = messages.first
+              assert_equal 1, messages.length, 'there should be one message after one raiserror'
+              assert_equal msg, m.message, 'message text'
+              assert_equal severity, m.severity, 'message severity' unless severity == 10 && m.severity.to_i == 0
+              assert_equal state, m.os_error_number, 'message state'
+            end
+          end
+
+          it 'calls the provided message handler for `print` messages' do
+            messages.clear
+            msg = 'hello'
+            @client.execute("PRINT '#{msg}'").do
+            m = messages.first
+            assert_equal 1, messages.length, 'there should be one message after one print statement'
+            assert_equal msg, m.message, 'message text'
+          end
         end
 
         it 'must not raise an error when severity is 10 or less' do

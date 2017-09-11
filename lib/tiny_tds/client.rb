@@ -39,7 +39,7 @@ module TinyTds
         raise ArgumentError, 'missing :host option if no :dataserver given'
       end
 
-      @message_handler = opts[:message_handler] = opts[:message_handler] || (block_given? ? Proc.new : nil)
+      @message_handler = opts[:message_handler]
       if @message_handler && !@message_handler.respond_to?(:call)
         raise ArgumentError, ':message_handler must implement `call` (eg, a Proc or a Method)'
       end

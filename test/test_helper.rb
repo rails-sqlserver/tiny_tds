@@ -48,8 +48,8 @@ module TinyTds
       client.close if defined?(client) && client.is_a?(TinyTds::Client)
     end
 
-    def new_connection(options={}, &blk)
-      client = TinyTds::Client.new(connection_options(options), &blk)
+    def new_connection(options={})
+      client = TinyTds::Client.new(connection_options(options))
       if sybase_ase?
         client.execute("SET ANSINULL ON").do
         return client

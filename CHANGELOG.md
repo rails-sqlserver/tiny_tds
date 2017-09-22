@@ -4,6 +4,8 @@
 * Support the FREETDS_DIR environment variable. Fixes #371.
 * Rename binstubs to tsql-ttds and defncopy-ttds
 * Support separate timeout values per connection Fixes #348.
+* Allow client proc to capture INFO messages. Fixes #352.
+* Use official HTTP mirrors instead of FTP. Fixes #384.
 
 
 ## 2.0.0

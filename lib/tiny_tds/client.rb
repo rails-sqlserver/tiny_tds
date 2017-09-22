@@ -10,6 +10,7 @@ module TinyTds
     }
 
     attr_reader :query_options
+    attr_reader :message_handler
 
     class << self
 
@@ -37,6 +38,12 @@ module TinyTds
       if opts[:dataserver].to_s.empty? && opts[:host].to_s.empty?
         raise ArgumentError, 'missing :host option if no :dataserver given'
       end
+
+      @message_handler = opts[:message_handler]
+      if @message_handler && !@message_handler.respond_to?(:call)
+        raise ArgumentError, ':message_handler must implement `call` (eg, a Proc or a Method)'
+      end
+
       opts[:username] = parse_username(opts)
       @query_options = self.class.default_query_options.dup
       opts[:password] = opts[:password].to_s if opts[:password] && opts[:password].to_s.strip != ''

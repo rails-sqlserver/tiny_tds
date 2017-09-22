@@ -8,6 +8,7 @@ void init_tinytds_client();
 
 typedef struct {
   short int is_set;
+  int is_message;
   int cancel;
   char error[ERROR_MSG_SIZE];
   char source[ERROR_MSG_SIZE];
@@ -38,7 +39,7 @@ typedef struct {
   rb_encoding *encoding;
 } tinytds_client_wrapper;
 
-VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int cancel, const char *error, const char *source, int severity, int dberr, int oserr);
+VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int is_message, int cancel, const char *error, const char *source, int severity, int dberr, int oserr);
 
 // Lib Macros
 

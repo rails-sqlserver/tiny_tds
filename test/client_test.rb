@@ -59,7 +59,7 @@ class ClientTest < TinyTds::TestCase
     end
 
     it 'must be able to use :host/:port connection' do
-      host = ENV['TINYTDS_UNIT_HOST_TEST'] || ENV['TINYTDS_UNIT_HOST']
+      host = ENV['TINYTDS_UNIT_HOST_TEST'] || ENV['TINYTDS_UNIT_HOST'] || 'localhost'
       port = ENV['TINYTDS_UNIT_PORT_TEST'] || ENV['TINYTDS_UNIT_PORT'] || 1433
       begin
         client = new_connection dataserver: nil, host: host, port: port

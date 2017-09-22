@@ -75,8 +75,8 @@ module TinyTds
       username = (sqlserver_azure? ? ENV['TINYTDS_UNIT_AZURE_USER'] : ENV['TINYTDS_UNIT_USER']) || 'tinytds'
       password = (sqlserver_azure? ? ENV['TINYTDS_UNIT_AZURE_PASS'] : ENV['TINYTDS_UNIT_PASS']) || ''
       { :dataserver    => sqlserver_azure? ? nil : ENV['TINYTDS_UNIT_DATASERVER'],
-        :host          => ENV['TINYTDS_UNIT_HOST'],
-        :port          => ENV['TINYTDS_UNIT_PORT'],
+        :host          => ENV['TINYTDS_UNIT_HOST'] || 'localhost',
+        :port          => ENV['TINYTDS_UNIT_PORT'] || '1433',
         :tds_version   => ENV['TINYTDS_UNIT_VERSION'],
         :username      => username,
         :password      => password,

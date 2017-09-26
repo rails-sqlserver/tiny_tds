@@ -122,6 +122,17 @@ Creating a new client takes a hash of options. For valid iconv encoding options,
 * :azure - Pass true to signal that you are connecting to azure.
 * :contained - Pass true to signal that you are connecting with a contained database user.
 * :use_utf16 - Instead of using UCS-2 for database wide character encoding use UTF-16. Newer Windows versions use this encoding instead of UCS-2. Default true.
+* :message_handler - Pass in a `call`-able object such as a `Proc` or a method to receive info messages from the database. It should have a single parameter, which will be a `TinyTds::Error` object representing the message. For example:
+
+```ruby
+opts = ... # host, username, password, etc
+opts[:message_handler] = Proc.new { |m| puts m.message }
+client = TinyTds::Client.new opts
+# => Changed database context to 'master'.
+# => Changed language setting to us_english.
+client.execute("print 'hello world!'").do
+# => hello world!
+```
 
 Use the `#active?` method to determine if a connection is good. The implementation of this method may change but it should always guarantee that a connection is good. Current it checks for either a closed or dead connection.
 

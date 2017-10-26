@@ -40,7 +40,7 @@ If you're using RubyInstaller the binary gem will require that devkit is install
 On all other platforms, we will find these dependencies. It is recommended that you install the latest FreeTDS via your method of choice. For example, here is how to install FreeTDS on Ubuntu. You might also need the `build-essential` and possibly the `libc6-dev` packages.
 
 ```shell
-$ apt-get wget
+$ apt-get install wget
 $ apt-get install build-essential
 $ apt-get install libc6-dev
 

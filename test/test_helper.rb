@@ -89,7 +89,7 @@ module TinyTds
     end
 
     def connection_timeout
-      sqlserver_azure? ? 20 : 5
+      sqlserver_azure? ? 20 : 8
     end
 
     def assert_client_works(client)

@@ -7,7 +7,6 @@ static ID sym_username, sym_password, sym_dataserver, sym_database, sym_appname,
 static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, intern_os_error_number_eql;
 static ID intern_new, intern_dup, intern_transpose_iconv_encoding, intern_local_offset, intern_gsub, intern_call;
 VALUE opt_escape_regex, opt_escape_dblquote;
-VALUE message_handler;
 
 
 // Lib Macros
@@ -44,6 +43,7 @@ VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int is_message, int cancel, cons
     rb_funcall(e, intern_os_error_number_eql, 1, INT2FIX(oserr));
 
   if (severity <= 10 && is_message) {
+    VALUE message_handler = userdata && userdata->message_handler ? userdata->message_handler : Qnil;
     if (message_handler && message_handler != Qnil && rb_respond_to(message_handler, intern_call) != 0) {
       rb_funcall(message_handler, intern_call, 1, e);
     }
@@ -322,7 +322,7 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   azure = rb_hash_aref(opts, sym_azure);
   contained = rb_hash_aref(opts, sym_contained);
   use_utf16 = rb_hash_aref(opts, sym_use_utf16);
-  message_handler = rb_hash_aref(opts, sym_message_handler);
+  cwrap->userdata->message_handler = rb_hash_aref(opts, sym_message_handler);
   /* Dealing with options. */
   if (dbinit() == FAIL) {
     rb_raise(cTinyTdsError, "failed dbinit() function");

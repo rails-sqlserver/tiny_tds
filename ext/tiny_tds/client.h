@@ -26,6 +26,7 @@ typedef struct {
   short int dbcancel_sent;
   short int nonblocking;
   tinytds_errordata nonblocking_error;
+  VALUE message_handler;
 } tinytds_client_userdata;
 
 typedef struct {

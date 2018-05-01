@@ -50,6 +50,7 @@ module TinyTds
       opts[:appname] ||= 'TinyTds'
       opts[:tds_version] = tds_versions_setter(opts)
       opts[:use_utf16] = opts[:use_utf16].nil? || ["true", "1", "yes"].include?(opts[:use_utf16].to_s)
+      opts[:read_only_intent] = opts[:read_only_intent].nil? ? nil : ["true", "1", "yes"].include?(opts[:read_only_intent].to_s)
       opts[:login_timeout] ||= 60
       opts[:timeout] ||= 5
       opts[:encoding] = opts[:encoding].nil? || opts[:encoding].casecmp('utf8').zero? ? 'UTF-8' : opts[:encoding].upcase

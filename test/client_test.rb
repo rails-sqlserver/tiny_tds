@@ -70,6 +70,21 @@ class ClientTest < TinyTds::TestCase
 
   end
 
+  describe 'With custom options' do
+    it 'has an option for application intent read only' do
+      skip unless ENV['TINYTDS_READ_REPLICA_SERVER_NAME']
+
+      begin
+        client = new_connection read_only_intent: true
+        connected_to_server_name = client.execute('select @@servername server_name').to_a.first['server_name']
+
+        assert_equal ENV['TINYTDS_READ_REPLICA_SERVER_NAME'], connected_to_server_name
+      ensure
+        client.close if client
+      end
+    end
+  end
+
   describe 'With in-valid options' do
 
     it 'raises an argument error when no :host given and :dataserver is blank' do

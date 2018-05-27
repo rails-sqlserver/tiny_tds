@@ -1,6 +1,6 @@
 ## 2.1.2
 
-* ...
+* Use Kernel.BigDecimal vs BigDecimal.new. Fixes #409.
 
 ## 2.1.1
 

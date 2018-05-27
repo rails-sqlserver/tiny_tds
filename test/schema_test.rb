@@ -76,10 +76,10 @@ class SchemaTest < TinyTds::TestCase
 
       it 'casts decimal' do
         assert_instance_of BigDecimal, find_value(91, :decimal_9_2)
-        assert_equal BigDecimal.new('12345.01'), find_value(91, :decimal_9_2)
-        assert_equal BigDecimal.new('1234567.89'), find_value(92, :decimal_9_2)
-        assert_equal BigDecimal.new('0.0'), find_value(93, :decimal_16_4)
-        assert_equal BigDecimal.new('123456789012.3456'), find_value(94, :decimal_16_4)
+        assert_equal BigDecimal('12345.01'), find_value(91, :decimal_9_2)
+        assert_equal BigDecimal('1234567.89'), find_value(92, :decimal_9_2)
+        assert_equal BigDecimal('0.0'), find_value(93, :decimal_16_4)
+        assert_equal BigDecimal('123456789012.3456'), find_value(94, :decimal_16_4)
       end
 
       it 'casts float' do
@@ -102,9 +102,9 @@ class SchemaTest < TinyTds::TestCase
 
       it 'casts money' do
         assert_instance_of BigDecimal, find_value(161, :money)
-        assert_equal BigDecimal.new('4.20'), find_value(161, :money)
-        assert_equal BigDecimal.new('922337203685477.5806'), find_value(163 ,:money)
-        assert_equal BigDecimal.new('-922337203685477.5807'), find_value(162 ,:money)
+        assert_equal BigDecimal('4.20'), find_value(161, :money)
+        assert_equal BigDecimal('922337203685477.5806'), find_value(163 ,:money)
+        assert_equal BigDecimal('-922337203685477.5807'), find_value(162 ,:money)
       end
 
       it 'casts nchar' do
@@ -176,9 +176,9 @@ class SchemaTest < TinyTds::TestCase
 
       it 'casts smallmoney' do
         assert_instance_of BigDecimal, find_value(251, :smallmoney)
-        assert_equal BigDecimal.new("4.20"), find_value(251, :smallmoney)
-        assert_equal BigDecimal.new("-214748.3647"), find_value(252, :smallmoney)
-        assert_equal BigDecimal.new("214748.3646"), find_value(253, :smallmoney)
+        assert_equal BigDecimal("4.20"), find_value(251, :smallmoney)
+        assert_equal BigDecimal("-214748.3647"), find_value(252, :smallmoney)
+        assert_equal BigDecimal("214748.3646"), find_value(253, :smallmoney)
       end
 
       it 'casts text' do

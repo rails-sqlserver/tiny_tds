@@ -1,3 +1,12 @@
+## 2.1.2
+
+* ...
+
+## 2.1.1
+
+* Move message_handler from a shared value to userdata.
+
+
 ## 2.1.0
 
 * Support RubyInstaller2 for Windows. Fixes #365.

@@ -1,6 +1,7 @@
 ## 2.1.2
 
 * Use Kernel.BigDecimal vs BigDecimal.new. Fixes #409.
+* Change `DBSETUTF16` abscence warning message. Fixes #410.
 
 ## 2.1.1
 

@@ -362,7 +362,7 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
     if (use_utf16 == Qfalse) { DBSETLUTF16(cwrap->login, 0); }
   #else
     if (use_utf16 == Qtrue || use_utf16 == Qfalse) {
-      rb_warn("TinyTds: :use_utf16 option not supported in this version of FreeTDS.\n");
+      rb_warn("TinyTds: Please consider upgrading to FreeTDS 1.0 for better unicode support.\n");
     }
   #endif
 

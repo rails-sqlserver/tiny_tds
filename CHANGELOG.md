@@ -2,6 +2,7 @@
 
 * Use Kernel.BigDecimal vs BigDecimal.new. Fixes #409.
 * Change `DBSETUTF16` abscence warning message. Fixes #410.
+* Add Windows binary for Ruby-2.5. Fixes #408.
 
 ## 2.1.1
 

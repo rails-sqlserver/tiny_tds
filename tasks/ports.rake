@@ -76,7 +76,7 @@ namespace :ports do
 
     # build the ports for all our cross compile hosts
     GEM_PLATFORM_HOSTS.each do |gem_platform, host|
-      build << "rake ports:compile[#{host}]"
+      build << "rake ports:compile[#{host}] MAKE='make -j`nproc`'"
     end
 
     RakeCompilerDock.sh build.join(' && ')

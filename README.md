@@ -35,6 +35,15 @@ $ gem install tiny_tds
 If you use Windows, we pre-compile TinyTDS with static versions of FreeTDS and supporting libraries.
 If you're using RubyInstaller the binary gem will require that devkit is installed and in your path to operate properly.
 
+### Ruby Windows >= 2.4
+If installing on Windows with Ruby version 2.4 or greater, you must ensure devkit was installed with the Windows Installer. You will need to use the `--platform ruby` tag.
+
+```
+$ gem install --platform ruby tiny_tds
+```
+
+See https://rubyinstaller.org/2017/05/25/rubyinstaller-2.4.1-1-released.html for detailed information about this issue.
+
 On all other platforms, we will find these dependencies. It is recommended that you install the latest FreeTDS via your method of choice. For example, here is how to install FreeTDS on Ubuntu. You might also need the `build-essential` and possibly the `libc6-dev` packages.
 
 ```shell

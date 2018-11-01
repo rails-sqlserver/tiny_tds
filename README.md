@@ -472,7 +472,7 @@ If you use a [multi stage](https://docs.docker.com/develop/develop-images/multis
 into another, lighter, container without build tools you will need to make sure you tell the OS how to find dependencies for TinyTDS.
 
 After you have built and installed FreeTDS it will normally place library files in `/usr/local/lib`. When TinyTDS builds native extensions, 
-it [already knows to look here](https://github.com/mlh758/tiny_tds/blob/master/ext/tiny_tds/extconf.rb#L31) but if you copy your app to a new container that link will be broken.
+it [already knows to look here](https://github.com/rails-sqlserver/tiny_tds/blob/master/ext/tiny_tds/extconf.rb#L31) but if you copy your app to a new container that link will be broken.
 
 Set the LD_LIBRARY_PATH environment variable `export LD_LIBRARY_PATH=/usr/local/lib` and run `ldconfig`. If you run `ldd tiny_tds.so` you should not see any broken links. Make
 sure you also copied in the library dependencies from your build container with a command like `COPY --from=builder /usr/local/lib /usr/local/lib`.

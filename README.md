@@ -50,7 +50,7 @@ $ make
 $ make install
 ```
 
-If none exist, our native extension will use MiniPortile to install any missing dependencies listed above for your specific platform. These dependencies will be built and linked within the installed TinyTDS gem. Please read the MiniPortile and/or Windows sections at the end of this file for advanced configuration options past the following:
+Please read the MiniPortile and/or Windows sections at the end of this file for advanced configuration options past the following:
 
 ```
 --with-freetds-dir=DIR
@@ -73,7 +73,7 @@ TinyTDS is developed against FreeTDS 0.95, 0.99, and 1.0 current. Our default an
 
 **NOTE:** Windows users of our pre-compiled native gems need not worry about installing FreeTDS and its dependencies.
 
-* **Do I need to install FreeTDS?** Yes! Somehow, someway, you are going to need FreeTDS for TinyTDS to compile against. You can avoid installing FreeTDS on your system by using our projects usage of rake-compiler and mini_portile to compile and package a native gem just for you. See the "Using MiniPortile" section below.
+* **Do I need to install FreeTDS?** Yes! Somehow, someway, you are going to need FreeTDS for TinyTDS to compile against.
 
 * **OK, I am installing FreeTDS, how do I configure it?** Contrary to what most people think, you do not need to specially configure FreeTDS in any way for client libraries like TinyTDS to use it. About the only requirement is that you compile it with libiconv for proper encoding support. FreeTDS must also be compiled with OpenSSL (or the like) to use it with Azure. See the "Using TinyTDS with Azure" section below for more info.
 
@@ -465,6 +465,17 @@ $ rake TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2008
 $ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_SCHEMA=sqlserver_azure
 $ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_UNIT_PORT=5000 TINYTDS_SCHEMA=sybase_ase
 ```
+
+## Docker Builds
+
+If you use a [multi stage](https://docs.docker.com/develop/develop-images/multistage-build/) Docker build to assemble your gems in one phase and then copy your app and gems
+into another, lighter, container without build tools you will need to make sure you tell the OS how to find dependencies for TinyTDS.
+
+After you have built and installed FreeTDS it will normally place library files in `/usr/local/lib`. When TinyTDS builds native extensions, 
+it [already knows to look here](https://github.com/rails-sqlserver/tiny_tds/blob/master/ext/tiny_tds/extconf.rb#L31) but if you copy your app to a new container that link will be broken.
+
+Set the LD_LIBRARY_PATH environment variable `export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}` and run `ldconfig`. If you run `ldd tiny_tds.so` you should not see any broken links. Make
+sure you also copied in the library dependencies from your build container with a command like `COPY --from=builder /usr/local/lib /usr/local/lib`.
 
 ## Help & Support
 

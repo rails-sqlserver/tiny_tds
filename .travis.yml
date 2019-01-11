@@ -11,19 +11,40 @@ matrix:
   include:
     - os: linux
       dist: trusty
+      rvm: 2.1.9
+      install:
+        - gem install bundler -v '<2'
+    - os: linux
+      dist: trusty
+      rvm: 2.2.5
+      install:
+        - gem install bundler -v '<2'
+    - os: linux
+      dist: trusty
+      rvm: 2.3.1
+      install:
+        - gem install bundler
     - os: linux
       dist: xenial
-rvm:
-  - 2.1.9
-  - 2.2.5
-  - 2.3.1
+      rvm: 2.1.9
+      install:
+        - gem install bundler -v '<2'
+    - os: linux
+      dist: xenial
+      rvm: 2.2.5
+      install:
+        - gem install bundler -v '<2'
+    - os: linux
+      dist: xenial
+      rvm: 2.3.1
+      install:
+        - gem install bundler
 before_install:
   - docker info
   - sudo ./test/bin/install-openssl.sh
   - sudo ./test/bin/install-freetds.sh
   - sudo ./test/bin/setup.sh
 install:
-  - gem install bundler
   - bundle --version
   - bundle install
 script:

@@ -13,21 +13,24 @@ matrix:
       rvm: 2.1.9
       install:
         - gem install bundler -v '<2'
+        - bundle --version
+        - bundle install
     - os: linux
       rvm: 2.2.5
       install:
         - gem install bundler -v '<2'
+        - bundle --version
+        - bundle install
     - os: linux
       rvm: 2.3.1
       install:
         - gem install bundler
+        - bundle --version
+        - bundle install
 before_install:
   - docker info
   - sudo ./test/bin/install-openssl.sh
   - sudo ./test/bin/install-freetds.sh
   - sudo ./test/bin/setup.sh
-install:
-  - bundle --version
-  - bundle install
 script:
   - bundle exec rake

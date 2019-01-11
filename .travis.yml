@@ -7,6 +7,9 @@ env:
     - PATH=/opt/local/bin:$PATH
     - TESTOPTS="-v"
     - TINYTDS_UNIT_HOST=localhost
+dist:
+  - trusty
+  - xenial
 rvm:
   - 2.1.9
   - 2.2.5

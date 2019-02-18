@@ -17,7 +17,7 @@ before_install:
   - sudo ./test/bin/install-freetds.sh
   - sudo ./test/bin/setup.sh
 install:
-  - gem install bundler
+  - gem install bundler -v 1.17.3
   - bundle --version
   - bundle install
 script:

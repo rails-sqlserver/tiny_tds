@@ -10,18 +10,6 @@ env:
 matrix:
   include:
     - os: linux
-      rvm: 2.1.9
-      install:
-        - gem install bundler -v '<2'
-        - bundle --version
-        - bundle install
-    - os: linux
-      rvm: 2.2.5
-      install:
-        - gem install bundler -v '<2'
-        - bundle --version
-        - bundle install
-    - os: linux
       rvm: 2.3.8
       install:
         - gem install bundler

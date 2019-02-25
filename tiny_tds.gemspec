@@ -3,12 +3,12 @@ $LOAD_PATH.push File.expand_path('../lib', __FILE__)
 require 'tiny_tds/version'
 
 Gem::Specification.new do |s|
-  s.name          = 'tiny_tds'
+  s.name          = 'vm_tiny_tds'
   s.version       = TinyTds::VERSION
   s.platform      = Gem::Platform::RUBY
   s.authors       = ['Ken Collins', 'Erik Bryn', 'Will Bond']
-  s.email         = ['ken@metaskills.net', 'will@wbond.net']
-  s.homepage      = 'http://github.com/rails-sqlserver/tiny_tds'
+  s.email         = ['ajithks@vmware.com']
+  s.homepage      = 'https://github.com/Ajithprojs/tiny_tds'
   s.summary       = 'TinyTDS - A modern, simple and fast FreeTDS library for Ruby using DB-Library.'
   s.description   = 'TinyTDS - A modern, simple and fast FreeTDS library for Ruby using DB-Library. Developed for the ActiveRecord SQL Server adapter.'
   s.files         = `git ls-files`.split("\n") + Dir.glob('exe/*')

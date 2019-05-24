@@ -6,10 +6,6 @@
 * [![Dependency Status](https://dependencyci.com/github/rails-sqlserver/tiny_tds/badge)](https://dependencyci.com/github/rails-sqlserver/tiny_tds) - Dependency Status
 * [![Gitter chat](https://img.shields.io/badge/%E2%8A%AA%20GITTER%20-JOIN%20CHAT%20%E2%86%92-brightgreen.svg?style=flat)](https://gitter.im/rails-sqlserver/activerecord-sqlserver-adapter) - Community
 
-## Supporting TinyTDS/Adapter
-
-Both TinyTDS and the Rails SQL Server Adapter are MIT-licensed open source projects. Its ongoing development is made possible thanks to the support by these awesome [backers](https://github.com/rails-sqlserver/tiny_tds/blob/master/BACKERS.md). If you'd like to join them, check out our [Patreon Campaign](https://www.patreon.com/metaskills).
-
 
 ## About TinyTDS
 
@@ -471,7 +467,7 @@ $ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_UNIT_PORT=5000 TINYTDS_SCHEMA=syb
 If you use a [multi stage](https://docs.docker.com/develop/develop-images/multistage-build/) Docker build to assemble your gems in one phase and then copy your app and gems
 into another, lighter, container without build tools you will need to make sure you tell the OS how to find dependencies for TinyTDS.
 
-After you have built and installed FreeTDS it will normally place library files in `/usr/local/lib`. When TinyTDS builds native extensions, 
+After you have built and installed FreeTDS it will normally place library files in `/usr/local/lib`. When TinyTDS builds native extensions,
 it [already knows to look here](https://github.com/rails-sqlserver/tiny_tds/blob/master/ext/tiny_tds/extconf.rb#L31) but if you copy your app to a new container that link will be broken.
 
 Set the LD_LIBRARY_PATH environment variable `export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}` and run `ldconfig`. If you run `ldd tiny_tds.so` you should not see any broken links. Make

@@ -345,7 +345,7 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   if (!NIL_P(charset))
     DBSETLCHARSET(cwrap->login, StringValueCStr(charset));
   if (!NIL_P(database)) {
-    if (azure == Qtrue || contained == Qtrue) {
+    if (azure == Qtrue || contained == Qtrue || read_only_intent == Qtrue) {
       #ifdef DBSETLDBNAME
         DBSETLDBNAME(cwrap->login, StringValueCStr(database));
       #else
@@ -354,6 +354,9 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
         }
         if (contained == Qtrue) {
           rb_warn("TinyTds: :contained option is not supported in this version of FreeTDS.\n");
+        }
+        if (read_only_intent == Qtrue) {
+          rb_warn("TinyTds: this version of FreeTDS doesn't support setting the login database.\n");
         }
       #endif
     }

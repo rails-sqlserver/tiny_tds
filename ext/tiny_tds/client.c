@@ -371,8 +371,12 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   #endif
 
   #ifdef DBSETREADONLY
-    if (read_only_intent == Qtrue) {
-      DBSETLREADONLY(cwrap->login, 1);
+    if (version < 7.4) {
+      rb_warn("TinyTds: :read_only_intent requires TDS 7.4 or greater.\n");
+    } else {
+      if (read_only_intent == Qtrue) {
+        DBSETLREADONLY(cwrap->login, 1);
+      }
     }
   #else
     if (read_only_intent == Qtrue || read_only_intent == Qfalse) {

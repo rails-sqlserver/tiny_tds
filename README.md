@@ -117,6 +117,7 @@ Creating a new client takes a hash of options. For valid iconv encoding options,
 * :contained - Pass true to signal that you are connecting with a contained database user.
 * :use_utf16 - Instead of using UCS-2 for database wide character encoding use UTF-16. Newer Windows versions use this encoding instead of UCS-2. Default true.
 * :message_handler - Pass in a `call`-able object such as a `Proc` or a method to receive info messages from the database. It should have a single parameter, which will be a `TinyTds::Error` object representing the message. For example:
+* :application_intent - When connecting to an Availability Group, pass `:read_only` to connect to a read replica (Note: the `:database` option must also be set to a database joined to the AG that has a read replica). Defaults to `nil`.
 
 ```ruby
 opts = ... # host, username, password, etc

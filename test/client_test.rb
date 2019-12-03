@@ -75,7 +75,7 @@ class ClientTest < TinyTds::TestCase
       skip unless ENV['TINYTDS_READ_REPLICA_SERVER_NAME']
 
       begin
-        client = new_connection read_only_intent: true
+        client = new_connection application_intent: :read_only
         connected_to_server_name = client.execute('select @@servername server_name').to_a.first['server_name']
 
         assert_equal ENV['TINYTDS_READ_REPLICA_SERVER_NAME'], connected_to_server_name

@@ -3,9 +3,9 @@
 
 VALUE cTinyTdsClient;
 extern VALUE mTinyTds, cTinyTdsError;
-static ID sym_username, sym_password, sym_dataserver, sym_database, sym_appname, sym_tds_version, sym_login_timeout, sym_timeout, sym_encoding, sym_azure, sym_contained, sym_use_utf16, sym_read_only_intent, sym_message_handler;
+static ID sym_username, sym_password, sym_dataserver, sym_database, sym_appname, sym_tds_version, sym_login_timeout, sym_timeout, sym_encoding, sym_azure, sym_contained, sym_use_utf16, sym_message_handler, sym_application_intent;
 static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, intern_os_error_number_eql;
-static ID intern_new, intern_dup, intern_transpose_iconv_encoding, intern_local_offset, intern_gsub, intern_call;
+static ID intern_new, intern_dup, intern_transpose_iconv_encoding, intern_local_offset, intern_gsub, intern_call, intern_read_only;
 VALUE opt_escape_regex, opt_escape_dblquote;
 
 
@@ -307,7 +307,7 @@ static VALUE rb_tinytds_identity_sql(VALUE self) {
 
 static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   /* Parsing options hash to local vars. */
-  VALUE user, pass, dataserver, database, app, version, ltimeout, timeout, charset, azure, contained, use_utf16, read_only_intent;
+  VALUE user, pass, dataserver, database, app, version, ltimeout, timeout, charset, azure, contained, use_utf16, application_intent;
   GET_CLIENT_WRAPPER(self);
 
   user = rb_hash_aref(opts, sym_username);
@@ -322,8 +322,8 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   azure = rb_hash_aref(opts, sym_azure);
   contained = rb_hash_aref(opts, sym_contained);
   use_utf16 = rb_hash_aref(opts, sym_use_utf16);
-  read_only_intent = rb_hash_aref(opts, sym_read_only_intent);
   cwrap->userdata->message_handler = rb_hash_aref(opts, sym_message_handler);
+  application_intent = rb_hash_aref(opts, sym_application_intent);
   /* Dealing with options. */
   if (dbinit() == FAIL) {
     rb_raise(cTinyTdsError, "failed dbinit() function");
@@ -345,7 +345,7 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
   if (!NIL_P(charset))
     DBSETLCHARSET(cwrap->login, StringValueCStr(charset));
   if (!NIL_P(database)) {
-    if (azure == Qtrue || contained == Qtrue || read_only_intent == Qtrue) {
+    if (azure == Qtrue || contained == Qtrue || application_intent == intern_read_only) {
       #ifdef DBSETLDBNAME
         DBSETLDBNAME(cwrap->login, StringValueCStr(database));
       #else
@@ -355,8 +355,8 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
         if (contained == Qtrue) {
           rb_warn("TinyTds: :contained option is not supported in this version of FreeTDS.\n");
         }
-        if (read_only_intent == Qtrue) {
-          rb_warn("TinyTds: this version of FreeTDS doesn't support setting the login database.\n");
+        if (application_intent == intern_read_only) {
+          rb_warn("TinyTds: application intent :read_only option is not supported in this version of FreeTDS.\n");
         }
       #endif
     }
@@ -372,15 +372,15 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
 
   #ifdef DBSETREADONLY
     if (version < 7.4) {
-      rb_warn("TinyTds: :read_only_intent requires TDS 7.4 or greater.\n");
+      rb_warn("TinyTds: :application_intent option requires TDS 7.4 or greater.\n");
     } else {
-      if (read_only_intent == Qtrue) {
+      if (application_intent == intern_read_only) {
         DBSETLREADONLY(cwrap->login, 1);
       }
     }
   #else
-    if (read_only_intent == Qtrue || read_only_intent == Qfalse) {
-      rb_warn("TinyTds: :read_only_intent option not supported in this version of FreeTDS.\n");
+    if (!NIL_P(application_intent)) {
+      rb_warn("TinyTds: :application_intent option not supported in this version of FreeTDS.\n");
     }
   #endif
 
@@ -448,8 +448,8 @@ void init_tinytds_client() {
   sym_azure = ID2SYM(rb_intern("azure"));
   sym_contained = ID2SYM(rb_intern("contained"));
   sym_use_utf16 = ID2SYM(rb_intern("use_utf16"));
-  sym_read_only_intent = ID2SYM(rb_intern("read_only_intent"));
   sym_message_handler = ID2SYM(rb_intern("message_handler"));
+  sym_application_intent = ID2SYM(rb_intern("application_intent"));
   /* Intern TinyTds::Error Accessors */
   intern_source_eql = rb_intern("source=");
   intern_severity_eql = rb_intern("severity=");
@@ -462,6 +462,7 @@ void init_tinytds_client() {
   intern_local_offset = rb_intern("local_offset");
   intern_gsub = rb_intern("gsub");
   intern_call = rb_intern("call");
+  intern_read_only = ID2SYM(rb_intern("read_only"));
   /* Escape Regexp Global */
   opt_escape_regex = rb_funcall(rb_cRegexp, intern_new, 1, rb_str_new2("\\\'"));
   opt_escape_dblquote = rb_str_new2("''");

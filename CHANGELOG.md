@@ -1,3 +1,9 @@
+## (unreleased)
+
+* Removed old/unused appveyor config
+* Remove old Rubies from CI & cross compile list
+* Add Ruby 2.6 to the cross compile list
+
 ## 2.1.2
 
 * Use Kernel.BigDecimal vs BigDecimal.new. Fixes #409.

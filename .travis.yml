@@ -11,6 +11,7 @@ rvm:
   - 2.4.5
   - 2.5.3
   - 2.6.1
+  - 2.7.0
 before_install:
   - docker info
   - sudo ./test/bin/install-openssl.sh

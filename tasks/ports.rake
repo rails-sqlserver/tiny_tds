@@ -6,8 +6,6 @@ require_relative 'ports/openssl'
 require_relative 'ports/freetds'
 require_relative '../ext/tiny_tds/extconsts'
 
-OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE if defined? OpenSSL
-
 namespace :ports do
   openssl = Ports::Openssl.new(OPENSSL_VERSION)
   libiconv = Ports::Libiconv.new(ICONV_VERSION)

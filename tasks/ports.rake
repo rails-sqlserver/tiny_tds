@@ -12,6 +12,8 @@ namespace :ports do
   freetds = Ports::Freetds.new(FREETDS_VERSION)
 
   directory "ports"
+  CLEAN.include "ports/*mingw32*"
+  CLEAN.include "ports/*.installed"
 
   task :openssl, [:host] do |task, args|
     args.with_defaults(host: RbConfig::CONFIG['host'])
@@ -69,15 +71,13 @@ namespace :ports do
   task 'cross' do
     require 'rake_compiler_dock'
 
-    # make sure to install our bundle
-    build = ['bundle']
-
     # build the ports for all our cross compile hosts
     GEM_PLATFORM_HOSTS.each do |gem_platform, host|
+      # make sure to install our bundle
+      build = ['bundle']
       build << "rake ports:compile[#{host}] MAKE='make -j`nproc`'"
+      RakeCompilerDock.sh build.join(' && '), platform: gem_platform
     end
-
-    RakeCompilerDock.sh build.join(' && ')
   end
 end
 

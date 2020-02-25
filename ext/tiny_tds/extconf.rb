@@ -22,34 +22,38 @@ do_help if arg_config('--help')
 
 # Make sure to check the ports path for the configured host
 host = RbConfig::CONFIG['host']
-project_dir = File.join(['..']*4)
+project_dir = File.expand_path("../../..", __FILE__)
 freetds_ports_dir = File.join(project_dir, 'ports', host, 'freetds', FREETDS_VERSION)
 freetds_ports_dir = File.expand_path(freetds_ports_dir)
 
 # Add all the special path searching from the original tiny_tds build
-# order is important here! First in, last searched.
+# order is important here! First in, first searched.
 DIRS = %w(
-  /usr/local
   /opt/local
+  /usr/local
 )
+
+# Add the ports directory if it exists for local developer builds
+DIRS.unshift(freetds_ports_dir) if File.directory?(freetds_ports_dir)
 
 # Grab freetds environment variable for use by people on services like
 # Heroku who they can't easily use bundler config to set directories
-DIRS.push(ENV['FREETDS_DIR']) if ENV.has_key?('FREETDS_DIR')
-
-# Add the ports directory if it exists for local developer builds
-DIRS.push(freetds_ports_dir) if File.directory?(freetds_ports_dir)
+DIRS.unshift(ENV['FREETDS_DIR']) if ENV.has_key?('FREETDS_DIR')
 
 # Add the search paths for freetds configured above
-DIRS.each do |path|
-  idir = "#{path}/include"
+ldirs = DIRS.flat_map do |path|
   ldir = "#{path}/lib"
-
-  dir_config('freetds',
-    [idir, "#{idir}/freetds"],
-    [ldir, "#{ldir}/freetds"]
-  )
+  [ldir, "#{ldir}/freetds"]
 end
+
+idirs = DIRS.flat_map do |path|
+  idir = "#{path}/include"
+  [idir, "#{idir}/freetds"]
+end
+
+puts "looking for freetds headers in the following directories:\n#{idirs.map{|a| " - #{a}\n"}.join}"
+puts "looking for freetds library in the following directories:\n#{ldirs.map{|a| " - #{a}\n"}.join}"
+dir_config('freetds', idirs, ldirs)
 
 have_dependencies = [
   find_header('sybfront.h'),

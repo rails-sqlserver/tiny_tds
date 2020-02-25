@@ -38,9 +38,9 @@ $ apt-get install wget
 $ apt-get install build-essential
 $ apt-get install libc6-dev
 
-$ wget http://www.freetds.org/files/stable/freetds-1.1.6.tar.gz
-$ tar -xzf freetds-1.1.6.tar.gz
-$ cd freetds-1.1.6
+$ wget http://www.freetds.org/files/stable/freetds-1.1.24.tar.gz
+$ tar -xzf freetds-1.1.24.tar.gz
+$ cd freetds-1.1.24
 $ ./configure --prefix=/usr/local --with-tdsver=7.3
 $ make
 $ make install
@@ -401,7 +401,7 @@ The default is true and since FreeTDS v1.0 would do this as well.
 
 ## Compiling Gems for Windows
 
-For the convenience of Windows users, TinyTDS ships pre-compiled gems for Ruby 2.0, 2.1, 2.2, and 2.3 on Windows. In order to generate these gems, [rake-compiler-dock](https://github.com/rake-compiler/rake-compiler-dock) is used. This project provides a [Docker image](https://registry.hub.docker.com/u/larskanis/rake-compiler-dock/) with rvm, cross-compilers and a number of different target versions of Ruby.
+For the convenience of Windows users, TinyTDS ships pre-compiled gems for supported versions of Ruby on Windows. In order to generate these gems, [rake-compiler-dock](https://github.com/rake-compiler/rake-compiler-dock) is used. This project provides several [Docker images](https://registry.hub.docker.com/u/larskanis/) with rvm, cross-compilers and a number of different target versions of Ruby.
 
 Run the following rake task to compile the gems for Windows. This will check the availability of [Docker](https://www.docker.com/) (and boot2docker on Windows or OS-X) and will give some advice for download and installation. When docker is running, it will download the docker image (once-only) and start the build:
 

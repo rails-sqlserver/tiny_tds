@@ -21,9 +21,9 @@ Gem::Specification.new do |s|
   s.required_ruby_version = '>= 2.0.0'
   s.metadata['msys2_mingw_dependencies'] = 'freetds'
   s.add_development_dependency 'mini_portile2', '~> 2.0'
-  s.add_development_dependency 'rake', '~> 10.4'
+  s.add_development_dependency 'rake', '~> 13.0'
   s.add_development_dependency 'rake-compiler', '~> 1.0'
-  s.add_development_dependency 'rake-compiler-dock', '~> 0.6.3'
+  s.add_development_dependency 'rake-compiler-dock', '~> 1.0'
   s.add_development_dependency 'minitest', '~> 5.6'
   s.add_development_dependency 'connection_pool', '~> 2.2'
 end

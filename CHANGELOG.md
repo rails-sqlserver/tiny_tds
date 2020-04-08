@@ -1,5 +1,7 @@
 ## (unreleased)
 
+## 2.1.3
+
 * Removed old/unused appveyor config
 * Remove old Rubies from CI & cross compile list
 * Add Ruby 2.6 and 2.7 to the cross compile list

@@ -252,8 +252,8 @@ static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
   REQUIRE_OPEN_CLIENT(cwrap);
   dbcmd(cwrap->client, StringValueCStr(sql));
   if (dbsqlsend(cwrap->client) == FAIL) {
-    rb_warn("TinyTds: dbsqlsend() returned FAIL.\n");
-    return Qfalse;
+    rb_raise(cTinyTdsError, "failed to execute statement");
+    return self;
   }
   cwrap->userdata->dbsql_sent = 1;
   result = rb_tinytds_new_result_obj(cwrap);

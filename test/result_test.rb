@@ -80,7 +80,7 @@ class ResultTest < TinyTds::TestCase
         @client.execute("DELETE FROM [datatypes]").do
         @client.execute("INSERT INTO [datatypes] ([char_10], [varchar_50]) VALUES ('1', '2')").do
         result = @client.execute("SELECT TOP (1) [char_10] + 'test' + [varchar_50] AS [test] FROM [datatypes]").each.first['test']
-        result.must_equal "1         test2"
+        _(result).must_equal "1         test2"
       end
     end
 
@@ -135,10 +135,10 @@ class ResultTest < TinyTds::TestCase
         text = 'test affected rows sql'
         @client.execute("DELETE FROM [datatypes]").do
         afrows = @client.execute("SELECT @@ROWCOUNT AS AffectedRows").each.first['AffectedRows']
-        ['Fixnum', 'Integer'].must_include afrows.class.name
+        _(['Fixnum', 'Integer']).must_include afrows.class.name
         @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
         pk1 = @client.execute(@client.identity_sql).each.first['Ident']
-        ['Fixnum', 'Integer'].must_include pk1.class.name, 'we it be able to CAST to bigint'
+        _(['Fixnum', 'Integer']).must_include pk1.class.name, 'we it be able to CAST to bigint'
         @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
         afrows = @client.execute("SELECT @@ROWCOUNT AS AffectedRows").each.first['AffectedRows']
         assert_equal 1, afrows
@@ -215,34 +215,34 @@ class ResultTest < TinyTds::TestCase
       @client.execute("DELETE FROM [datatypes]").do
       @client.execute("ROLLBACK TRANSACTION").do
       count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").each.first['count']
-      0.wont_equal count
+      _(count).wont_equal 0
     end
 
     it 'has a #fields accessor with logic default and valid outcome' do
       result = @client.execute(@query1)
-      result.fields.must_equal ['one']
+      _(result.fields).must_equal ['one']
       result.each
-      result.fields.must_equal ['one']
+      _(result.fields).must_equal ['one']
     end
 
     it 'always returns an array for fields for all sql' do
       result = @client.execute("USE [tinytdstest]")
-      result.fields.must_equal []
+      _(result.fields).must_equal []
       result.do
-      result.fields.must_equal []
+      _(result.fields).must_equal []
     end
 
     it 'returns fields even when no results are found' do
       no_results_query = "SELECT [id], [varchar_50] FROM [datatypes] WHERE [varchar_50] = 'NOTFOUND'"
       # Fields before each.
       result = @client.execute(no_results_query)
-      result.fields.must_equal ['id','varchar_50']
+      _(result.fields).must_equal ['id','varchar_50']
       result.each
-      result.fields.must_equal ['id','varchar_50']
+      _(result.fields).must_equal ['id','varchar_50']
       # Each then fields
       result = @client.execute(no_results_query)
       result.each
-      result.fields.must_equal ['id','varchar_50']
+      _(result.fields).must_equal ['id','varchar_50']
     end
 
     it 'allows the result to be canceled before reading' do
@@ -254,27 +254,27 @@ class ResultTest < TinyTds::TestCase
     it 'works in tandem with the client when needing to find out if client has sql sent and result is canceled or not' do
       # Default state.
       @client = TinyTds::Client.new(connection_options)
-      @client.sqlsent?.must_equal false
-      @client.canceled?.must_equal false
+      _(@client.sqlsent?).must_equal false
+      _(@client.canceled?).must_equal false
       # With active result before and after cancel.
       result = @client.execute(@query1)
-      @client.sqlsent?.must_equal true
-      @client.canceled?.must_equal false
+      _(@client.sqlsent?).must_equal true
+      _(@client.canceled?).must_equal false
       result.cancel
-      @client.sqlsent?.must_equal false
-      @client.canceled?.must_equal true
+      _(@client.sqlsent?).must_equal false
+      _(@client.canceled?).must_equal true
       assert result.cancel, 'must be safe to call again'
       # With each and no block.
       @client.execute(@query1).each
-      @client.sqlsent?.must_equal false
-      @client.canceled?.must_equal false
+      _(@client.sqlsent?).must_equal false
+      _(@client.canceled?).must_equal false
       # With each and block.
       @client.execute(@query1).each do |row|
-        @client.sqlsent?.must_equal true, 'when iterating over each row in a block'
-        @client.canceled?.must_equal false
+        _(@client.sqlsent?).must_equal true, 'when iterating over each row in a block'
+        _(@client.canceled?).must_equal false
       end
-      @client.sqlsent?.must_equal false
-      @client.canceled?.must_equal false
+      _(@client.sqlsent?).must_equal false
+      _(@client.canceled?).must_equal false
       # With each and block canceled half way thru.
       count = @client.execute("SELECT COUNT([id]) AS [count] FROM [datatypes]").each[0]['count']
       assert count > 10, 'since we want to cancel early for test'
@@ -284,25 +284,25 @@ class ResultTest < TinyTds::TestCase
         break if index > 10
         index += 1
       end
-      @client.sqlsent?.must_equal true
-      @client.canceled?.must_equal false
+      _(@client.sqlsent?).must_equal true
+      _(@client.canceled?).must_equal false
       result.cancel
-      @client.sqlsent?.must_equal false
-      @client.canceled?.must_equal true
+      _(@client.sqlsent?).must_equal false
+      _(@client.canceled?).must_equal true
       # With do method.
       @client.execute(@query1).do
-      @client.sqlsent?.must_equal false
-      @client.canceled?.must_equal true
+      _(@client.sqlsent?).must_equal false
+      _(@client.canceled?).must_equal true
       # With insert method.
       rollback_transaction(@client) do
         @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('test')").insert
-        @client.sqlsent?.must_equal false
-        @client.canceled?.must_equal true
+        _(@client.sqlsent?).must_equal false
+        _(@client.canceled?).must_equal true
       end
       # With first
       @client.execute("SELECT [id] FROM [datatypes]").each(:first => true)
-      @client.sqlsent?.must_equal false
-      @client.canceled?.must_equal true
+      _(@client.sqlsent?).must_equal false
+      _(@client.canceled?).must_equal true
     end
 
     it 'use same string object for hash keys' do
@@ -337,7 +337,7 @@ class ResultTest < TinyTds::TestCase
 
     it 'with LOGINPROPERTY function' do
       v = @client.execute("SELECT LOGINPROPERTY('sa', 'IsLocked') as v").first['v']
-      v.must_equal 0
+      _(v).must_equal 0
     end
 
     describe 'with multiple result sets' do
@@ -717,22 +717,22 @@ class ResultTest < TinyTds::TestCase
       it 'must not error at all from reading non-convertable charcters and just use ? marks' do
         close_client
         @client = new_connection :encoding => 'ASCII'
-        @client.charset.must_equal 'ASCII'
-        find_value(202, :nvarchar_50).must_equal 'test nvarchar_50 ??'
+        _(@client.charset).must_equal 'ASCII'
+        _(find_value(202, :nvarchar_50)).must_equal 'test nvarchar_50 ??'
       end
 
       it 'must error gracefully from writing non-convertable characters' do
         close_client
         @client = new_connection :encoding => 'ASCII'
-        @client.charset.must_equal 'ASCII'
+        _(@client.charset).must_equal 'ASCII'
         rollback_transaction(@client) do
           text = 'Test ✓'
           @client.execute("DELETE FROM [datatypes] WHERE [nvarchar_50] IS NOT NULL").do
           action = lambda { @client.execute("INSERT INTO [datatypes] ([nvarchar_50]) VALUES ('#{text}')").do }
           assert_raise_tinytds_error(action) do |e|
-            e.message.must_match %r{Unclosed quotation mark}i
-            e.severity.must_equal 15
-            e.db_error_number.must_equal 105
+            _(e.message).must_match %r{Unclosed quotation mark}i
+            _(e.severity).must_equal 15
+            _(e.db_error_number).must_equal 105
           end
           assert_followup_query
         end

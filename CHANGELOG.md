@@ -213,6 +213,7 @@ Use both dbsetversion() vs. dbsetlversion. Partially reverts #62.
   state of the client and the need to use Result#cancel to stop processing active results. It is also
   safe to call Result#cancel over and over again.
 * Look for the syb headers only.
+* Fix minitest global matchers warnings.
 
 
 ## 0.3.2

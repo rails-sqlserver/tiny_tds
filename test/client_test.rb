@@ -2,9 +2,7 @@
 require 'test_helper'
 
 class ClientTest < TinyTds::TestCase
-
-  describe 'With valid credentials' do
-
+  describe 'with valid credentials' do
     before do
       @client = new_connection
     end
@@ -174,57 +172,68 @@ class ClientTest < TinyTds::TestCase
 
   end
 
-  describe 'Private methods' do
-
+  describe '#parse_username' do
     let(:client) { @client = new_connection }
 
-    it '#parse_username returns username if azure is not true' do
-      username = 'user@abc123.database.windows.net'
-      client.send(:parse_username, username: username).must_equal username
-    end
-
-    it '#parse_username returns short username if azure is true' do
-      client.send(:parse_username,
-        username: 'user@abc123.database.windows.net',
-        host: 'abc123.database.windows.net',
-        azure: true
-      ).must_equal 'user@abc123'
-    end
-
-    it '#parse_username returns full username if azure is false' do
-      client.send(:parse_username,
-        username: 'user@abc123.database.windows.net',
-        host: 'abc123.database.windows.net',
-        azure: false
+    it 'returns username if azure is not true' do
+      _(
+        client.send(:parse_username, username: 'user@abc123.database.windows.net')
       ).must_equal 'user@abc123.database.windows.net'
     end
 
-    it '#parse_username returns short username if passed and azure is true' do
-      client.send(:parse_username,
-        username: 'user@abc123',
-        host: 'abc123.database.windows.net',
-        azure: true
+    it 'returns short username if azure is true' do
+      _(
+        client.send(
+          :parse_username,
+          username: 'user@abc123.database.windows.net',
+          host:     'abc123.database.windows.net',
+          azure:    true
+        )
       ).must_equal 'user@abc123'
     end
 
-    it '#parse_username returns username with servername if passed and azure is true' do
-      client.send(:parse_username,
-        username: 'user',
-        host: 'abc123.database.windows.net',
-        azure: true
+    it 'returns full username if azure is false' do
+      _(
+        client.send(
+          :parse_username,
+          username: 'user@abc123.database.windows.net',
+          host:     'abc123.database.windows.net',
+          azure:    false
+        )
+      ).must_equal 'user@abc123.database.windows.net'
+    end
+
+    it 'returns short username if passed and azure is true' do
+      _(
+        client.send(
+          :parse_username,
+          username: 'user@abc123',
+          host:     'abc123.database.windows.net',
+          azure:    true
+        )
       ).must_equal 'user@abc123'
     end
 
-    it '#parse_username returns username with servername if passed and azure is false' do
-      client.send(:parse_username,
-        username: 'user',
-        host: 'abc123.database.windows.net',
-        azure: false
+    it 'returns username with servername if passed and azure is true' do
+      _(
+        client.send(
+          :parse_username,
+          username: 'user',
+          host:     'abc123.database.windows.net',
+          azure:    true
+        )
+      ).must_equal 'user@abc123'
+    end
+
+    it 'returns username with servername if passed and azure is false' do
+      _(
+        client.send(
+          :parse_username,
+          username: 'user',
+          host:     'abc123.database.windows.net',
+          azure:    false
+        )
       ).must_equal 'user'
     end
-
   end
-
-
 end
-

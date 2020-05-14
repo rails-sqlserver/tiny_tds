@@ -21,13 +21,13 @@ class GemTest < MiniTest::Spec
       let(:root_path) { TinyTds::Gem.root_path }
 
       it 'should be the root path' do
-        root_path.must_equal gem_root
+        _(root_path).must_equal gem_root
       end
 
       it 'should be the root path no matter the cwd' do
         Dir.chdir '/'
 
-        root_path.must_equal gem_root
+        _(root_path).must_equal gem_root
       end
     end
 
@@ -35,19 +35,19 @@ class GemTest < MiniTest::Spec
       let(:ports_root_path) { TinyTds::Gem.ports_root_path }
 
       it 'should be the ports path' do
-        ports_root_path.must_equal File.join(gem_root,'ports')
+        _(ports_root_path).must_equal File.join(gem_root,'ports')
       end
 
       it 'should be the ports path no matter the cwd' do
         Dir.chdir '/'
 
-        ports_root_path.must_equal File.join(gem_root,'ports')
+        _(ports_root_path).must_equal File.join(gem_root,'ports')
       end
     end
 
     describe '#ports_bin_paths' do
       let(:ports_bin_paths) { TinyTds::Gem.ports_bin_paths }
-        
+
       describe 'when the ports directories exist' do
         let(:fake_bin_paths) do
           ports_host_root = File.join(gem_root, 'ports', 'fake-host-with-dirs')
@@ -74,12 +74,12 @@ class GemTest < MiniTest::Spec
         end
 
         it 'should return all the bin directories' do
-          ports_bin_paths.sort.must_equal fake_bin_paths.sort
+          _(ports_bin_paths.sort).must_equal fake_bin_paths.sort
         end
 
         it 'should return all the bin directories regardless of cwd' do
           Dir.chdir '/'
-          ports_bin_paths.sort.must_equal fake_bin_paths.sort
+          _(ports_bin_paths.sort).must_equal fake_bin_paths.sort
         end
       end
 
@@ -89,19 +89,19 @@ class GemTest < MiniTest::Spec
         end
 
         it 'should return no directories' do
-          ports_bin_paths.must_be_empty
+          _(ports_bin_paths).must_be_empty
         end
 
         it 'should return no directories regardless of cwd' do
           Dir.chdir '/'
-          ports_bin_paths.must_be_empty
+          _(ports_bin_paths).must_be_empty
         end
       end
     end
 
     describe '#ports_lib_paths' do
       let(:ports_lib_paths) { TinyTds::Gem.ports_lib_paths }
-        
+
       describe 'when the ports directories exist' do
         let(:fake_lib_paths) do
           ports_host_root = File.join(gem_root, 'ports', 'fake-host-with-dirs')
@@ -128,12 +128,12 @@ class GemTest < MiniTest::Spec
         end
 
         it 'should return all the lib directories' do
-          ports_lib_paths.sort.must_equal fake_lib_paths.sort
+          _(ports_lib_paths.sort).must_equal fake_lib_paths.sort
         end
 
         it 'should return all the lib directories regardless of cwd' do
           Dir.chdir '/'
-          ports_lib_paths.sort.must_equal fake_lib_paths.sort
+          _(ports_lib_paths.sort).must_equal fake_lib_paths.sort
         end
       end
 
@@ -144,12 +144,12 @@ class GemTest < MiniTest::Spec
 
 
         it 'should return no directories' do
-          ports_lib_paths.must_be_empty
+          _(ports_lib_paths).must_be_empty
         end
 
         it 'should return no directories regardless of cwd' do
           Dir.chdir '/'
-          ports_lib_paths.must_be_empty
+          _(ports_lib_paths).must_be_empty
         end
       end
     end
@@ -169,7 +169,7 @@ class GemTest < MiniTest::Spec
           end
 
           it "should return a #{expected} ports host" do
-            TinyTds::Gem.ports_host.must_equal expected
+            _(TinyTds::Gem.ports_host).must_equal expected
           end
         end
       end

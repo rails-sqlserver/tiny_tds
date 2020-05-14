@@ -93,7 +93,7 @@ module TinyTds
     end
 
     def assert_client_works(client)
-      client.execute("SELECT 'client_works' as [client_works]").each.must_equal [{'client_works' => 'client_works'}]
+      _(client.execute("SELECT 'client_works' as [client_works]").each).must_equal [{'client_works' => 'client_works'}]
     end
 
     def assert_new_connections_work

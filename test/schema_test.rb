@@ -14,7 +14,7 @@ class SchemaTest < TinyTds::TestCase
     describe 'for shared types' do
 
       it 'casts bigint' do
-        assert_equal -9223372036854775807, find_value(11, :bigint)
+        assert_equal (-9223372036854775807), find_value(11, :bigint)
         assert_equal 9223372036854775806, find_value(12, :bigint)
       end
 
@@ -96,7 +96,7 @@ class SchemaTest < TinyTds::TestCase
       end
 
       it 'casts int' do
-        assert_equal -2147483647, find_value(151, :int)
+        assert_equal (-2147483647), find_value(151, :int)
         assert_equal 2147483646, find_value(152, :int)
       end
 
@@ -170,7 +170,7 @@ class SchemaTest < TinyTds::TestCase
       end
 
       it 'casts smallint' do
-        assert_equal -32767, find_value(241, :smallint)
+        assert_equal (-32767), find_value(241, :smallint)
         assert_equal 32766, find_value(242, :smallint)
       end
 
@@ -396,15 +396,15 @@ class SchemaTest < TinyTds::TestCase
         if @client.tds_73?
           assertions = lambda {
             assert_instance_of Time, v
-            assert_equal 1984, v.year,         'Year'
-            assert_equal 1, v.month,           'Month'
-            assert_equal 24, v.day,            'Day'
-            assert_equal 4, v.hour,            'Hour'
-            assert_equal 20, v.min,            'Minute'
-            assert_equal 59, v.sec,            'Second'
-            assert_equal 123456, v.usec,       'Microseconds'
-            assert_equal 123456700, v.nsec,    'Nanoseconds'
-            assert_equal -28800, v.utc_offset, 'Offset'
+            assert_equal 1984, v.year,           'Year'
+            assert_equal 1, v.month,             'Month'
+            assert_equal 24, v.day,              'Day'
+            assert_equal 4, v.hour,              'Hour'
+            assert_equal 20, v.min,              'Minute'
+            assert_equal 59, v.sec,              'Second'
+            assert_equal 123456, v.usec,         'Microseconds'
+            assert_equal 123456700, v.nsec,      'Nanoseconds'
+            assert_equal (-28800), v.utc_offset, 'Offset'
           }
           assertions.call
           v = find_value 84, :datetimeoffset_7, timezone: :local

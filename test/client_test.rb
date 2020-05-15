@@ -65,7 +65,6 @@ class ClientTest < TinyTds::TestCase
         client.close if client
       end
     end unless sqlserver_azure?
-
   end
 
   describe 'With in-valid options' do

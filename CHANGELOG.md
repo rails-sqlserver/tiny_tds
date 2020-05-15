@@ -214,6 +214,7 @@ Use both dbsetversion() vs. dbsetlversion. Partially reverts #62.
   safe to call Result#cancel over and over again.
 * Look for the syb headers only.
 * Fix minitest global matchers warnings.
+* Fix test warnings.
 
 
 ## 0.3.2

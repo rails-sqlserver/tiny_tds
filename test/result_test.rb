@@ -684,7 +684,7 @@ class ResultTest < TinyTds::TestCase
       end
 
       it 'throws an error when you execute another query with other results pending' do
-        result1 = @client.execute(@query1)
+        @client.execute(@query1)
         action = lambda { @client.execute(@query1) }
         assert_raise_tinytds_error(action) do |e|
           assert_match %r|with results pending|i, e.message

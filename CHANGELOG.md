@@ -1,6 +1,7 @@
 ## (unreleased)
 
 * Improve handling of network related timeouts
+* Fix error reporting when preceded by info message
 
 ## 2.1.3
 

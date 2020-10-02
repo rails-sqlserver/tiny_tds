@@ -1,5 +1,7 @@
 ## (unreleased)
 
+* Improve handling of network related timeouts
+
 ## 2.1.3
 
 * Removed old/unused appveyor config

@@ -1,0 +1,22 @@
+version: '3'
+
+networks:
+  main-network:
+
+services:
+  mssql:
+    image: metaskills/mssql-server-linux-tinytds:2017-GA
+    container_name: sqlserver
+    ports:
+      - "1433:1433"
+    networks:
+      - main-network
+
+  toxiproxy:
+    image: shopify/toxiproxy
+    container_name: toxiproxy
+    ports:
+      - "8474:8474"
+      - "1234:1234"
+    networks:
+      - main-network

@@ -419,17 +419,20 @@ First, clone the repo using the command line or your Git GUI of choice.
 $ git clone git@github.com:rails-sqlserver/tiny_tds.git
 ```
 
-After that, the quickest way to get setup for development is to use [Docker](https://www.docker.com/). Assuming you have [downloaded docker](https://www.docker.com/products/docker) for your platform and you have , you can run our test setup script.
+After that, the quickest way to get setup for development is to use [Docker](https://www.docker.com/). Assuming you have [downloaded docker](https://www.docker.com/products/docker) for your platform, you can use [docker-compose](https://docs.docker.com/compose/install/) to run the necessary containers for testing.
 
 ```shell
-$ ./test/bin/setup.sh
+$ docker-compose up -d
 ```
 
-This will download our SQL Server for Linux Docker image based from [microsoft/mssql-server-linux/](https://hub.docker.com/r/microsoft/mssql-server-linux/). Our image already has the `[tinytdstest]` DB and `tinytds` users created. Basically, it does the following.
+This will download our SQL Server for Linux Docker image based from [microsoft/mssql-server-linux/](https://hub.docker.com/r/microsoft/mssql-server-linux/). Our image already has the `[tinytdstest]` DB and `tinytds` users created. This will also download a [toxiproxy](https://github.com/shopify/toxiproxy) Docker image which we can use to simulate network failures for tests. Basically, it does the following.
 
 ```shell
+$ docker network create main-network
 $ docker pull metaskills/mssql-server-linux-tinytds
-$ docker run -p 1433:1433 -d metaskills/mssql-server-linux-tinytds
+$ docker run -p 1433:1433 -d --name sqlserver --network main-network metaskills/mssql-server-linux-tinytds
+$ docker pull shopify/toxiproxy
+$ docker run -p 8474:8474 -p 1234:1234 -d --name toxiproxy --network main-network shopify/toxiproxy
 ```
 
 If you are using your own database. Make sure to run these SQL commands as SA to get the test database and user installed.

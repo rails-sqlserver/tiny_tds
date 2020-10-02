@@ -91,6 +91,7 @@ static void nogvl_setup(DBPROCESS *client) {
 static void nogvl_cleanup(DBPROCESS *client) {
   GET_CLIENT_USERDATA(client);
   userdata->nonblocking = 0;
+  userdata->timing_out = 0;
   /*
   Now that the blocking operation is done, we can finally throw any
   exceptions based on errors from SQL Server.

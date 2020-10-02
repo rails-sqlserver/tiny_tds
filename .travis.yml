@@ -14,9 +14,9 @@ rvm:
   - 2.7.0
 before_install:
   - docker info
+  - docker-compose up -d
   - sudo ./test/bin/install-openssl.sh
   - sudo ./test/bin/install-freetds.sh
-  - sudo ./test/bin/setup.sh
 install:
   - gem install bundler
   - bundle --version

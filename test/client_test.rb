@@ -68,6 +68,9 @@ class ClientTest < TinyTds::TestCase
   end
 
   describe 'With in-valid options' do
+    before(:all) do
+      init_toxiproxy
+    end
 
     it 'raises an argument error when no :host given and :dataserver is blank' do
       assert_raises(ArgumentError) { new_connection :dataserver => nil, :host => nil }
@@ -129,30 +132,46 @@ class ClientTest < TinyTds::TestCase
       end
     end
 
-    it 'must run this test to prove we account for dropped connections' do
-      skip
+    it 'raises TinyTds exception with tcp socket network failure' do
+      skip if ENV['CI'] && ENV['APPVEYOR_BUILD_FOLDER'] # only CI using docker
       begin
-        client = new_connection :login_timeout => 2, :timeout => 2
+        client = new_connection timeout: 2, port: 1234
         assert_client_works(client)
-        STDOUT.puts "Disconnect network!"
-        sleep 10
-        STDOUT.puts "This should not get stuck past 6 seconds!"
-        action = lambda { client.execute('SELECT 1 as [one]').each }
-        assert_raise_tinytds_error(action) do |e|
-          assert_equal 20003, e.db_error_number
-          assert_equal 6, e.severity
-          assert_match %r{timed out}i, e.message, 'ignore if non-english test run'
+        action = lambda { client.execute("waitfor delay '00:00:05'").do }
+
+        # Use toxiproxy to close the TCP socket after 1 second.
+        # We want TinyTds to execute the statement, hit the timeout configured above, and then not be able to use the network to cancel
+        # the network connection needs to close after the sql batch is sent and before the timeout above is hit
+        Toxiproxy[:sqlserver_test].toxic(:slow_close, delay: 1000).apply do
+          assert_raise_tinytds_error(action) do |e|
+            assert_equal 20003, e.db_error_number
+            assert_equal 6, e.severity
+            assert_match %r{timed out}i, e.message, 'ignore if non-english test run'
+          end
         end
       ensure
-        STDOUT.puts "Reconnect network!"
-        sleep 10
-        action = lambda { client.execute('SELECT 1 as [one]').each }
-        assert_raise_tinytds_error(action) do |e|
-          assert_equal 20047, e.db_error_number
-          assert_equal 1, e.severity
-          assert_match %r{dead or not enabled}i, e.message, 'ignore if non-english test run'
+        assert_new_connections_work
+      end
+    end
+
+    it 'raises TinyTds exception with dead connection network failure' do
+      skip if ENV['CI'] && ENV['APPVEYOR_BUILD_FOLDER'] # only CI using docker
+      begin
+        client = new_connection timeout: 2, port: 1234
+        assert_client_works(client)
+        action = lambda { client.execute("waitfor delay '00:00:05'").do }
+
+        # Use toxiproxy to close the network connection after 1 second.
+        # We want TinyTds to execute the statement, hit the timeout configured above, and then not be able to use the network to cancel
+        # the network connection needs to close after the sql batch is sent and before the timeout above is hit
+        Toxiproxy[:sqlserver_test].toxic(:timeout, timeout: 1000).apply do
+          assert_raise_tinytds_error(action) do |e|
+            assert_equal 20047, e.db_error_number
+            assert_includes [1,9], e.severity
+            assert_match %r{dead or not enabled}i, e.message, 'ignore if non-english test run'
+          end
         end
-        close_client(client)
+      ensure
         assert_new_connections_work
       end
     end

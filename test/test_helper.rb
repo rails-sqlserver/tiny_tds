@@ -2,6 +2,7 @@
 require 'bundler' ; Bundler.require :development, :test
 require 'tiny_tds'
 require 'minitest/autorun'
+require 'toxiproxy'
 
 TINYTDS_SCHEMAS = ['sqlserver_2000', 'sqlserver_2005', 'sqlserver_2008', 'sqlserver_2014', 'sqlserver_azure', 'sybase_ase'].freeze
 
@@ -212,6 +213,25 @@ module TinyTds
       client.execute("ROLLBACK TRANSACTION").do
     end
 
+    def init_toxiproxy
+      return if ENV['APPVEYOR_BUILD_FOLDER'] # only for CI using docker
+
+      # In order for toxiproxy to work for local docker instances of mssql, the containers must be on the same network
+      # and the host used below must match the mssql container name so toxiproxy knows where to proxy to.
+      # localhost from the perspective of toxiproxy's container is its own container an *not* the mssql container it needs to proxy to.
+      # docker-compose.yml handles this automatically for us. In instances where someone is using their own local mssql container they'll
+      # need to set up the networks manually and set TINYTDS_UNIT_HOST to their mssql container name
+      # For anything other than localhost just use the environment config
+      env_host = ENV['TINYTDS_UNIT_HOST_TEST'] || ENV['TINYTDS_UNIT_HOST'] || 'localhost'
+      host = ['localhost', '127.0.0.1', '0.0.0.0'].include?(env_host) ? 'sqlserver' : env_host
+      port = ENV['TINYTDS_UNIT_PORT'] || 1433
+      Toxiproxy.populate([
+        {
+          name: "sqlserver_test",
+          listen: "0.0.0.0:1234",
+          upstream: "#{host}:#{port}"
+        }
+      ])
+    end
   end
 end
-

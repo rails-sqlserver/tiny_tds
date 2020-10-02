@@ -1,5 +1,7 @@
 ## (unreleased)
 
+* Improve handling of network related timeouts
+
 ## 2.1.3
 
 * Removed old/unused appveyor config
@@ -262,4 +264,3 @@ Use both dbsetversion() vs. dbsetlversion. Partially reverts #62.
 
 
 ## 0.1.0 Initial release!
-

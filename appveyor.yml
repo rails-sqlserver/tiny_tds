@@ -24,6 +24,9 @@ install:
   - C:\msys64\usr\bin\curl -O http://repo.msys2.org/msys/x86_64/msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz.sig
   - ridk exec bash -c "pacman-key --verify msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz.sig"
   - ridk exec bash -c "pacman -U --noconfirm --config <(echo) msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz"
+  # Update zstd and pacman first https://github.com/msys2/MSYS2-packages/issues/2300
+  - C:\msys64\usr\bin\pacman -U https://repo.msys2.org/msys/x86_64/zstd-1.4.7-1-x86_64.pkg.tar.xz # Must come First, or else pacman will install 1.4.8
+  - C:\msys64\usr\bin\pacman -U https://repo.msys2.org/msys/x86_64/pacman-5.2.2-5-x86_64.pkg.tar.xz
   # update packages
   - C:\msys64\usr\bin\pacman --noconfirm --ask 20 --sync --refresh --refresh --sysupgrade --sysupgrade
   # Kill all running msys2 binaries to avoid error "size of shared memory region changed".

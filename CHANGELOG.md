@@ -1,5 +1,8 @@
 ## (unreleased)
 
+## 2.1.4
+
+* Raise error if client is unable to execute statement
 * Improve handling of network related timeouts
 * Fix error reporting when preceeded by info message
 

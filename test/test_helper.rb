@@ -143,10 +143,6 @@ module TinyTds
       RbConfig::CONFIG['host_os'] =~ /ming/
     end
 
-    def ruby_darwin?
-      RbConfig::CONFIG['host_os'] =~ /darwin/
-    end
-
     def load_current_schema
       loader = new_connection
       schema_file = File.expand_path File.join(File.dirname(__FILE__), 'schema', "#{current_schema}.sql")

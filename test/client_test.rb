@@ -84,16 +84,9 @@ class ClientTest < TinyTds::TestCase
       options = connection_options :login_timeout => 1, :dataserver => 'DOESNOTEXIST'
       action = lambda { new_connection(options) }
       assert_raise_tinytds_error(action) do |e|
-        # Not sure why tese are different.
-        if ruby_darwin?
-          assert_equal 20009, e.db_error_number
-          assert_equal 9, e.severity
-          assert_match %r{is unavailable or does not exist}i, e.message, 'ignore if non-english test run'
-        else
-          assert_equal 20012, e.db_error_number
-          assert_equal 2, e.severity
-          assert_match %r{server name not found in configuration files}i, e.message, 'ignore if non-english test run'
-        end
+        assert_equal 20012, e.db_error_number
+        assert_equal 2, e.severity
+        assert_match %r{server name not found in configuration files}i, e.message, 'ignore if non-english test run'
       end
       assert_new_connections_work
     end
@@ -129,6 +122,26 @@ class ClientTest < TinyTds::TestCase
       ensure
         client.execute("COMMIT TRANSACTION").do
         close_client(client)
+      end
+    end
+
+    it 'raises TinyTds exception when tcp socket is down' do
+      skip if ENV['CI'] && ENV['APPVEYOR_BUILD_FOLDER'] # only CI using docker
+      begin
+        client = new_connection timeout: 2, port: 1234
+        assert_client_works(client)
+        action = lambda { client.execute("waitfor delay '00:00:01'").do }
+
+        # Use toxiproxy to close the TCP socket immediately.
+        # We want TinyTds to fail to execute the statement and raise an error immediately.
+        Toxiproxy[:sqlserver_test].down do
+          assert_raise_tinytds_error(action) do |e|
+            assert_match %r{failed to execute statement}i, e.message, 'ignore if non-english test run'
+          end
+        end
+        sleep 1
+      ensure
+        assert_new_connections_work
       end
     end
 
@@ -187,7 +200,6 @@ class ClientTest < TinyTds::TestCase
       end
       assert_new_connections_work
     end
-
   end
 
   describe '#parse_username' do

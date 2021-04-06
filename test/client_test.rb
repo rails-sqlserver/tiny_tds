@@ -132,6 +132,25 @@ class ClientTest < TinyTds::TestCase
       end
     end
 
+    it 'raises TinyTds exception when tcp socket is down' do
+      skip if ENV['CI'] && ENV['APPVEYOR_BUILD_FOLDER'] # only CI using docker
+      begin
+        client = new_connection timeout: 2, port: 1234
+        assert_client_works(client)
+        action = lambda { client.execute("waitfor delay '00:00:01'").do }
+
+        # Use toxiproxy to close the TCP socket immediately.
+        # We want TinyTds to fail to execute the statement and raise an error immediately.
+        Toxiproxy[:sqlserver_test].down do
+          assert_raise_tinytds_error(action) do |e|
+            assert_match %r{failed to execute statement}i, e.message, 'ignore if non-english test run'
+          end
+        end
+      ensure
+        assert_new_connections_work
+      end
+    end
+
     it 'raises TinyTds exception with tcp socket network failure' do
       skip if ENV['CI'] && ENV['APPVEYOR_BUILD_FOLDER'] # only CI using docker
       begin

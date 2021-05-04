@@ -32,6 +32,8 @@ install:
   # Kill all running msys2 binaries to avoid error "size of shared memory region changed".
   # See https://github.com/msys2/MSYS2-packages/issues/258
   - powershell -Command "Get-Process | Where-Object {$_.path -like 'C:\msys64*'} | Stop-Process"
+  # refresh the package list to avoid "error: failed to prepare transaction (could not find database)"
+  - ridk exec bash -c "pacman --noconfirm -Sy"
   # prevent freetds to link to wrong ws2_32 lib on i686-w64-mingw32
   - c:/msys64/usr/bin/rm /usr/lib/w32api/libws2_32.a
   # Set up project prerequisits

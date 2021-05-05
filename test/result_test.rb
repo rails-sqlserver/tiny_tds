@@ -652,6 +652,48 @@ class ResultTest < TinyTds::TestCase
             assert_equal 1, messages.length, 'there should be one message after one print statement'
             assert_equal msg, m.message, 'message text'
           end
+
+          it 'must raise an error preceded by a `print` message' do
+            messages.clear
+            action = lambda { @client.execute("EXEC tinytds_TestPrintWithError").do }
+            assert_raise_tinytds_error(action) do |e|
+              assert_equal 'hello', messages.first.message, 'message text'
+
+              assert_equal "Error following print", e.message
+              assert_equal 16, e.severity
+              assert_equal 50000, e.db_error_number
+            end
+          end
+
+          it 'calls the provided message handler for each of a series of `print` messages' do
+            messages.clear
+            @client.execute("EXEC tinytds_TestSeveralPrints").do
+            assert_equal ['hello 1', 'hello 2', 'hello 3'], messages.map { |e| e.message }, 'message list'
+          end
+
+          it 'should flush info messages before raising error in cases of timeout' do
+            @client = new_connection timeout: 1, message_handler: Proc.new { |m| messages << m }
+            action = lambda { @client.execute("print 'hello'; waitfor delay '00:00:02'").do }
+            messages.clear
+            assert_raise_tinytds_error(action) do |e|
+              assert_match %r{timed out}i, e.message, 'ignore if non-english test run'
+              assert_equal 6, e.severity
+              assert_equal 20003, e.db_error_number
+              assert_equal 'hello', messages.first&.message, 'message text'
+            end
+          end
+
+          it 'should print info messages before raising error in cases of timeout' do
+            @client = new_connection timeout: 1, message_handler: Proc.new { |m| messages << m }
+            action = lambda { @client.execute("raiserror('hello', 1, 1) with nowait; waitfor delay '00:00:02'").do }
+            messages.clear
+            assert_raise_tinytds_error(action) do |e|
+              assert_match %r{timed out}i, e.message, 'ignore if non-english test run'
+              assert_equal 6, e.severity
+              assert_equal 20003, e.db_error_number
+              assert_equal 'hello', messages.first&.message, 'message text'
+            end
+          end
         end
 
         it 'must not raise an error when severity is 10 or less' do
@@ -770,4 +812,3 @@ class ResultTest < TinyTds::TestCase
   end
 
 end
-

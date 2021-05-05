@@ -5,9 +5,9 @@
 void init_tinytds_client();
 
 #define ERROR_MSG_SIZE 1024
+#define ERRORS_STACK_INIT_SIZE 2
 
 typedef struct {
-  short int is_set;
   int is_message;
   int cancel;
   char error[ERROR_MSG_SIZE];
@@ -25,7 +25,9 @@ typedef struct {
   RETCODE dbsqlok_retcode;
   short int dbcancel_sent;
   short int nonblocking;
-  tinytds_errordata nonblocking_error;
+  short int nonblocking_errors_length;
+  short int nonblocking_errors_size;
+  tinytds_errordata *nonblocking_errors;
   VALUE message_handler;
 } tinytds_client_userdata;
 
@@ -40,7 +42,7 @@ typedef struct {
   rb_encoding *encoding;
 } tinytds_client_wrapper;
 
-VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, int is_message, int cancel, const char *error, const char *source, int severity, int dberr, int oserr);
+VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, tinytds_errordata error);
 
 // Lib Macros
 

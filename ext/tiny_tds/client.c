@@ -86,7 +86,13 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
       but we don't ever want to automatically retry. Instead have the app
       decide what to do.
       */
-      return_value = INT_TIMEOUT;
+      if (userdata->timing_out) {
+        return INT_CANCEL;
+      }
+      else {
+        userdata->timing_out = 1;
+        return_value = INT_TIMEOUT;
+      }
       cancel = 1;
       break;
 
@@ -163,6 +169,33 @@ int tinytds_msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severi
     rb_tinytds_raise_error(dbproc, !is_message_an_error, is_message_an_error, msgtext, source, severity, msgno, msgstate);
   }
   return 0;
+}
+
+/*
+Used by dbsetinterrupt -
+This gets called periodically while waiting on a read from the server
+Right now, we only care about cases where a read from the server is
+taking longer than the specified timeout and dbcancel is not working.
+In these cases we decide that we actually want to handle the interrupt
+*/
+static int check_interrupt(void *ptr) {
+  GET_CLIENT_USERDATA((DBPROCESS *)ptr);
+  return userdata->timing_out;
+}
+
+/*
+Used by dbsetinterrupt -
+This gets called if check_interrupt returns TRUE.
+Right now, this is only used in cases where a read from the server is
+taking longer than the specified timeout and dbcancel is not working.
+Return INT_CANCEL to abort the current command batch.
+*/
+static int handle_interrupt(void *ptr) {
+  GET_CLIENT_USERDATA((DBPROCESS *)ptr);
+  if (userdata->timing_out) {
+    return INT_CANCEL;
+  }
+  return INT_CONTINUE;
 }
 
 static void rb_tinytds_client_reset_userdata(tinytds_client_userdata *userdata) {
@@ -381,6 +414,7 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
       }
     }
     dbsetuserdata(cwrap->client, (BYTE*)cwrap->userdata);
+    dbsetinterrupt(cwrap->client, check_interrupt, handle_interrupt);
     cwrap->userdata->closed = 0;
     if (!NIL_P(database) && (azure != Qtrue)) {
       dbuse(cwrap->client, StringValueCStr(database));

@@ -110,7 +110,7 @@ Creating a new client takes a hash of options. For valid iconv encoding options,
 * :appname - Short string seen in SQL Servers process/activity window.
 * :tds_version - TDS version. Defaults to "7.3".
 * :login_timeout - Seconds to wait for login. Default to 60 seconds.
-* :timeout - Seconds to wait for a response to a SQL command. Default 5 seconds. Prior to 1.0rc5, FreeTDS was unable to set the timeout on a per-client basis, permitting only a global timeout value. This means that if you're using an older version, the timeout values for all clients will be overwritten each time you instantiate a new `TinyTds::Client` object. If you are using 1.0rc5 or later, all clients will have an independent timeout setting as you'd expect.
+* :timeout - Seconds to wait for a response to a SQL command. Default 5 seconds. Prior to 1.0rc5, FreeTDS was unable to set the timeout on a per-client basis, permitting only a global timeout value. This means that if you're using an older version, the timeout values for all clients will be overwritten each time you instantiate a new `TinyTds::Client` object. If you are using 1.0rc5 or later, all clients will have an independent timeout setting as you'd expect. Timeouts caused by network failure will raise a timeout error 1 second after the configured timeout limit is hit (see [#481](https://github.com/rails-sqlserver/tiny_tds/pull/481) for details).
 * :encoding - Any valid iconv value like CP1251 or ISO-8859-1. Default UTF-8.
 * :azure - Pass true to signal that you are connecting to azure.
 * :contained - Pass true to signal that you are connecting with a contained database user.
@@ -322,6 +322,10 @@ By default row caching is turned on because the SQL Server adapter for ActiveRec
 TinyTDS takes an opinionated stance on how we handle encoding errors. First, we treat errors differently on reads vs. writes. Our opinion is that if you are reading bad data due to your client's encoding option, you would rather just find `?` marks in your strings vs being blocked with exceptions. This is how things wold work via ODBC or SMS. On the other hand, writes will raise an exception. In this case we raise the SYBEICONVO/2402 error message which has a description of `Error converting characters into server's character set. Some character(s) could not be converted.`. Even though the severity of this message is only a `4` and TinyTDS will automatically strip/ignore unknown characters, we feel you should know that you are inserting bad encodings. In this way, a transaction can be rolled back, etc. Remember, any database write that has bad characters due to the client encoding will still be written to the database, but it is up to you rollback said write if needed. Most ORMs like ActiveRecord handle this scenario just fine.
 
 
+## Timeout Error Handling
+
+TinyTDS will raise a `TinyTDS::Error` when a timeout is reached based on the options supplied to the client. Depending on the reason for the timeout, the connection could be dead or alive. When db processing is the cause for the timeout, the connection should still be usable after the error is raised. When network failure is the cause of the timeout, the connection will be dead. If you attempt to execute another command batch on a dead connection you will see a `DBPROCESS is dead or not enabled` error. Therefore, it is recommended to check for a `dead?` connection before trying to execute another command batch.
+
 ## Binstubs
 
 The TinyTDS gem uses binstub wrappers which mirror compiled [FreeTDS Utilities](https://www.freetds.org/userguide/usefreetds.html) binaries. These native executables are usually installed at the system level when installing FreeTDS. However, when using MiniPortile to install TinyTDS as we do with Windows binaries, these binstubs will find and prefer local gem `exe` directory executables. These are the following binstubs we wrap.
@@ -419,17 +423,20 @@ First, clone the repo using the command line or your Git GUI of choice.
 $ git clone git@github.com:rails-sqlserver/tiny_tds.git
 ```
 
-After that, the quickest way to get setup for development is to use [Docker](https://www.docker.com/). Assuming you have [downloaded docker](https://www.docker.com/products/docker) for your platform and you have , you can run our test setup script.
+After that, the quickest way to get setup for development is to use [Docker](https://www.docker.com/). Assuming you have [downloaded docker](https://www.docker.com/products/docker) for your platform, you can use [docker-compose](https://docs.docker.com/compose/install/) to run the necessary containers for testing.
 
 ```shell
-$ ./test/bin/setup.sh
+$ docker-compose up -d
 ```
 
-This will download our SQL Server for Linux Docker image based from [microsoft/mssql-server-linux/](https://hub.docker.com/r/microsoft/mssql-server-linux/). Our image already has the `[tinytdstest]` DB and `tinytds` users created. Basically, it does the following.
+This will download our SQL Server for Linux Docker image based from [microsoft/mssql-server-linux/](https://hub.docker.com/r/microsoft/mssql-server-linux/). Our image already has the `[tinytdstest]` DB and `tinytds` users created. This will also download a [toxiproxy](https://github.com/shopify/toxiproxy) Docker image which we can use to simulate network failures for tests. Basically, it does the following.
 
 ```shell
+$ docker network create main-network
 $ docker pull metaskills/mssql-server-linux-tinytds
-$ docker run -p 1433:1433 -d metaskills/mssql-server-linux-tinytds
+$ docker run -p 1433:1433 -d --name sqlserver --network main-network metaskills/mssql-server-linux-tinytds
+$ docker pull shopify/toxiproxy
+$ docker run -p 8474:8474 -p 1234:1234 -d --name toxiproxy --network main-network shopify/toxiproxy
 ```
 
 If you are using your own database. Make sure to run these SQL commands as SA to get the test database and user installed.

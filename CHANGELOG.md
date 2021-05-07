@@ -2,6 +2,7 @@
 
 * Improve handling of network related timeouts
 * Fix error reporting when preceded by info message
+* Raise error if client is unable to execute statement
 
 ## 2.1.3
 

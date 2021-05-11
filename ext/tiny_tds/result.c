@@ -99,12 +99,14 @@ static void nogvl_cleanup(DBPROCESS *client) {
   Now that the blocking operation is done, we can finally throw any
   exceptions based on errors from SQL Server.
   */
-  for (short int i = 0; i < userdata->nonblocking_errors_length; i++) {
+  short int i;
+  for (i = 0; i < userdata->nonblocking_errors_length; i++) {
     tinytds_errordata error = userdata->nonblocking_errors[i];
 
     // lookahead to drain any info messages ahead of raising error
     if (!error.is_message) {
-      for (short int j = i; j < userdata->nonblocking_errors_length; j++) {
+      short int j;
+      for (j = i; j < userdata->nonblocking_errors_length; j++) {
         tinytds_errordata msg_error = userdata->nonblocking_errors[j];
         if (msg_error.is_message) {
           rb_tinytds_raise_error(client, msg_error);

@@ -1,5 +1,7 @@
 ## (unreleased)
 
+* Fix compilation errors for Amazon Linux 1. Fixes #495.
+
 ## 2.1.4
 
 * Improve handling of network related timeouts

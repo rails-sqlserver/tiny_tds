@@ -176,7 +176,7 @@ class ClientTest < TinyTds::TestCase
       end
     end
 
-    it 'raises TinyTds exception with login timeout xxx' do
+    it 'raises TinyTds exception with login timeout' do
       skip if ENV['CI'] && ENV['APPVEYOR_BUILD_FOLDER'] # only CI using docker
       begin
         action = lambda do

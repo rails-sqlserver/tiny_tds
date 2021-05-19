@@ -1,6 +1,7 @@
 ## (unreleased)
 
 * Fix compilation errors for Amazon Linux 1. Fixes #495.
+* Fix segfault for login timeouts
 
 ## 2.1.4
 

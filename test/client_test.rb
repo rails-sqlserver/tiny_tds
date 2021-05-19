@@ -186,8 +186,8 @@ class ClientTest < TinyTds::TestCase
         end
         assert_raise_tinytds_error(action) do |e|
           assert_equal 20003, e.db_error_number
-            assert_equal 6, e.severity
-            assert_match %r{timed out}i, e.message, 'ignore if non-english test run'
+          assert_equal 6, e.severity
+          assert_match %r{timed out}i, e.message, 'ignore if non-english test run'
         end
       ensure
         assert_new_connections_work

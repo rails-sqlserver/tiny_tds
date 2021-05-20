@@ -1,5 +1,7 @@
 ## (unreleased)
 
+## 2.1.5
+
 * Fix compilation errors for Amazon Linux 1. Fixes #495.
 * Fix segfault for login timeouts
 
@@ -270,4 +272,3 @@ Use both dbsetversion() vs. dbsetlversion. Partially reverts #62.
 
 
 ## 0.1.0 Initial release!
-

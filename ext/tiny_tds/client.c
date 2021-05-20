@@ -96,13 +96,14 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
       but we don't ever want to automatically retry. Instead have the app
       decide what to do.
       */
-      if (userdata->timing_out) {
+      if (userdata && userdata->timing_out) {
         return INT_CANCEL;
       }
-      else {
+      // userdata will not be set if hitting timeout during login so check for it first
+      if (userdata) {
         userdata->timing_out = 1;
-        return_value = INT_TIMEOUT;
       }
+      return_value = INT_TIMEOUT;
       cancel = 1;
       break;
 

@@ -86,7 +86,7 @@ module TinyTds
     end
 
     def tds_versions_setter(opts = {})
-      v = opts[:tds_version] || ENV['TDSVER'] || '7.3'
+      v = opts[:tds_version] || ENV['TDSVER'] || '7.4'
       TDS_VERSIONS_SETTERS[v.to_s]
     end
 
@@ -109,7 +109,8 @@ module TinyTds
       '90'      => 6,
       '9.0'     => 6,
       '73'      => 7,
-      '7.3'     => 7
+      '7.3'     => 7,
+      '7.4'     => 7
     }.freeze
 
     # From sybdb.h comments:

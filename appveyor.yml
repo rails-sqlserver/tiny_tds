@@ -5,7 +5,7 @@ init:
   - SET MAKE=make V=1 -j2
 clone_depth: 5
 skip_tags: true
-skip_branch_with_pr: true
+skip_branch_with_pr: false
 matrix:
   fast_finish: false
 install:

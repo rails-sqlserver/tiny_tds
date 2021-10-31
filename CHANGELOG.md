@@ -1,5 +1,8 @@
 ## (unreleased)
 
+* Add Ruby 3.0 to the cross compile list
+* Removed EOL Rubies from CI & Cross compile list
+
 ## 2.1.5
 
 * Fix compilation errors for Amazon Linux 1. Fixes #495.

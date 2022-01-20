@@ -1,7 +1,7 @@
 # encoding: UTF-8
 require 'date'
 require 'bigdecimal'
-require 'rational'
+require 'rational' unless defined?(Rational)
 
 require 'tiny_tds/version'
 require 'tiny_tds/error'

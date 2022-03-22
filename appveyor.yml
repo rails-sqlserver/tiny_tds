@@ -19,6 +19,8 @@ install:
   - perl --version
   - ruby --version
   - gem --version
+  # Update keyserver according to https://stackoverflow.com/a/70088371
+  - ridk exec bash -c "pacman-key --keyserver keyserver.ubuntu.com --refresh-keys"
   # Update keyring according to https://www.msys2.org/news/#2020-06-29-new-packagers
   - C:\msys64\usr\bin\curl -O http://mirror.msys2.org/msys/x86_64/msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz
   - C:\msys64\usr\bin\curl -O http://mirror.msys2.org/msys/x86_64/msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz.sig

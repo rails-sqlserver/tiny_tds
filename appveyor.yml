@@ -27,6 +27,7 @@ install:
   # - ridk exec bash -c "pacman -U --noconfirm --config <(echo) msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz"
   - ridk exec bash -c "rm -r /etc/pacman.d/gnupg/"
   - ridk exec bash -c "pacman-key --init"
+  - ridk exec bash -c "pacman -S msys2-keyring"
   - ridk exec bash -c "pacman-key --populate msys2"
   # Update keyserver according to https://stackoverflow.com/a/70088371
   - ridk exec bash -c "pacman-key --keyserver keyserver.ubuntu.com --refresh-keys"

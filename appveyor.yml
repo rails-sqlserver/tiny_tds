@@ -19,14 +19,17 @@ install:
   - perl --version
   - ruby --version
   - gem --version
+  # Update keyring according to https://www.msys2.org/news/#2020-06-29-new-packagers
+  # "if you still see signature errors..."
+  # - C:\msys64\usr\bin\curl -O http://mirror.msys2.org/msys/x86_64/msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz
+  # - C:\msys64\usr\bin\curl -O http://mirror.msys2.org/msys/x86_64/msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz.sig
+  # - ridk exec bash -c "pacman-key --verify msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz.sig"
+  # - ridk exec bash -c "pacman -U --noconfirm --config <(echo) msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz"
+  - ridk exec bash -c "rm -r /etc/pacman.d/gnupg/"
+  - ridk exec bash -c "pacman-key --init"
+  - ridk exec bash -c "pacman-key --populate msys2"
   # Update keyserver according to https://stackoverflow.com/a/70088371
   - ridk exec bash -c "pacman-key --keyserver keyserver.ubuntu.com --refresh-keys"
-  # Update keyring according to https://www.msys2.org/news/#2020-06-29-new-packagers
-  - C:\msys64\usr\bin\curl -O http://mirror.msys2.org/msys/x86_64/msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz
-  - C:\msys64\usr\bin\curl -O http://mirror.msys2.org/msys/x86_64/msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz.sig
-  # disabled due to "ERROR: The signature identified by msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz.sig could not be verified"
-  # - ridk exec bash -c "pacman-key --verify msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz.sig"
-  - ridk exec bash -c "pacman -U --noconfirm --config <(echo) msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz"
   # Update zstd and pacman first https://github.com/msys2/MSYS2-packages/issues/2300
   # zstd must come first, or else pacman will install 1.4.8
   - C:\msys64\usr\bin\pacman --noconfirm --upgrade https://mirror.msys2.org/msys/x86_64/zstd-1.4.7-1-x86_64.pkg.tar.xz

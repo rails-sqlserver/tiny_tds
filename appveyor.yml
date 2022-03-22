@@ -27,10 +27,10 @@ install:
   # - ridk exec bash -c "pacman -U --noconfirm --config <(echo) msys2-keyring-r21.b39fb11-1-any.pkg.tar.xz"
   - ridk exec bash -c "rm -r /etc/pacman.d/gnupg/"
   - ridk exec bash -c "pacman-key --init"
-  - ridk exec bash -c "pacman -S msys2-keyring"
   - ridk exec bash -c "pacman-key --populate msys2"
   # Update keyserver according to https://stackoverflow.com/a/70088371
   - ridk exec bash -c "pacman-key --keyserver keyserver.ubuntu.com --refresh-keys"
+  - ridk exec bash -c "pacman -S msys2-keyring"
   # Update zstd and pacman first https://github.com/msys2/MSYS2-packages/issues/2300
   # zstd must come first, or else pacman will install 1.4.8
   - C:\msys64\usr\bin\pacman --noconfirm --upgrade https://mirror.msys2.org/msys/x86_64/zstd-1.4.7-1-x86_64.pkg.tar.xz

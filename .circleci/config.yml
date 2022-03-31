@@ -1,0 +1,183 @@
+version: 2.1
+
+orbs:
+  win: circleci/windows@4.1
+
+jobs:
+  test_linux:
+    parameters:
+      ruby_version:
+        description: 'version tag for the cimg/ruby container'
+        type: string
+    
+    machine:
+      image: ubuntu-2004:current
+
+    # be sure to update the ./setup_cimgruby_dev.sh if changes are made to steps below
+    steps:
+      - checkout
+
+      - run:
+          name: start docker-compose build environment
+          command: | 
+            sudo ./test/bin/setup_volume_permissions.sh
+            docker-compose up -d
+            echo "Waiting for containers to start..."
+            sleep 10
+
+      - run:
+          name: install sql prereqs
+          command: |
+            docker exec cimg_ruby bash -c 'sudo -E ./test/bin/install-mssqltools.sh'
+
+      - run:
+          name: setup tiny_tds test database
+          command: |
+            docker exec cimg_ruby bash -c './test/bin/setup_tinytds_db.sh'
+
+      - run:
+          name: compile openssl library
+          command: |
+            docker exec cimg_ruby bash -c 'sudo -E ./test/bin/install-openssl.sh'
+
+      - run:
+          name: compile freetds library
+          command: |
+            docker exec cimg_ruby bash -c 'sudo -E ./test/bin/install-freetds.sh'
+
+      - run:
+          name: bundle install gems
+          command: |
+            docker exec cimg_ruby bash -c 'bundle install'
+
+      - run:
+          name: build gem
+          command: |
+            docker exec cimg_ruby bash -c 'bundle exec rake build'
+
+      - run:
+          name: test gem
+          command: |
+             docker exec cimg_ruby bash -c 'bundle exec rake test'
+
+  test_windows:
+    parameters:
+      ruby_version:
+        description: 'version tag for rubydev environment'
+        type: string
+
+    executor:
+      name: win/server-2022
+      shell: powershell.exe
+
+    environment:
+      RAKEOPT: '-rdevkit'
+      TESTOPTS: '-v'
+      MAKE: 'make V=1 -j2'
+
+    steps:
+      - run:
+          name: remove pre-installed ruby
+          command: |
+            Get-ChildItem -path 'C:\tools\' -filter Ruby* | Remove-Item -Force -Recurse
+
+      - run:
+          name: download and install ruby devkit
+          command: |
+            $uri = 'https://api.github.com/repos/oneclick/rubyinstaller2/tags?per_page=200'
+            $releases = ((Invoke-WebRequest $uri) | ConvertFrom-Json).name | select-string -Pattern '<< parameters.ruby_version >>'
+            $target_release = (($releases | Sort-Object -Descending)[0] | Out-String).Trim()
+            $target_version = $target_release.Substring($target_release.Length - 7)
+            $download_uri = "https://github.com/oneclick/rubyinstaller2/releases/download/RubyInstaller-$target_version/rubyinstaller-devkit-$target_version-x64.exe"
+            echo "Ruby Target Version Found: $target_version"
+
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            Invoke-WebRequest -UseBasicParsing -uri $download_uri -OutFile ruby-setup.exe
+            .\ruby-setup.exe /VERYSILENT /NORESTART /DIR=C:/Ruby<< parameters.ruby_version >>-x64
+
+      - run:
+          name: ruby diagnostics
+          command: |
+            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
+            echo "Perl Version:"
+            perl --version
+            echo "Ruby Version:"
+            ruby --version
+            echo "Gem Version:"
+            gem --version
+            rm .\ruby-setup.exe
+
+      - run:
+          name: update build env
+          command: |
+            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
+            ridk install 2
+            gem install bundler
+
+      - checkout
+
+      - restore_cache:
+          name: restore gem cache
+          keys:
+            - v1-bundle-<< parameters.ruby_version >>-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
+            - v1-bundle-<< parameters.ruby_version >>-{{ .Branch }}-
+            - v1-bundle-<< parameters.ruby_version >>-
+
+      - run:
+          name: bundle install gems
+          command: |
+            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
+            bundle install
+
+      - save_cache:
+          name: save gem cache
+          paths:
+            - ./vendor/bundle
+          key: v1-bundle-<< parameters.ruby_version >>-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
+
+      - run:
+          name: build openssl
+          no_output_timeout: 30m
+          command: |
+            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
+            bundle exec rake ports:openssl
+
+      - run:
+          name: build libiconv
+          no_output_timeout: 30m
+          command: |
+            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
+            bundle exec rake ports:libiconv
+
+      - run:
+          name: build freetds
+          no_output_timeout: 30m
+          command: |
+            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
+            bundle exec rake ports:freetds
+
+      - run:
+          name: build gem
+          no_output_timeout: 30m
+          command: |
+            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
+            bundle exec rake ports
+
+workflows:
+  test_supported_ruby_versions:
+    jobs:
+      - test_linux:
+          matrix:
+            parameters:
+              ruby_version:
+                - '2.5'
+                - '2.6'
+                - '2.7'
+
+      - test_windows:
+          matrix:
+            parameters:
+              ruby_version:
+               - '2.5'
+               - '2.6'
+               - '2.7'

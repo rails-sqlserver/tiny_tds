@@ -248,22 +248,31 @@ module TinyTds
     end
 
     def init_toxiproxy
-      return if ENV['APPVEYOR_BUILD_FOLDER'] # only for CI using docker
-
       # In order for toxiproxy to work for local docker instances of mssql, the containers must be on the same network
       # and the host used below must match the mssql container name so toxiproxy knows where to proxy to.
       # localhost from the perspective of toxiproxy's container is its own container an *not* the mssql container it needs to proxy to.
       # docker-compose.yml handles this automatically for us. In instances where someone is using their own local mssql container they'll
       # need to set up the networks manually and set TINYTDS_UNIT_HOST to their mssql container name
       # For anything other than localhost just use the environment config
-      env_host = ENV['TINYTDS_UNIT_HOST_TEST'] || ENV['TINYTDS_UNIT_HOST'] || 'localhost'
-      host = ['localhost', '127.0.0.1', '0.0.0.0'].include?(env_host) ? 'sqlserver' : env_host
-      port = ENV['TINYTDS_UNIT_PORT'] || 1433
+      toxi_host = ENV['TOXIPROXY_HOST'] || 'localhost'
+      toxi_api_port = 8474
+      toxi_test_port = 1234
+      Toxiproxy.host = "http://#{toxi_host}:#{toxi_api_port}"
+
+      toxi_upstream_host = ENV['TINYTDS_UNIT_HOST_TEST'] || ENV['TINYTDS_UNIT_HOST'] || 'localhost'
+      toxi_upstream_port = ENV['TINYTDS_UNIT_PORT'] || 1433
+
+      puts "\n-------------------------"
+      puts "Toxiproxy api listener: #{toxi_host}:#{toxi_api_port}"
+      puts "Toxiproxy unit test listener: #{toxi_host}:#{toxi_test_port}"
+      puts "Toxiproxy upstream sqlserver: #{toxi_upstream_host}:#{toxi_upstream_port}"
+      puts '-------------------------'
+
       Toxiproxy.populate([
         {
           name: "sqlserver_test",
-          listen: "0.0.0.0:1234",
-          upstream: "#{host}:#{port}"
+          listen: "#{toxi_host}:#{toxi_test_port}",
+          upstream: "#{toxi_upstream_host}:#{toxi_upstream_port}"
         }
       ])
     end

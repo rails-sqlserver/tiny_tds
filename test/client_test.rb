@@ -133,9 +133,8 @@ class ClientTest < TinyTds::TestCase
     end
 
     it 'raises TinyTds exception with tcp socket network failure' do
-      skip if ENV['CI'] && ENV['APPVEYOR_BUILD_FOLDER'] # only CI using docker
       begin
-        client = new_connection timeout: 2, port: 1234
+        client = new_connection timeout: 2, port: 1234, host: ENV['TOXIPROXY_HOST']
         assert_client_works(client)
         action = lambda { client.execute("waitfor delay '00:00:05'").do }
 
@@ -155,9 +154,8 @@ class ClientTest < TinyTds::TestCase
     end
 
     it 'raises TinyTds exception with dead connection network failure' do
-      skip if ENV['CI'] && ENV['APPVEYOR_BUILD_FOLDER'] # only CI using docker
       begin
-        client = new_connection timeout: 2, port: 1234
+        client = new_connection timeout: 2, port: 1234, host: ENV['TOXIPROXY_HOST']
         assert_client_works(client)
         action = lambda { client.execute("waitfor delay '00:00:05'").do }
 
@@ -177,11 +175,10 @@ class ClientTest < TinyTds::TestCase
     end
 
     it 'raises TinyTds exception with login timeout' do
-      skip if ENV['CI'] && ENV['APPVEYOR_BUILD_FOLDER'] # only CI using docker
       begin
         action = lambda do
           Toxiproxy[:sqlserver_test].toxic(:timeout, timeout: 0).apply do
-            new_connection login_timeout: 1, port: 1234
+            new_connection login_timeout: 1, port: 1234, host: ENV['TOXIPROXY_HOST']
           end
         end
         assert_raise_tinytds_error(action) do |e|

@@ -50,4 +50,3 @@ end
 
 task build: [:clean, :compile]
 task default: [:build, :test]
-

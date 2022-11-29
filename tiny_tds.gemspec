@@ -6,8 +6,8 @@ Gem::Specification.new do |s|
   s.name          = 'tiny_tds'
   s.version       = TinyTds::VERSION
   s.platform      = Gem::Platform::RUBY
-  s.authors       = ['Ken Collins', 'Erik Bryn', 'Will Bond']
-  s.email         = ['ken@metaskills.net', 'will@wbond.net']
+  s.authors       = ['Ken Collins', 'rails-sqlserver volunteers']
+  s.email         = ['ken@metaskills.net']
   s.homepage      = 'http://github.com/rails-sqlserver/tiny_tds'
   s.summary       = 'TinyTDS - A modern, simple and fast FreeTDS library for Ruby using DB-Library.'
   s.description   = 'TinyTDS - A modern, simple and fast FreeTDS library for Ruby using DB-Library. Developed for the ActiveRecord SQL Server adapter.'

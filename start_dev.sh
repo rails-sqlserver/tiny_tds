@@ -1,12 +1,21 @@
 #!/usr/bin/env bash
+# will spin up a local dockerized development environment
 
 set -x
 set -e
 
-# set volume read/write permissions to work both outside and inside container
-sudo ./test/bin/setup_volume_permissions.sh
+if [ -z "$ruby_version" ]
+then
+  echo "set a value for environment variable ruby_version"
+  exit 1
+else
+  echo "ruby_version is $ruby_version"
+fi
 
-docker-compose up -d
+# set volume read/write permissions to work both outside and inside container
+sudo -E ./test/bin/setup_volume_permissions.sh
+
+docker compose up -d
 echo "Waiting for containers to start..."
 sleep 10
 

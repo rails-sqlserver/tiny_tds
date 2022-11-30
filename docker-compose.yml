@@ -5,7 +5,7 @@ networks:
 
 services:
   mssql:
-    image: metaskills/mssql-server-linux-tinytds:2017-GA
+    image: mcr.microsoft.com/mssql/server:2022-RTM-ubuntu-20.04
     container_name: sqlserver
     environment:
       ACCEPT_EULA: Y
@@ -21,7 +21,7 @@ services:
     network_mode: "host"
 
   cimgruby:
-    image: cimg/ruby:2.7.0
+    image: cimg/ruby:${ruby_version}
     container_name: cimg_ruby
     environment:
       TESTOPTS: '-v'

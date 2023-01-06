@@ -19,7 +19,7 @@ module Ports
       if version =~ /0\.91/
         opts << '--with-tdsver=7.1'
       else
-        opts << '--with-tdsver=7.3'
+        opts << '--with-tdsver=7.4'
       end
 
       if windows?

@@ -18,13 +18,13 @@ Gem::Specification.new do |s|
   s.rdoc_options  = ['--charset=UTF-8']
   s.extensions    = ['ext/tiny_tds/extconf.rb']
   s.license       = 'MIT'
-  s.required_ruby_version = '>= 2.0.0'
+  s.required_ruby_version = '>= 3.1.0'
   s.metadata['msys2_mingw_dependencies'] = 'freetds'
-  s.add_development_dependency 'mini_portile2', '~> 2.5.0'
+  s.add_development_dependency 'mini_portile2', '~> 2.8.1'
   s.add_development_dependency 'rake', '~> 13.0.0'
   s.add_development_dependency 'rake-compiler', '~> 1.1.0'
   s.add_development_dependency 'rake-compiler-dock', '~> 1.1.0'
-  s.add_development_dependency 'minitest', '~> 5.14.0'
-  s.add_development_dependency 'connection_pool', '~> 2.2.0'
-  s.add_development_dependency 'toxiproxy', '~> 2.0.0'
+  s.add_development_dependency 'minitest', '~> 5.17.0'
+  s.add_development_dependency 'connection_pool', '~> 2.3.0'
+  s.add_development_dependency 'toxiproxy', '~> 2.0.2'
 end

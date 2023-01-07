@@ -75,7 +75,7 @@ namespace :ports do
     GEM_PLATFORM_HOSTS.each do |gem_platform, host|
       # make sure to install our bundle
       build = ['bundle']
-      build << "rake ports:compile[#{host}] MAKE='make -j`nproc`'"
+      build << "RUBY_CC_VERSION=#{RUBY_CC_VERSION} rake ports:compile[#{host}] MAKE='make -j`nproc`'"
       RakeCompilerDock.sh build.join(' && '), platform: gem_platform
     end
   end

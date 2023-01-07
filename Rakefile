@@ -10,6 +10,7 @@ GEM_PLATFORM_HOSTS = {
   'x86-mingw32' => 'i686-w64-mingw32',
   'x64-mingw32' => 'x86_64-w64-mingw32'
 }
+RUBY_CC_VERSION='3.0.0:2.7.0:2.6.0:2.5.0:2.4.0'.freeze
 
 # Add our project specific files to clean for a rebuild
 CLEAN.include FileList["{ext,lib}/**/*.{so,#{RbConfig::CONFIG['DLEXT']},o}"],

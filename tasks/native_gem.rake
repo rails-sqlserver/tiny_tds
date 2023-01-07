@@ -9,6 +9,6 @@ task 'gem:windows' => ['ports:cross'] do
 
   # and finally build the native gem
   GEM_PLATFORM_HOSTS.keys.each do |plat|
-    RakeCompilerDock.sh "bundle --local && RUBY_CC_VERSION='2.7.0:2.6.0:2.5.0:2.4.0' CFLAGS='-Wall' MAKE='make -j`nproc`' rake native:#{plat} gem", platform: plat
+    RakeCompilerDock.sh "bundle --local && RUBY_CC_VERSION=#{RUBY_CC_VERSION} CFLAGS='-Wall' MAKE='make -j`nproc`' rake native:#{plat} gem", platform: plat
   end
 end

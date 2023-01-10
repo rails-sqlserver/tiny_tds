@@ -112,7 +112,7 @@ jobs:
           command: |
             $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
             ridk install 2
-            gem install bundler
+            gem install bundler -v 2.3.26
 
       - checkout
 

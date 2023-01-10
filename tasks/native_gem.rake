@@ -8,7 +8,7 @@ task 'gem:windows' => ['ports:cross'] do
   build = ['bundle']
 
   # and finally build the native gem
-  build << 'rake cross native gem RUBY_CC_VERSION=2.7.0:2.6.0:2.5.0:2.4.0 CFLAGS="-Wall" MAKE="make -j`nproc`"'
+  build << "rake cross native gem RUBY_CC_VERSION=#{RUBY_CC_VERSION} CFLAGS=\"-Wall\" MAKE=\"make -j`nproc`\""
 
   RakeCompilerDock.sh build.join(' && ')
 end

@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   win: circleci/windows@4.1
+  ruby: circleci/ruby@2.0.0
 
 jobs:
   test_linux:
@@ -19,7 +20,7 @@ jobs:
 
       - run:
           name: start docker-compose build environment
-          command: | 
+          command: |
             sudo ./test/bin/setup_volume_permissions.sh
             docker-compose up -d
             echo "Waiting for containers to start..."
@@ -58,7 +59,7 @@ jobs:
       - run:
           name: test gem
           command: |
-             docker exec cimg_ruby bash -c 'bundle exec rake test'
+            docker exec cimg_ruby bash -c 'bundle exec rake test'
 
   test_windows:
     parameters:
@@ -108,10 +109,9 @@ jobs:
             rm .\ruby-setup.exe
 
       - run:
-          name: update build env
+          name: install bundler
           command: |
             $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
-            ridk install 2
             gem install bundler -v 2.3.26
 
       - checkout
@@ -127,7 +127,7 @@ jobs:
           name: bundle install gems
           command: |
             $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
-            bundle install
+            bundle install --path vendor/bundle
 
       - save_cache:
           name: save gem cache
@@ -135,49 +135,120 @@ jobs:
             - ./vendor/bundle
           key: v1-bundle-<< parameters.ruby_version >>-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
 
-      - run:
-          name: build openssl
-          no_output_timeout: 30m
-          command: |
-            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
-            bundle exec rake ports:openssl
+      - restore_cache:
+          name: restore cross-compiled code
+          keys:
+            - compiled-<< pipeline.git.revision >>
 
       - run:
-          name: build libiconv
-          no_output_timeout: 30m
+          name: restore cross-compiled code
           command: |
             $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
-            bundle exec rake ports:libiconv
+
+            $rubyArchitecture = (ruby -e 'puts RUBY_PLATFORM').Trim()            
+            $source = "C:\home\circleci\project\tmp\$rubyArchitecture\stage\lib\tiny_tds"
+            $destination = ".\lib\tiny_tds"
+            Get-ChildItem $source -Recurse -Exclude "*.rb" | Copy-Item -Destination {Join-Path $destination $_.FullName.Substring($source.length)}
+
+      - restore_cache:
+          name: restore mssql installation file
+          key: downloads-{{ checksum "test/bin/install-mssql.ps1" }}
 
       - run:
-          name: build freetds
-          no_output_timeout: 30m
+          name: setup mssql
           command: |
-            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
-            bundle exec rake ports:freetds
+            .\test\bin\install-mssql.ps1
+
+      - save_cache:
+          name: save downloads cache
+          paths:
+            - C:\Downloads
+          key: downloads-{{ checksum "test/bin/install-mssql.ps1" }}
 
       - run:
-          name: build gem
-          no_output_timeout: 30m
+          name: install toxiproxy-server
+          command: |
+            choco install toxiproxy-server --version=2.5.0 -y
+            Start-Process toxiproxy-server
+
+      - restore_cache:
+          name: restore ports cache
+          keys:
+            - ports-libiconv115-openssl111s-freetds1124
+
+      - run:
+          name: copy ports cache into project
+          command: |
+            Move-Item C:\home\circleci\project\ports .
+
+      - run:
+          name: test gem
           command: |
             $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
-            bundle exec rake ports
+            bundle exec rake test
+          environment:
+            TOXIPROXY_HOST: "localhost"
+
+  cross_compile_ports:
+    machine:
+      image: ubuntu-2004:current
+
+    steps:
+      - ruby/install:
+          version: '2.7'
+      - checkout
+      - restore_cache:
+          name: restore gem cache
+          keys:
+            - v1-bundle-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
+            - v1-bundle-{{ .Branch }}-
+            - v1-bundle-
+
+      - run:
+          name: bundle install gems
+          command: |
+            bundle install --path vendor/bundle
+
+      - save_cache:
+          name: save gem cache
+          paths:
+            - ./vendor/bundle
+          key: v1-bundle-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
+
+      - restore_cache:
+          name: restore ports cache
+          keys:
+            - ports-libiconv115-openssl111s-freetds1124
+
+      - run:
+          name: cross compile ports
+          command: |
+            bundle exec rake compile:cross
+
+      - save_cache:
+          name: save ports cache
+          paths:
+            - ./ports
+          key: ports-libiconv115-openssl111s-freetds1124
+
+      - save_cache:
+          name: save cross-compiled-code
+          paths:
+            - ./tmp
+          key: compiled-<< pipeline.git.revision >>
 
 workflows:
   test_supported_ruby_versions:
     jobs:
-      - test_linux:
-          matrix:
+      - cross_compile_ports
+      - test_windows:
+          requires:
+            - cross_compile_ports
+          matrix: &ruby_versions
             parameters:
               ruby_version:
                 - '2.5'
                 - '2.6'
                 - '2.7'
-
-      - test_windows:
-          matrix:
-            parameters:
-              ruby_version:
-               - '2.5'
-               - '2.6'
-               - '2.7'
+      - test_linux:
+          matrix: *ruby_versions

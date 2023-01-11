@@ -10,7 +10,7 @@ jobs:
       ruby_version:
         description: 'version tag for the cimg/ruby container'
         type: string
-    
+
     machine:
       image: ubuntu-2004:current
 
@@ -189,7 +189,7 @@ jobs:
           environment:
             TOXIPROXY_HOST: "localhost"
 
-  cross_compile_ports:
+  cross_compile_gem:
     machine:
       image: ubuntu-2004:current
 
@@ -221,9 +221,17 @@ jobs:
             - ports-libiconv115-openssl111s-freetds1124
 
       - run:
-          name: cross compile ports
+          name: Build gems
           command: |
-            bundle exec rake compile:cross
+            bundle exec rake gem
+            bundle exec rake gem:native
+
+            # Move gem files to a separate directory, as CircleCI artifacts don't support wildcards for paths
+            mkdir pkg_artifacts
+            mv pkg/*.gem pkg_artifacts
+
+      - store_artifacts:
+          path: pkg_artifacts
 
       - save_cache:
           name: save ports cache
@@ -240,10 +248,10 @@ jobs:
 workflows:
   test_supported_ruby_versions:
     jobs:
-      - cross_compile_ports
+      - cross_compile_gem
       - test_windows:
           requires:
-            - cross_compile_ports
+            - cross_compile_gem
           matrix: &ruby_versions
             parameters:
               ruby_version:

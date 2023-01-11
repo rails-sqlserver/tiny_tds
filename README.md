@@ -407,7 +407,7 @@ For the convenience of Windows users, TinyTDS ships pre-compiled gems for suppor
 Run the following rake task to compile the gems for Windows. This will check the availability of [Docker](https://www.docker.com/) (and boot2docker on Windows or OS-X) and will give some advice for download and installation. When docker is running, it will download the docker image (once-only) and start the build:
 
 ```
-$ rake gem:windows
+$ rake gem:native
 ```
 
 The compiled gems will exist in `./pkg` directory.

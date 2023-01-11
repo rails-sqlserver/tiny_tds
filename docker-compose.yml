@@ -21,7 +21,7 @@ services:
     network_mode: "host"
 
   cimgruby:
-    image: cimg/ruby:2.7.0
+    image: "cimg/ruby:${RUBY_VERSION:-2.7}"
     container_name: cimg_ruby
     environment:
       TESTOPTS: '-v'

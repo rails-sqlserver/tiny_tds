@@ -25,6 +25,8 @@ jobs:
             docker-compose up -d
             echo "Waiting for containers to start..."
             sleep 10
+          environment:
+            RUBY_VERSION: << parameters.ruby_version >>
 
       - run:
           name: install sql prereqs

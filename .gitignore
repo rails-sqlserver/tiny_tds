@@ -18,3 +18,4 @@ misc
 /exe/*
 /ports/*
 !/ports/patches/
+test/reports

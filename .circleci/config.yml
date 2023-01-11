@@ -63,6 +63,9 @@ jobs:
           command: |
             docker exec cimg_ruby bash -c 'bundle exec rake test'
 
+      - store_test_results:
+          path: test/reports
+
   test_windows:
     parameters:
       ruby_version:
@@ -190,6 +193,9 @@ jobs:
             bundle exec rake test
           environment:
             TOXIPROXY_HOST: "localhost"
+
+      - store_test_results:
+          path: test/reports
 
   cross_compile_gem:
     machine:

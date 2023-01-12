@@ -141,19 +141,29 @@ jobs:
           key: v1-bundle-<< parameters.ruby_version >>-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
 
       - restore_cache:
-          name: restore cross-compiled code
+          name: restore cross-compiled gems
           keys:
-            - compiled-<< pipeline.git.revision >>
+            - gems-<< pipeline.git.revision >>
 
       - run:
-          name: restore cross-compiled code
+          name: restore cross-compiled code from gem
           command: |
             $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
+            $rubyArchitecture = (ruby -e 'puts RUBY_PLATFORM').Trim()
+            $gemVersion = (Get-Content VERSION).Trim()
 
-            $rubyArchitecture = (ruby -e 'puts RUBY_PLATFORM').Trim()            
-            $source = "C:\home\circleci\project\tmp\$rubyArchitecture\stage\lib\tiny_tds"
-            $destination = ".\lib\tiny_tds"
+            # Install appropriate gem
+            # The project on Windows is checked out at C:/Users/circleci.PACKER-633B1A5A/project
+            # However, since the cache with the gems was created on Linux, it uses a different path
+            gem install --local --install-dir=./tmp "C:\home\circleci\project\gems\tiny_tds-$gemVersion-$rubyArchitecture.gem"
+
+            # Restore precompiled code
+            $source = (Resolve-Path ".\tmp\gems\tiny_tds-$gemVersion-$rubyArchitecture\lib\tiny_tds").Path
+            $destination = (Resolve-Path ".\lib\tiny_tds").Path
             Get-ChildItem $source -Recurse -Exclude "*.rb" | Copy-Item -Destination {Join-Path $destination $_.FullName.Substring($source.length)}
+            
+            # Restore ports
+            Copy-Item -Path ".\tmp\gems\tiny_tds-$gemVersion-$rubyArchitecture\ports" -Destination "." -Recurse
 
       - restore_cache:
           name: restore mssql installation file
@@ -175,16 +185,6 @@ jobs:
           command: |
             choco install toxiproxy-server --version=2.5.0 -y
             Start-Process toxiproxy-server
-
-      - restore_cache:
-          name: restore ports cache
-          keys:
-            - ports-libiconv115-openssl111s-freetds1124
-
-      - run:
-          name: copy ports cache into project
-          command: |
-            Move-Item C:\home\circleci\project\ports .
 
       - run:
           name: test gem
@@ -223,10 +223,16 @@ jobs:
             - ./vendor/bundle
           key: v1-bundle-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
 
+      - run:
+          name: Write used versions for ports into file
+          command: |
+            bundle exec rake ports:version_file
+
       - restore_cache:
           name: restore ports cache
           keys:
-            - ports-libiconv115-openssl111s-freetds1124
+            - ports-{{ checksum ".ports_versions" }}
+            - ports-
 
       - run:
           name: Build gems
@@ -234,7 +240,9 @@ jobs:
             bundle exec rake gem
             bundle exec rake gem:native
 
-            # Move gem files to a separate directory, as CircleCI artifacts don't support wildcards for paths
+      - run:
+          name: Move gems into separate directory before caching
+          command: |
             mkdir gems
             mv pkg/*.gem gems
 
@@ -245,13 +253,13 @@ jobs:
           name: save ports cache
           paths:
             - ./ports
-          key: ports-libiconv115-openssl111s-freetds1124
+          key: ports-{{ checksum ".ports_versions" }}
 
       - save_cache:
-          name: save cross-compiled-code
+          name: save gems into cache
           paths:
-            - ./tmp
-          key: compiled-<< pipeline.git.revision >>
+            - ./gems
+          key: gems-<< pipeline.git.revision >>
 
 workflows:
   test_supported_ruby_versions:

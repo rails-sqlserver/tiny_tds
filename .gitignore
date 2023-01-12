@@ -19,3 +19,4 @@ misc
 /ports/*
 !/ports/patches/
 test/reports
+.ports_versions

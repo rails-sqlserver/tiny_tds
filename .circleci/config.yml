@@ -140,22 +140,17 @@ jobs:
             - ./vendor/bundle
           key: v1-bundle-<< parameters.ruby_version >>-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
 
-      - restore_cache:
-          name: restore cross-compiled gems
-          keys:
-            - gems-<< pipeline.git.revision >>
+      - attach_workspace:
+          at: artifacts
 
       - run:
-          name: restore cross-compiled code from gem
+          name: install native gem and restore cross-compiled code from gem
           command: |
             $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
             $rubyArchitecture = (ruby -e 'puts RUBY_PLATFORM').Trim()
             $gemVersion = (Get-Content VERSION).Trim()
 
-            # Install appropriate gem
-            # The project on Windows is checked out at C:/Users/circleci.PACKER-633B1A5A/project
-            # However, since the cache with the gems was created on Linux, it uses a different path
-            gem install --local --install-dir=./tmp "C:\home\circleci\project\gems\tiny_tds-$gemVersion-$rubyArchitecture.gem"
+            gem install --local --install-dir=./tmp "artifacts/gems/tiny_tds-$gemVersion-$rubyArchitecture.gem"
 
             # Restore precompiled code
             $source = (Resolve-Path ".\tmp\gems\tiny_tds-$gemVersion-$rubyArchitecture\lib\tiny_tds").Path
@@ -243,11 +238,11 @@ jobs:
       - run:
           name: Move gems into separate directory before caching
           command: |
-            mkdir gems
-            mv pkg/*.gem gems
+            mkdir -p artifacts/gems
+            mv pkg/*.gem artifacts/gems
 
       - store_artifacts:
-          path: gems
+          path: artifacts/gems
 
       - save_cache:
           name: save ports cache
@@ -255,11 +250,11 @@ jobs:
             - ./ports
           key: ports-{{ checksum ".ports_versions" }}
 
-      - save_cache:
-          name: save gems into cache
+      - persist_to_workspace:
+          name: save gems into workspace
+          root: artifacts
           paths:
-            - ./gems
-          key: gems-<< pipeline.git.revision >>
+            - gems
 
 workflows:
   test_supported_ruby_versions:

@@ -235,11 +235,11 @@ jobs:
             bundle exec rake gem:native
 
             # Move gem files to a separate directory, as CircleCI artifacts don't support wildcards for paths
-            mkdir pkg_artifacts
-            mv pkg/*.gem pkg_artifacts
+            mkdir gems
+            mv pkg/*.gem gems
 
       - store_artifacts:
-          path: pkg_artifacts
+          path: gems
 
       - save_cache:
           name: save ports cache

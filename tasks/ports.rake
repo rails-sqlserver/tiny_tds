@@ -8,9 +8,9 @@ require_relative '../ext/tiny_tds/extconsts'
 
 namespace :ports do
   libraries_to_compile = {
-    freetds: Ports::Freetds.new(FREETDS_VERSION),
+    openssl: Ports::Openssl.new(OPENSSL_VERSION),
     libiconv: Ports::Libiconv.new(ICONV_VERSION),
-    openssl: Ports::Openssl.new(OPENSSL_VERSION)
+    freetds: Ports::Freetds.new(FREETDS_VERSION)
   }
 
   directory "ports"

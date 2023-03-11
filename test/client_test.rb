@@ -16,6 +16,7 @@ class ClientTest < TinyTds::TestCase
       assert @client.close
       assert @client.closed?
       assert !@client.active?
+      assert @client.dead?
       action = lambda { @client.execute('SELECT 1 as [one]').each }
       assert_raise_tinytds_error(action) do |e|
         assert_match %r{closed connection}i, e.message, 'ignore if non-english test run'

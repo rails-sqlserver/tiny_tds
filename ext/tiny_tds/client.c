@@ -232,6 +232,7 @@ static void rb_tinytds_client_free(void *ptr) {
     dbloginfree(cwrap->login);
   if (cwrap->client && !cwrap->closed) {
     dbclose(cwrap->client);
+    cwrap->client = NULL;
     cwrap->closed = 1;
     cwrap->userdata->closed = 1;
   }
@@ -263,6 +264,7 @@ static VALUE rb_tinytds_close(VALUE self) {
   GET_CLIENT_WRAPPER(self);
   if (cwrap->client && !cwrap->closed) {
     dbclose(cwrap->client);
+    cwrap->client = NULL;
     cwrap->closed = 1;
     cwrap->userdata->closed = 1;
   }

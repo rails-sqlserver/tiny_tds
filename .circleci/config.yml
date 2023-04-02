@@ -90,6 +90,8 @@ jobs:
       - run:
           name: download and install ruby devkit
           command: |
+            $ProgressPreference='SilentlyContinue'
+
             $uri = 'https://api.github.com/repos/oneclick/rubyinstaller2/tags?per_page=200'
             $releases = ((Invoke-WebRequest $uri) | ConvertFrom-Json).name | select-string -Pattern '<< parameters.ruby_version >>'
             $target_release = (($releases | Sort-Object -Descending)[0] | Out-String).Trim()
@@ -99,6 +101,8 @@ jobs:
 
             [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
             Invoke-WebRequest -UseBasicParsing -uri $download_uri -OutFile ruby-setup.exe
+            
+            echo "Download finished, starting installation of $target_version"
             .\ruby-setup.exe /VERYSILENT /NORESTART /DIR=C:/Ruby<< parameters.ruby_version >>-x64
 
       - run:

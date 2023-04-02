@@ -103,7 +103,7 @@ jobs:
             Invoke-WebRequest -UseBasicParsing -uri $download_uri -OutFile ruby-setup.exe
             
             echo "Download finished, starting installation of $target_version"
-            .\ruby-setup.exe /VERYSILENT /NORESTART /DIR=C:/Ruby<< parameters.ruby_version >>-x64
+            .\ruby-setup.exe /VERYSILENT /NORESTART /ALLUSERS /DIR=C:/Ruby<< parameters.ruby_version >>-x64
 
       - run:
           name: ruby diagnostics

@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   win: circleci/windows@4.1
+  ruby: circleci/ruby@2.0.0
 
 jobs:
   test_linux:
@@ -9,7 +10,7 @@ jobs:
       ruby_version:
         description: 'version tag for the cimg/ruby container'
         type: string
-    
+
     machine:
       image: ubuntu-2004:current
 
@@ -19,11 +20,13 @@ jobs:
 
       - run:
           name: start docker-compose build environment
-          command: | 
+          command: |
             sudo ./test/bin/setup_volume_permissions.sh
             docker-compose up -d
             echo "Waiting for containers to start..."
             sleep 10
+          environment:
+            RUBY_VERSION: << parameters.ruby_version >>
 
       - run:
           name: install sql prereqs
@@ -58,7 +61,10 @@ jobs:
       - run:
           name: test gem
           command: |
-             docker exec cimg_ruby bash -c 'bundle exec rake test'
+            docker exec cimg_ruby bash -c 'bundle exec rake test'
+
+      - store_test_results:
+          path: test/reports
 
   test_windows:
     parameters:
@@ -84,6 +90,8 @@ jobs:
       - run:
           name: download and install ruby devkit
           command: |
+            $ProgressPreference='SilentlyContinue'
+
             $uri = 'https://api.github.com/repos/oneclick/rubyinstaller2/tags?per_page=200'
             $releases = ((Invoke-WebRequest $uri) | ConvertFrom-Json).name | select-string -Pattern '<< parameters.ruby_version >>'
             $target_release = (($releases | Sort-Object -Descending)[0] | Out-String).Trim()
@@ -93,7 +101,9 @@ jobs:
 
             [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
             Invoke-WebRequest -UseBasicParsing -uri $download_uri -OutFile ruby-setup.exe
-            .\ruby-setup.exe /VERYSILENT /NORESTART /DIR=C:/Ruby<< parameters.ruby_version >>-x64
+            
+            echo "Download finished, starting installation of $target_version"
+            .\ruby-setup.exe /VERYSILENT /NORESTART /ALLUSERS /DIR=C:/Ruby<< parameters.ruby_version >>-x64
 
       - run:
           name: ruby diagnostics
@@ -108,11 +118,10 @@ jobs:
             rm .\ruby-setup.exe
 
       - run:
-          name: update build env
+          name: install bundler
           command: |
             $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
-            ridk install 2
-            gem install bundler
+            gem install bundler -v 2.3.26
 
       - checkout
 
@@ -127,7 +136,7 @@ jobs:
           name: bundle install gems
           command: |
             $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
-            bundle install
+            bundle install --path vendor/bundle
 
       - save_cache:
           name: save gem cache
@@ -135,49 +144,135 @@ jobs:
             - ./vendor/bundle
           key: v1-bundle-<< parameters.ruby_version >>-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
 
-      - run:
-          name: build openssl
-          no_output_timeout: 30m
-          command: |
-            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
-            bundle exec rake ports:openssl
+      - attach_workspace:
+          at: artifacts
 
       - run:
-          name: build libiconv
-          no_output_timeout: 30m
+          name: install native gem and restore cross-compiled code from gem
           command: |
             $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
-            bundle exec rake ports:libiconv
+            $rubyArchitecture = (ruby -e 'puts RUBY_PLATFORM').Trim()
+            $gemVersion = (Get-Content VERSION).Trim()
+
+            gem install --local --install-dir=./tmp "artifacts/gems/tiny_tds-$gemVersion-$rubyArchitecture.gem"
+
+            # Restore precompiled code
+            $source = (Resolve-Path ".\tmp\gems\tiny_tds-$gemVersion-$rubyArchitecture\lib\tiny_tds").Path
+            $destination = (Resolve-Path ".\lib\tiny_tds").Path
+            Get-ChildItem $source -Recurse -Exclude "*.rb" | Copy-Item -Destination {Join-Path $destination $_.FullName.Substring($source.length)}
+            
+            # Restore ports
+            Copy-Item -Path ".\tmp\gems\tiny_tds-$gemVersion-$rubyArchitecture\ports" -Destination "." -Recurse
+
+      - restore_cache:
+          name: restore mssql installation file
+          key: downloads-{{ checksum "test/bin/install-mssql.ps1" }}
 
       - run:
-          name: build freetds
-          no_output_timeout: 30m
+          name: setup mssql
           command: |
-            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
-            bundle exec rake ports:freetds
+            .\test\bin\install-mssql.ps1
+
+      - save_cache:
+          name: save downloads cache
+          paths:
+            - C:\Downloads
+          key: downloads-{{ checksum "test/bin/install-mssql.ps1" }}
 
       - run:
-          name: build gem
-          no_output_timeout: 30m
+          name: install toxiproxy-server
+          command: |
+            choco install toxiproxy-server --version=2.5.0 -y
+            Start-Process toxiproxy-server
+
+      - run:
+          name: test gem
           command: |
             $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
-            bundle exec rake ports
+            bundle exec rake test
+          environment:
+            TOXIPROXY_HOST: "localhost"
+
+      - store_test_results:
+          path: test/reports
+
+  cross_compile_gem:
+    machine:
+      image: ubuntu-2004:current
+
+    steps:
+      - ruby/install:
+          version: '2.7'
+      - checkout
+      - restore_cache:
+          name: restore gem cache
+          keys:
+            - v1-bundle-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
+            - v1-bundle-{{ .Branch }}-
+            - v1-bundle-
+
+      - run:
+          name: bundle install gems
+          command: |
+            bundle install --path vendor/bundle
+
+      - save_cache:
+          name: save gem cache
+          paths:
+            - ./vendor/bundle
+          key: v1-bundle-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
+
+      - run:
+          name: Write used versions for ports into file
+          command: |
+            bundle exec rake ports:version_file
+
+      - restore_cache:
+          name: restore ports cache
+          keys:
+            - ports-{{ checksum ".ports_versions" }}
+            - ports-
+
+      - run:
+          name: Build gems
+          command: |
+            bundle exec rake gem
+            bundle exec rake gem:native
+
+      - run:
+          name: Move gems into separate directory before caching
+          command: |
+            mkdir -p artifacts/gems
+            mv pkg/*.gem artifacts/gems
+
+      - store_artifacts:
+          path: artifacts/gems
+
+      - save_cache:
+          name: save ports cache
+          paths:
+            - ./ports
+          key: ports-{{ checksum ".ports_versions" }}
+
+      - persist_to_workspace:
+          name: save gems into workspace
+          root: artifacts
+          paths:
+            - gems
 
 workflows:
   test_supported_ruby_versions:
     jobs:
-      - test_linux:
-          matrix:
+      - cross_compile_gem
+      - test_windows:
+          requires:
+            - cross_compile_gem
+          matrix: &ruby_versions
             parameters:
               ruby_version:
+                - '2.4'
                 - '2.5'
                 - '2.6'
                 - '2.7'
-
-      - test_windows:
-          matrix:
-            parameters:
-              ruby_version:
-               - '2.5'
-               - '2.6'
-               - '2.7'
+      - test_linux:
+          matrix: *ruby_versions

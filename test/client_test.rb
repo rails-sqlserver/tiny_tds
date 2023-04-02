@@ -154,6 +154,8 @@ class ClientTest < TinyTds::TestCase
     end
 
     it 'raises TinyTds exception with dead connection network failure' do
+      skip if ruby_windows?
+
       begin
         client = new_connection timeout: 2, port: 1234, host: ENV['TOXIPROXY_HOST']
         assert_client_works(client)

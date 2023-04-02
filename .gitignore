@@ -18,3 +18,5 @@ misc
 /exe/*
 /ports/*
 !/ports/patches/
+test/reports
+.ports_versions

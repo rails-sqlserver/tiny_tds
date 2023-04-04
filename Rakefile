@@ -7,7 +7,7 @@ require_relative './ext/tiny_tds/extconsts'
 
 SPEC = Gem::Specification.load(File.expand_path('../tiny_tds.gemspec', __FILE__))
 
-ruby_cc_ucrt_versions = "3.1.0".freeze
+ruby_cc_ucrt_versions = "3.2.0:3.1.0".freeze
 ruby_cc_mingw32_versions = "3.0.0:2.7.0:2.6.0:2.5.0:2.4.0".freeze
 
 GEM_PLATFORM_HOSTS = {
@@ -46,15 +46,11 @@ Rake::ExtensionTask.new('tiny_tds', SPEC) do |ext|
     # The fat binary gem doesn't depend on the freetds package, since it bundles the library.
     spec.metadata.delete('msys2_mingw_dependencies')
 
-    platform_host_map = GEM_PLATFORM_HOSTS
-    gemplat = spec.platform.to_s
-    host = platform_host_map[gemplat]
-
     # We don't need the sources in a fat binary gem
     spec.files = spec.files.reject { |f| f =~ %r{^ports\/archives/} }
 
     # Make sure to include the ports binaries and libraries
-    spec.files += FileList["ports/#{host}/**/**/{bin,lib}/*"].exclude do |f|
+    spec.files += FileList["ports/#{spec.platform.to_s}/**/**/{bin,lib}/*"].exclude do |f|
       File.directory? f
     end
 

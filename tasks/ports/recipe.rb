@@ -5,8 +5,10 @@ require 'rbconfig'
 
 module Ports
   class Recipe < MiniPortile
+    attr_accessor :gem_platform
+
     def cook
-      checkpoint = "ports/#{name}-#{version}-#{host}.installed"
+      checkpoint = "ports/checkpoints/#{name}-#{version}-#{gem_platform}.installed"
 
       unless File.exist? checkpoint
         super
@@ -15,6 +17,14 @@ module Ports
     end
 
     private
+
+    def port_path
+      "#{@target}/#{gem_platform}/#{@name}/#{@version}"
+    end
+
+    def tmp_path
+      "tmp/#{gem_platform}/ports/#{@name}/#{@version}"
+    end
 
     def configure_defaults
       [
@@ -38,9 +48,9 @@ module Ports
 
     def get_patches(libname, version)
       patches = []
-  
+
       patch_path = File.expand_path(
-        File.join('..','..','..','patches',libname,version), 
+        File.join('..','..','..','patches',libname,version),
         __FILE__
       )
 

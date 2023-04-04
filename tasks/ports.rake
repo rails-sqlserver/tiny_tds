@@ -14,7 +14,7 @@ namespace :ports do
   }
 
   directory "ports"
-  CLEAN.include "ports/*mingw32*"
+  CLEAN.include "ports/*mingw*"
   CLEAN.include "ports/*.installed"
 
   task :openssl, [:host] do |task, args|
@@ -74,10 +74,10 @@ namespace :ports do
     require 'rake_compiler_dock'
 
     # build the ports for all our cross compile hosts
-    GEM_PLATFORM_HOSTS.each do |gem_platform, host|
+    GEM_PLATFORM_HOSTS.each do |gem_platform, meta|
       # make sure to install our bundle
       build = ['bundle']
-      build << "rake ports:compile[#{host}] MAKE='make -j`nproc`'"
+      build << "rake ports:compile[#{meta[:host]}] MAKE='make -j`nproc`'"
       RakeCompilerDock.sh build.join(' && '), platform: gem_platform
     end
   end

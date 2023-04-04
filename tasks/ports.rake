@@ -90,6 +90,8 @@ namespace :ports do
       ports_version[library] = library_recipe.version
     end
 
+    ports_version[:platforms] = GEM_PLATFORM_HOSTS.keys
+
     File.open(".ports_versions", "w") do |f|
       f.write ports_version
     end

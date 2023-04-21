@@ -30,6 +30,7 @@ freetds_ports_dir = File.expand_path(freetds_ports_dir)
 # order is important here! First in, first searched.
 DIRS = %w(
   /opt/local
+  /opt/homebrew
   /usr/local
 )
 

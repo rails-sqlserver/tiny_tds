@@ -11,28 +11,28 @@ ruby_cc_ucrt_versions = "3.2.0:3.1.0".freeze
 ruby_cc_mingw32_versions = "3.0.0:2.7.0:2.6.0:2.5.0:2.4.0".freeze
 
 GEM_PLATFORM_HOSTS = {
+  'x86-mingw32' => {
+    host: 'i686-w64-mingw32',
+    ruby_versions: ruby_cc_mingw32_versions
+  },
   'x64-mingw32' => {
     host: 'x86_64-w64-mingw32',
     ruby_versions: ruby_cc_mingw32_versions
   },
   'x64-mingw-ucrt' => {
-    host: 'mingw-w64-ucrt-x86_64',
+    host: 'x86_64-w64-mingw32',
     ruby_versions: ruby_cc_ucrt_versions
-  },
-  'x86-mingw32' => {
-    host: 'i686-w64-mingw32',
-    ruby_versions: ruby_cc_mingw32_versions
   },
 }
 
 # Add our project specific files to clean for a rebuild
 CLEAN.include FileList["{ext,lib}/**/*.{so,#{RbConfig::CONFIG['DLEXT']},o}"],
-  FileList["exe/*"]
+              FileList["exe/*"]
 
 # Clobber all our temp files and ports files including .install files
 # and archives
 CLOBBER.include FileList["tmp/**/*"],
-  FileList["ports/**/*"].exclude(%r{^ports/archives})
+                FileList["ports/**/*"].exclude(%r{^ports/archives})
 
 Dir['tasks/*.rake'].sort.each { |f| load f }
 

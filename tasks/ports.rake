@@ -18,7 +18,7 @@ namespace :ports do
   CLEAN.include "ports/*.installed"
 
   task :openssl, [:host, :gem_platform] do |_task, args|
-    args.with_defaults(host: RbConfig::CONFIG['host'], gem_platform: RUBY_PLATFORM)
+    args.with_defaults(host: RbConfig::CONFIG['host'], gem_platform: RbConfig::CONFIG["arch"])
 
     libraries_to_compile[:openssl].files = [OPENSSL_SOURCE_URI]
     libraries_to_compile[:openssl].host = args.host
@@ -29,18 +29,17 @@ namespace :ports do
   end
 
   task :libiconv, [:host, :gem_platform] do |_task, args|
-    args.with_defaults(host: RbConfig::CONFIG['host'], gem_platform: RUBY_PLATFORM)
+    args.with_defaults(host: RbConfig::CONFIG['host'], gem_platform: RbConfig::CONFIG["arch"])
 
     libraries_to_compile[:libiconv].files = [ICONV_SOURCE_URI]
     libraries_to_compile[:libiconv].host = args.host
     libraries_to_compile[:libiconv].gem_platform = args.gem_platform
-
     libraries_to_compile[:libiconv].cook
     libraries_to_compile[:libiconv].activate
   end
 
   task :freetds, [:host, :gem_platform] do |_task, args|
-    args.with_defaults(host: RbConfig::CONFIG['host'], gem_platform: RUBY_PLATFORM)
+    args.with_defaults(host: RbConfig::CONFIG['host'], gem_platform: RbConfig::CONFIG["arch"])
 
     libraries_to_compile[:freetds].files = [FREETDS_SOURCE_URI]
     libraries_to_compile[:freetds].host = args.host
@@ -65,7 +64,7 @@ namespace :ports do
   end
 
   task :compile, [:host, :gem_platform] do |_task, args|
-    args.with_defaults(host: RbConfig::CONFIG['host'], gem_platform: RUBY_PLATFORM)
+    args.with_defaults(host: RbConfig::CONFIG['host'], gem_platform: RbConfig::CONFIG["arch"])
 
     puts "Compiling ports for #{args.host} (Ruby platform #{args.gem_platform}) ..."
 
@@ -82,20 +81,22 @@ namespace :ports do
     GEM_PLATFORM_HOSTS.each do |gem_platform, meta|
       # make sure to install our bundle
       build = ['bundle']
-      build << "rake ports:compile[#{meta[:host]},#{gem_platform}] MAKE='make -j`nproc`'"
+      build << "RUBY_CC_VERSION=#{meta[:ruby_versions]} rake ports:compile[#{meta[:host]},#{gem_platform}] MAKE='make -j`nproc`'"
       RakeCompilerDock.sh build.join(' && '), platform: gem_platform
     end
   end
 
   desc "Notes the actual versions for the compiled ports into a file"
-  task "version_file" do
+  task "version_file", [:gem_platform] do |_task, args|
+    args.with_defaults(gem_platform: RbConfig::CONFIG["arch"])
+
     ports_version = {}
 
     libraries_to_compile.each do |library, library_recipe|
       ports_version[library] = library_recipe.version
     end
 
-    ports_version[:platforms] = GEM_PLATFORM_HOSTS.keys
+    ports_version[:platform] = args.gem_platform
 
     File.open(".ports_versions", "w") do |f|
       f.write ports_version

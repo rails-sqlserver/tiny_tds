@@ -5,18 +5,21 @@ require 'rbconfig'
 
 module Ports
   class Recipe < MiniPortile
-    attr_accessor :gem_platform
+    attr_writer :gem_platform
 
     def cook
       checkpoint = "ports/checkpoints/#{name}-#{version}-#{gem_platform}.installed"
 
       unless File.exist? checkpoint
         super
+        FileUtils.mkdir_p("ports/checkpoints")
         FileUtils.touch checkpoint
       end
     end
 
     private
+
+    attr_reader :gem_platform
 
     def port_path
       "#{@target}/#{gem_platform}/#{@name}/#{@version}"
@@ -59,4 +62,3 @@ module Ports
     end
   end
 end
-

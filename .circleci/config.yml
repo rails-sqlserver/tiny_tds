@@ -39,29 +39,41 @@ jobs:
             docker exec cimg_ruby bash -c './test/bin/setup_tinytds_db.sh'
 
       - run:
-          name: compile openssl library
-          command: |
-            docker exec cimg_ruby bash -c 'sudo -E ./test/bin/install-openssl.sh'
-
-      - run:
-          name: compile freetds library
-          command: |
-            docker exec cimg_ruby bash -c 'sudo -E ./test/bin/install-freetds.sh'
-
-      - run:
           name: bundle install gems
           command: |
             docker exec cimg_ruby bash -c 'bundle install'
 
       - run:
-          name: build gem
+          name: Write used versions into file
           command: |
-            docker exec cimg_ruby bash -c 'bundle exec rake build'
+            docker exec cimg_ruby bash -c 'bundle exec rake ports:version_file'
+
+      - restore_cache:
+          name: restore ports cache
+          keys:
+            - ports-<< parameters.ruby_version >>-{{ checksum ".ports_versions" }}
+            - ports-<< parameters.ruby_version >>-
+
+      - run:
+          name: compile ports and build gem
+          command: |
+            docker exec cimg_ruby bash -c 'bundle exec rake ports && bundle exec rake build'
+
+      - run:
+          name: Fix permissions on ports directory
+          command: |
+            docker exec cimg_ruby bash -c 'sudo chown -R $(id -u):$(id -g) ports'
 
       - run:
           name: test gem
           command: |
             docker exec cimg_ruby bash -c 'bundle exec rake test'
+
+      - save_cache:
+          name: save ports cache
+          paths:
+            - ./ports
+          key: ports-<< parameters.ruby_version >>-{{ checksum ".ports_versions" }}
 
       - store_test_results:
           path: test/reports
@@ -221,8 +233,8 @@ jobs:
       - restore_cache:
           name: restore ports cache
           keys:
-            - ports-{{ checksum ".ports_versions" }}
-            - ports-
+            - ports-win-{{ checksum ".ports_versions" }}
+            - ports-win-
 
       - run:
           name: Build gem
@@ -242,7 +254,7 @@ jobs:
           name: save ports cache
           paths:
             - ./ports
-          key: ports-{{ checksum ".ports_versions" }}
+          key: ports-win-{{ checksum ".ports_versions" }}
 
       - persist_to_workspace:
           name: save gems into workspace

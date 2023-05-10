@@ -247,6 +247,12 @@ jobs:
             mkdir -p artifacts-<< parameters.platform >>/gems
             mv pkg/*.gem artifacts-<< parameters.platform >>/gems
 
+      - run:
+          name: Remove non-native gem to avoid conflict in workspace
+          command: |
+            gemVersion=$(cat VERSION | tr -d "[:space:]")
+            rm -rf artifacts-<< parameters.platform >>/gems/tiny_tds-$gemVersion.gem
+
       - store_artifacts:
           path: artifacts/gems
 

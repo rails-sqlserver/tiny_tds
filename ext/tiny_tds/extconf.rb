@@ -33,6 +33,10 @@ DIRS = %w(
   /usr/local
 )
 
+if ENV["RI_DEVKIT"] && ENV["MINGW_PREFIX"] # RubyInstaller Support
+  DIRS.unshift(File.join(ENV["RI_DEVKIT"], ENV["MINGW_PREFIX"]))
+end
+
 # Add the ports directory if it exists for local developer builds
 DIRS.unshift(freetds_ports_dir) if File.directory?(freetds_ports_dir)
 

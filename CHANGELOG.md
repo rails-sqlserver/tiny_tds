@@ -2,6 +2,7 @@
 
 * Add Ruby 3.0 to the cross compile list
 * Fix segfault when asking if client was dead after closing it. Fixes #519.
+* Fix Gem installation on Windows by adding default freetds msys path. Fixes #522
 
 ## 2.1.5
 

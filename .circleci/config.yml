@@ -55,9 +55,14 @@ jobs:
             - ports-<< parameters.ruby_version >>-
 
       - run:
-          name: compile ports and build gem
+          name: compile ports
           command: |
-            docker exec cimg_ruby bash -c 'bundle exec rake ports && bundle exec rake build'
+            docker exec cimg_ruby bash -c 'bundle exec rake ports'
+
+      - run:
+          name: build gem
+          command: |
+            docker exec cimg_ruby bash -c 'bundle exec rake build'
 
       - run:
           name: Fix permissions on ports directory

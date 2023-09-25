@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
   s.metadata['msys2_mingw_dependencies'] = 'freetds'
   s.add_development_dependency 'mini_portile2', '~> 2.5.0'
   s.add_development_dependency 'rake', '~> 13.0.0'
-  s.add_development_dependency 'rake-compiler', '~> 1.2.0'
+  s.add_development_dependency 'rake-compiler', '~> 1.2'
   s.add_development_dependency 'rake-compiler-dock', '~> 1.3.0'
   s.add_development_dependency 'minitest', '~> 5.14.0'
   s.add_development_dependency 'minitest-ci', '~> 3.4.0'

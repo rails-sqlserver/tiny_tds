@@ -9,7 +9,7 @@ class GemTest < MiniTest::Spec
 
     # We're going to muck with some system globals so lets make sure
     # they get set back later
-    original_platform = RbConfig::CONFIG["arch"]
+    original_platform = RbConfig::CONFIG['arch']
     original_pwd = Dir.pwd
 
     after do

@@ -39,19 +39,25 @@ jobs:
             docker exec cimg_ruby bash -c './test/bin/setup_tinytds_db.sh'
 
       - run:
-          name: compile openssl library
-          command: |
-            docker exec cimg_ruby bash -c 'sudo -E ./test/bin/install-openssl.sh'
-
-      - run:
-          name: compile freetds library
-          command: |
-            docker exec cimg_ruby bash -c 'sudo -E ./test/bin/install-freetds.sh'
-
-      - run:
           name: bundle install gems
           command: |
             docker exec cimg_ruby bash -c 'bundle install'
+
+      - run:
+          name: Write used versions into file
+          command: |
+            docker exec cimg_ruby bash -c 'bundle exec rake ports:version_file'
+
+      - restore_cache:
+          name: restore ports cache
+          keys:
+            - ports-<< parameters.ruby_version >>-{{ checksum ".ports_versions" }}
+            - ports-<< parameters.ruby_version >>-
+
+      - run:
+          name: compile ports
+          command: |
+            docker exec cimg_ruby bash -c 'bundle exec rake ports'
 
       - run:
           name: build gem
@@ -59,9 +65,20 @@ jobs:
             docker exec cimg_ruby bash -c 'bundle exec rake build'
 
       - run:
+          name: Fix permissions on ports directory
+          command: |
+            docker exec cimg_ruby bash -c 'sudo chown -R $(id -u):$(id -g) ports'
+
+      - run:
           name: test gem
           command: |
             docker exec cimg_ruby bash -c 'bundle exec rake test'
+
+      - save_cache:
+          name: save ports cache
+          paths:
+            - ./ports
+          key: ports-<< parameters.ruby_version >>-{{ checksum ".ports_versions" }}
 
       - store_test_results:
           path: test/reports
@@ -197,53 +214,49 @@ jobs:
           path: test/reports
 
   cross_compile_gem:
-    machine:
-      image: ubuntu-2004:current
+    parameters:
+      platform:
+        description: "Platform to compile the gem resources"
+        type: string
+
+    docker:
+      - image: "ghcr.io/rake-compiler/rake-compiler-dock-image:1.3.0-mri-<< parameters.platform >>"
 
     steps:
-      - ruby/install:
-          version: '2.7'
       - checkout
-      - restore_cache:
-          name: restore gem cache
-          keys:
-            - v1-bundle-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
-            - v1-bundle-{{ .Branch }}-
-            - v1-bundle-
 
       - run:
           name: bundle install gems
           command: |
-            bundle install --path vendor/bundle
-
-      - save_cache:
-          name: save gem cache
-          paths:
-            - ./vendor/bundle
-          key: v1-bundle-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
+            bundle install
 
       - run:
           name: Write used versions for ports into file
           command: |
-            bundle exec rake ports:version_file
+            rake ports:version_file[<< parameters.platform >>]
 
       - restore_cache:
           name: restore ports cache
           keys:
-            - ports-{{ checksum ".ports_versions" }}
-            - ports-
+            - ports-win-{{ checksum ".ports_versions" }}
+            - ports-win-
 
       - run:
-          name: Build gems
+          name: Build gem
           command: |
-            bundle exec rake gem
-            bundle exec rake gem:native
+            rake gem:for_platform[<< parameters.platform >>]
 
       - run:
           name: Move gems into separate directory before caching
           command: |
-            mkdir -p artifacts/gems
-            mv pkg/*.gem artifacts/gems
+            mkdir -p artifacts-<< parameters.platform >>/gems
+            mv pkg/*.gem artifacts-<< parameters.platform >>/gems
+
+      - run:
+          name: Remove non-native gem to avoid conflict in workspace
+          command: |
+            gemVersion=$(cat VERSION | tr -d "[:space:]")
+            rm -rf artifacts-<< parameters.platform >>/gems/tiny_tds-$gemVersion.gem
 
       - store_artifacts:
           path: artifacts/gems
@@ -252,18 +265,24 @@ jobs:
           name: save ports cache
           paths:
             - ./ports
-          key: ports-{{ checksum ".ports_versions" }}
+          key: ports-win-{{ checksum ".ports_versions" }}
 
       - persist_to_workspace:
           name: save gems into workspace
-          root: artifacts
+          root: artifacts-<< parameters.platform >>
           paths:
             - gems
 
 workflows:
   test_supported_ruby_versions:
     jobs:
-      - cross_compile_gem
+      - cross_compile_gem:
+          matrix:
+            parameters:
+              platform:
+                - "x86-mingw32"
+                - "x64-mingw32"
+                - "x64-mingw-ucrt"
       - test_windows:
           requires:
             - cross_compile_gem
@@ -275,5 +294,7 @@ workflows:
                 - '2.6'
                 - '2.7'
                 - '3.0'
+                - '3.1'
+                - '3.2'
       - test_linux:
           matrix: *ruby_versions

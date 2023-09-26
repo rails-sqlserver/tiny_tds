@@ -20,12 +20,7 @@ module TinyTds
       end
 
       def ports_host
-        h = RbConfig::CONFIG['host']
-
-        # Our fat binary builds with a i686-w64-mingw32 toolchain
-        # but ruby for windows x32-mingw32 reports i686-pc-mingw32
-        # so correct the host here
-        h.gsub('i686-pc-mingw32', 'i686-w64-mingw32')
+        RbConfig::CONFIG["arch"]
       end
     end
   end

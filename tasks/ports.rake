@@ -14,32 +14,36 @@ namespace :ports do
   }
 
   directory "ports"
-  CLEAN.include "ports/*mingw32*"
+  CLEAN.include "ports/*mingw*"
   CLEAN.include "ports/*.installed"
 
-  task :openssl, [:host] do |task, args|
-    args.with_defaults(host: RbConfig::CONFIG['host'])
+  task :openssl, [:host, :gem_platform] do |_task, args|
+    args.with_defaults(host: RbConfig::CONFIG['host'], gem_platform: RbConfig::CONFIG["arch"])
 
     libraries_to_compile[:openssl].files = [OPENSSL_SOURCE_URI]
     libraries_to_compile[:openssl].host = args.host
+    libraries_to_compile[:openssl].gem_platform = args.gem_platform
+
     libraries_to_compile[:openssl].cook
     libraries_to_compile[:openssl].activate
   end
 
-  task :libiconv, [:host] do |task, args|
-    args.with_defaults(host: RbConfig::CONFIG['host'])
+  task :libiconv, [:host, :gem_platform] do |_task, args|
+    args.with_defaults(host: RbConfig::CONFIG['host'], gem_platform: RbConfig::CONFIG["arch"])
 
     libraries_to_compile[:libiconv].files = [ICONV_SOURCE_URI]
     libraries_to_compile[:libiconv].host = args.host
+    libraries_to_compile[:libiconv].gem_platform = args.gem_platform
     libraries_to_compile[:libiconv].cook
     libraries_to_compile[:libiconv].activate
   end
 
-  task :freetds, [:host] do |task, args|
-    args.with_defaults(host: RbConfig::CONFIG['host'])
+  task :freetds, [:host, :gem_platform] do |_task, args|
+    args.with_defaults(host: RbConfig::CONFIG['host'], gem_platform: RbConfig::CONFIG["arch"])
 
     libraries_to_compile[:freetds].files = [FREETDS_SOURCE_URI]
     libraries_to_compile[:freetds].host = args.host
+    libraries_to_compile[:freetds].gem_platform = args.gem_platform
 
     if libraries_to_compile[:openssl]
       # freetds doesn't have an option that will provide an rpath
@@ -59,13 +63,13 @@ namespace :ports do
     libraries_to_compile[:freetds].activate
   end
 
-  task :compile, [:host] do |task, args|
-    args.with_defaults(host: RbConfig::CONFIG['host'])
+  task :compile, [:host, :gem_platform] do |_task, args|
+    args.with_defaults(host: RbConfig::CONFIG['host'], gem_platform: RbConfig::CONFIG["arch"])
 
-    puts "Compiling ports for #{args.host}..."
+    puts "Compiling ports for #{args.host} (Ruby platform #{args.gem_platform}) ..."
 
     libraries_to_compile.keys.each do |lib|
-      Rake::Task["ports:#{lib}"].invoke(args.host)
+      Rake::Task["ports:#{lib}"].invoke(args.host, args.gem_platform)
     end
   end
 
@@ -74,21 +78,25 @@ namespace :ports do
     require 'rake_compiler_dock'
 
     # build the ports for all our cross compile hosts
-    GEM_PLATFORM_HOSTS.each do |gem_platform, host|
+    GEM_PLATFORM_HOSTS.each do |gem_platform, meta|
       # make sure to install our bundle
       build = ['bundle']
-      build << "rake ports:compile[#{host}] MAKE='make -j`nproc`'"
+      build << "RUBY_CC_VERSION=#{meta[:ruby_versions]} rake ports:compile[#{meta[:host]},#{gem_platform}] MAKE='make -j`nproc`'"
       RakeCompilerDock.sh build.join(' && '), platform: gem_platform
     end
   end
 
   desc "Notes the actual versions for the compiled ports into a file"
-  task "version_file" do
+  task "version_file", [:gem_platform] do |_task, args|
+    args.with_defaults(gem_platform: RbConfig::CONFIG["arch"])
+
     ports_version = {}
 
     libraries_to_compile.each do |library, library_recipe|
       ports_version[library] = library_recipe.version
     end
+
+    ports_version[:platform] = args.gem_platform
 
     File.open(".ports_versions", "w") do |f|
       f.write ports_version

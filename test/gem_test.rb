@@ -9,11 +9,11 @@ class GemTest < MiniTest::Spec
 
     # We're going to muck with some system globals so lets make sure
     # they get set back later
-    original_host = RbConfig::CONFIG['host']
+    original_platform = RbConfig::CONFIG['arch']
     original_pwd = Dir.pwd
 
     after do
-      RbConfig::CONFIG['host'] = original_host
+      RbConfig::CONFIG['arch'] = original_platform
       Dir.chdir original_pwd
     end
 
@@ -61,7 +61,7 @@ class GemTest < MiniTest::Spec
         end
 
         before do
-          RbConfig::CONFIG['host'] = 'fake-host-with-dirs'
+          RbConfig::CONFIG['arch'] = 'fake-host-with-dirs'
           fake_bin_paths.each do |path|
             FileUtils.mkdir_p(path)
           end
@@ -85,7 +85,7 @@ class GemTest < MiniTest::Spec
 
       describe 'when the ports directories are missing' do
         before do
-          RbConfig::CONFIG['host'] = 'fake-host-without-dirs'
+          RbConfig::CONFIG['arch'] = 'fake-host-without-dirs'
         end
 
         it 'should return no directories' do
@@ -115,7 +115,7 @@ class GemTest < MiniTest::Spec
         end
 
         before do
-          RbConfig::CONFIG['host'] = 'fake-host-with-dirs'
+          RbConfig::CONFIG['arch'] = 'fake-host-with-dirs'
           fake_lib_paths.each do |path|
             FileUtils.mkdir_p(path)
           end
@@ -139,7 +139,7 @@ class GemTest < MiniTest::Spec
 
       describe 'when the ports directories are missing' do
         before do
-          RbConfig::CONFIG['host'] = 'fake-host-without-dirs'
+          RbConfig::CONFIG['arch'] = 'fake-host-without-dirs'
         end
 
 
@@ -156,16 +156,14 @@ class GemTest < MiniTest::Spec
 
     describe '#ports_host' do
       {
-        'i686-pc-linux-gnu' => 'i686-pc-linux-gnu',
-        'x86_64-pc-linux-gnu' => 'x86_64-pc-linux-gnu',
-        'i686-w64-mingw32' => 'i686-w64-mingw32',
-        'x86_64-w64-mingw32' => 'x86_64-w64-mingw32',
-        # consolidate this host to our build w64-mingw32 arch
-        'i686-pc-mingw32' => 'i686-w64-mingw32'
+        'x64-mingw-ucrt' => 'x64-mingw-ucrt',
+        'x64-mingw32' => 'x64-mingw32',
+        'x86-mingw32' => 'x86-mingw32',
+        'x86_64-linux' => 'x86_64-linux',
       }.each do |host,expected|
         describe "on a #{host} architecture" do
           before do
-            RbConfig::CONFIG['host'] = host
+            RbConfig::CONFIG['arch'] = host
           end
 
           it "should return a #{expected} ports host" do

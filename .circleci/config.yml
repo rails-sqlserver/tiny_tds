@@ -259,7 +259,7 @@ jobs:
             rm -rf artifacts-<< parameters.platform >>/gems/tiny_tds-$gemVersion.gem
 
       - store_artifacts:
-          path: artifacts/gems
+          path: artifacts-<< parameters.platform >>/gems
 
       - save_cache:
           name: save ports cache

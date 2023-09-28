@@ -1,6 +1,6 @@
-## (unreleased)
+## 2.1.6
 
-* Add Ruby 3.0 to the cross compile list
+* Add Ruby 3.0, 3.1, and 3.2 to the cross compile list
 * Fix segfault when asking if client was dead after closing it. Fixes #519.
 
 ## 2.1.5

@@ -584,6 +584,7 @@ void init_tinytds_result() {
   cDate = rb_const_get(rb_cObject, rb_intern("Date"));
   /* Define TinyTds::Result */
   cTinyTdsResult = rb_define_class_under(mTinyTds, "Result", rb_cObject);
+  rb_undef_alloc_func(cTinyTdsResult);
   /* Define TinyTds::Result Public Methods */
   rb_define_method(cTinyTdsResult, "fields", rb_tinytds_result_fields, 0);
   rb_define_method(cTinyTdsResult, "each", rb_tinytds_result_each, -1);

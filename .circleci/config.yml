@@ -213,6 +213,19 @@ jobs:
       - store_test_results:
           path: test/reports
 
+      - run:
+          name: Rename gem to a consistent name to store artifact
+          command: |
+            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
+            $rubyArchitecture = (ruby -e 'puts RUBY_PLATFORM').Trim()
+            $gemVersion = (Get-Content VERSION).Trim()
+
+            New-Item -Path . -Name "tested_artifact" -ItemType "directory"
+            Move-Item "artifacts/gems/tiny_tds-$gemVersion-$rubyArchitecture.gem" "tested_artifact"
+
+      - store_artifacts:
+          path: tested_artifact
+
   cross_compile_gem:
     parameters:
       platform:

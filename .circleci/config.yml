@@ -4,6 +4,54 @@ orbs:
   win: circleci/windows@4.1
   ruby: circleci/ruby@2.0.0
 
+commands:
+  install-ruby-windows:
+    description: "Install Ruby on Windows"
+    parameters:
+      ruby_version:
+        description: 'version tag for the cimg/ruby container'
+        type: string
+    steps:
+      - run:
+          name: remove pre-installed ruby
+          command: |
+            Get-ChildItem -path 'C:\tools\' -filter Ruby* | Remove-Item -Force -Recurse
+
+      - run:
+          name: download and install ruby devkit
+          command: |
+            $ProgressPreference='SilentlyContinue'
+
+            $uri = 'https://api.github.com/repos/oneclick/rubyinstaller2/tags?per_page=200'
+            $releases = ((Invoke-WebRequest $uri) | ConvertFrom-Json).name | select-string -Pattern '<< parameters.ruby_version >>'
+            $target_release = (($releases | Sort-Object -Descending)[0] | Out-String).Trim()
+            $target_version = $target_release.Substring($target_release.Length - 7)
+            $download_uri = "https://github.com/oneclick/rubyinstaller2/releases/download/RubyInstaller-$target_version/rubyinstaller-devkit-$target_version-x64.exe"
+            echo "Ruby Target Version Found: $target_version"
+
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            Invoke-WebRequest -UseBasicParsing -uri $download_uri -OutFile C:\ruby-setup.exe
+
+            echo "Download finished, starting installation of $target_version"
+            C:\ruby-setup.exe /VERYSILENT /NORESTART /ALLUSERS /DIR=C:/Ruby<< parameters.ruby_version >>-x64
+
+      - run:
+          name: ruby diagnostics
+          command: |
+            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
+            echo "Perl Version:"
+            perl --version
+            echo "Ruby Version:"
+            ruby --version
+            echo "Gem Version:"
+            gem --version
+
+      - run:
+          name: install bundler
+          command: |
+            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
+            gem install bundler -v 2.3.26
+
 jobs:
   test_linux:
     parameters:
@@ -99,45 +147,8 @@ jobs:
       MAKE: 'make V=1 -j2'
 
     steps:
-      - run:
-          name: remove pre-installed ruby
-          command: |
-            Get-ChildItem -path 'C:\tools\' -filter Ruby* | Remove-Item -Force -Recurse
-
-      - run:
-          name: download and install ruby devkit
-          command: |
-            $ProgressPreference='SilentlyContinue'
-
-            $uri = 'https://api.github.com/repos/oneclick/rubyinstaller2/tags?per_page=200'
-            $releases = ((Invoke-WebRequest $uri) | ConvertFrom-Json).name | select-string -Pattern '<< parameters.ruby_version >>'
-            $target_release = (($releases | Sort-Object -Descending)[0] | Out-String).Trim()
-            $target_version = $target_release.Substring($target_release.Length - 7)
-            $download_uri = "https://github.com/oneclick/rubyinstaller2/releases/download/RubyInstaller-$target_version/rubyinstaller-devkit-$target_version-x64.exe"
-            echo "Ruby Target Version Found: $target_version"
-
-            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-            Invoke-WebRequest -UseBasicParsing -uri $download_uri -OutFile C:\ruby-setup.exe
-
-            echo "Download finished, starting installation of $target_version"
-            C:\ruby-setup.exe /VERYSILENT /NORESTART /ALLUSERS /DIR=C:/Ruby<< parameters.ruby_version >>-x64
-
-      - run:
-          name: ruby diagnostics
-          command: |
-            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
-            echo "Perl Version:"
-            perl --version
-            echo "Ruby Version:"
-            ruby --version
-            echo "Gem Version:"
-            gem --version
-
-      - run:
-          name: install bundler
-          command: |
-            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
-            gem install bundler -v 2.3.26
+      - install-ruby-windows:
+          ruby_version: << parameters.ruby_version >>
 
       - checkout
 
@@ -285,6 +296,79 @@ jobs:
           paths:
             - gems
 
+  install_windows:
+    parameters:
+      ruby_version:
+        description: 'version tag for rubydev environment'
+        type: string
+
+    executor:
+      name: win/server-2022
+      shell: powershell.exe
+
+    environment:
+      RAKEOPT: '-rdevkit'
+      TESTOPTS: '-v'
+      MAKE: 'make V=1 -j2'
+
+    steps:
+      - install-ruby-windows:
+          ruby_version: << parameters.ruby_version >>
+
+      - run:
+          name: Ensure msys2 installation is complete
+          command: |
+            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
+            
+            # on older Ruby version, the msys version shipped with RubyInstaller is quite old
+            # and RubyInstaller will be unable to install anything because of outdated keys
+            # With this those commands, we force to get a new set of keys
+            # see https://www.msys2.org/docs/updating/#potential-issues
+            ridk exec pacman-key --init
+            ridk exec pacman-key --refresh-keys
+            ridk install 1 2 3
+
+      - checkout
+
+      - restore_cache:
+          name: restore gem cache
+          keys:
+            - v1-bundle-<< parameters.ruby_version >>-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
+            - v1-bundle-<< parameters.ruby_version >>-{{ .Branch }}-
+            - v1-bundle-<< parameters.ruby_version >>-
+
+      - run:
+          name: bundle install gems
+          command: |
+            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
+            bundle install --path vendor/bundle
+
+      - save_cache:
+          name: save gem cache
+          paths:
+            - ./vendor/bundle
+          key: v1-bundle-<< parameters.ruby_version >>-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
+
+      - run:
+          name: build gem
+          command: |
+            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
+            gem build tiny_tds.gemspec
+
+      - run:
+          name: Install gem
+          command: |
+            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
+            $gemVersion = (Get-Content VERSION).Trim()
+            gem install --local "tiny_tds-$gemVersion.gem"
+
+      - run:
+          name: Check if gem loads correctly
+          command: |
+            $Env:PATH = "C:\\Ruby<< parameters.ruby_version >>-x64\\bin;$Env:PATH"
+            ruby -e "require 'tiny_tds'; puts TinyTds::Gem.root_path"
+            exit $LASTEXITCODE
+
 workflows:
   test_supported_ruby_versions:
     jobs:
@@ -309,4 +393,7 @@ workflows:
                 - '3.1'
                 - '3.2'
       - test_linux:
+          matrix: *ruby_versions
+
+      - install_windows:
           matrix: *ruby_versions

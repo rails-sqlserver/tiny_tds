@@ -369,72 +369,6 @@ jobs:
             ruby -e "require 'tiny_tds'; puts TinyTds::Gem.root_path"
             exit $LASTEXITCODE
 
-  install_mac_silicon:
-    parameters:
-      ruby_version:
-        description: "version tag for rubydev environment"
-        type: string
-
-    # the XCode version on Mac OS also determines the Mac OS version you get
-    # so for 15.0, we get 13.5.1
-    macos:
-      xcode: "15.0.0"
-    resource_class: macos.m1.medium.gen1
-
-    steps:
-      - run:
-          name: Install rbenv and freetds from Homebrew
-          command: |
-            brew install freetds rbenv
-
-      - run:
-          name: Install Ruby
-          command: |
-            latest_version=$(rbenv install --list-all | grep "<< parameters.ruby_version >>" | grep -v - | tail -1)
-            rbenv install --skip-existing $latest_version
-            rbenv global $latest_version
-
-      - run:
-          name: Install bundler
-          command: |
-            gem install bundler -v 2.3.26
-
-      - checkout
-
-      - restore_cache:
-          name: restore gem cache
-          keys:
-            - v1-bundle-<< parameters.ruby_version >>-{{ arch }}-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
-            - v1-bundle-<< parameters.ruby_version >>-{{ arch }}-{{ .Branch }}-
-            - v1-bundle-<< parameters.ruby_version >>-{{ arch }}-
-
-      - run:
-          name: bundle install gems
-          command: |
-            bundle install --path vendor/bundle
-
-      - save_cache:
-          name: save gem cache
-          paths:
-            - ./vendor/bundle
-          key: v1-bundle-<< parameters.ruby_version >>-{{ arch }}-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
-
-      - run:
-          name: build gem
-          command: |
-            gem build tiny_tds.gemspec
-
-      - run:
-          name: Install gem
-          command: |
-            gemVersion=$(sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' < VERSION)
-            gem install --local "tiny_tds-$gemVersion.gem"
-
-      - run:
-          name: Check if gem loads correctly
-          command: |
-            ruby -e "require 'tiny_tds'; puts TinyTds::Gem.root_path"
-
 workflows:
   test_supported_ruby_versions:
     jobs:
@@ -466,17 +400,6 @@ workflows:
             parameters:
               ruby_version:
                 - '2.5'
-                - '2.6'
-                - '2.7'
-                - '3.0'
-                - '3.1'
-                - '3.2'
-
-      - install_mac_silicon:
-          matrix:
-            parameters:
-              # Ruby 2.4 and Ruby 2.5 do not build on Silicon anymore
-              ruby_version:
                 - '2.6'
                 - '2.7'
                 - '3.0'

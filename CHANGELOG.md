@@ -4,6 +4,7 @@
 * Fix segfault when asking if client was dead after closing it. Fixes #519.
 * Mark `alloc` function as undefined on `TinyTds::Result`. Fixes #515.
 * Fix Gem installation on Windows by adding default freetds msys path. Fixes #522
+* Search for `freetds` in `/opt/homebrew` when installing on Apple Silicon. Fixes #484, #492 and #508.
 
 ## 2.1.5
 

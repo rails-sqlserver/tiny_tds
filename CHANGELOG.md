@@ -1,3 +1,6 @@
+## 2.1.7.Pre
+* Add Ruby 3.3 to the cross compile list
+
 ## 2.1.6
 
 * Add Ruby 3.0, 3.1, and 3.2 to the cross compile list

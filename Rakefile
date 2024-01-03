@@ -7,7 +7,7 @@ require_relative './ext/tiny_tds/extconsts'
 
 SPEC = Gem::Specification.load(File.expand_path('../tiny_tds.gemspec', __FILE__))
 
-ruby_cc_ucrt_versions = "3.2.0:3.1.0".freeze
+ruby_cc_ucrt_versions = "3.3.0:3.2.0:3.1.0".freeze
 ruby_cc_mingw32_versions = "3.0.0:2.7.0:2.6.0:2.5.0:2.4.0".freeze
 
 GEM_PLATFORM_HOSTS = {

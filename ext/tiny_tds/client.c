@@ -55,6 +55,27 @@ VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, tinytds_errordata error) {
   return Qnil;
 }
 
+struct dbopen_args {
+  tinytds_client_wrapper *cwrap;
+  const char *dataserver;
+};
+
+static void *nogvl_dbopen(void *ptr) {
+  struct dbopen_args *args = ptr;
+  args->cwrap->client = dbopen(args->cwrap->login, args->dataserver);
+
+  return (void *) (args->cwrap->client ? Qtrue : Qfalse);
+}
+static void dbopen_ubf(void *ptr) {
+  dberrhandle(NULL);
+  dbmsghandle(NULL);
+
+  struct dbopen_args *args = ptr;
+  if (args->cwrap->client) {
+    dbcancel(args->cwrap->client);
+  }
+}
+
 
 // Lib Backend (Memory Management & Handlers)
 static void push_userdata_error(tinytds_client_userdata *userdata, tinytds_errordata error) {
@@ -138,7 +159,7 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
       userdata->dbcancel_sent = 1;
     }
     push_userdata_error(userdata, error_data);
-  } else {
+  } else if (userdata) {
     rb_tinytds_raise_error(dbproc, error_data);
   }
 
@@ -413,8 +434,11 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
     }
   #endif
 
-  cwrap->client = dbopen(cwrap->login, StringValueCStr(dataserver));
-  if (cwrap->client) {
+  struct dbopen_args args;
+  args.cwrap = cwrap;
+  args.dataserver = NIL_P(dataserver) ? NULL : StringValueCStr(dataserver);
+
+  if ((VALUE) rb_thread_call_without_gvl(nogvl_dbopen, &args, dbopen_ubf, &args) == Qtrue) {
     VALUE transposed_encoding, timeout_string;
 
     cwrap->closed = 0;

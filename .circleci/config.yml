@@ -23,7 +23,7 @@ commands:
             $ProgressPreference='SilentlyContinue'
 
             $uri = 'https://api.github.com/repos/oneclick/rubyinstaller2/tags?per_page=200'
-            $releases = ((Invoke-WebRequest $uri) | ConvertFrom-Json).name | select-string -Pattern '<< parameters.ruby_version >>'
+            $releases = ((Invoke-WebRequest $uri) | ConvertFrom-Json).name | select-string (-join("RubyInstaller-" , "<< parameters.ruby_version >>" ))
             $target_release = (($releases | Sort-Object -Descending)[0] | Out-String).Trim()
             $target_version = $target_release.Substring($target_release.Length - 7)
             $download_uri = "https://github.com/oneclick/rubyinstaller2/releases/download/RubyInstaller-$target_version/rubyinstaller-devkit-$target_version-x64.exe"
@@ -243,7 +243,7 @@ jobs:
         type: string
 
     docker:
-      - image: "ghcr.io/rake-compiler/rake-compiler-dock-image:1.3.0-mri-<< parameters.platform >>"
+      - image: "ghcr.io/rake-compiler/rake-compiler-dock-image:1.4.0-mri-<< parameters.platform >>"
 
     steps:
       - checkout
@@ -392,6 +392,7 @@ workflows:
                 - '3.0'
                 - '3.1'
                 - '3.2'
+                - '3.3'
       - test_linux:
           matrix: *ruby_versions
 

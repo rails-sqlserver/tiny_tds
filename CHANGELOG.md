@@ -1,3 +1,7 @@
+## (unreleased)
+
+* Drop support for Ruby < 2.7
+
 ## 2.1.7
 * Add Ruby 3.3 to the cross compile list
 

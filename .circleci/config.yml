@@ -385,9 +385,6 @@ workflows:
           matrix: &ruby_versions
             parameters:
               ruby_version:
-                - '2.4'
-                - '2.5'
-                - '2.6'
                 - '2.7'
                 - '3.0'
                 - '3.1'
@@ -397,13 +394,4 @@ workflows:
           matrix: *ruby_versions
 
       - install_windows:
-          matrix:
-            parameters:
-              ruby_version:
-                - '2.5'
-                - '2.6'
-                - '2.7'
-                - '3.0'
-                - '3.1'
-                - '3.2'
-                - '3.3'
+          matrix: *ruby_versions

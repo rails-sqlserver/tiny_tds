@@ -477,6 +477,44 @@ it [already knows to look here](https://github.com/rails-sqlserver/tiny_tds/blob
 Set the LD_LIBRARY_PATH environment variable `export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}` and run `ldconfig`. If you run `ldd tiny_tds.so` you should not see any broken links. Make
 sure you also copied in the library dependencies from your build container with a command like `COPY --from=builder /usr/local/lib /usr/local/lib`.
 
+If on the other hand You would like to do some fast testing/prototyping or deploy your app as docker container here is a handy Dockerfile based on ruby:2.3.8-alpine which is compatible with rails 5.1 to get you started:
+
+```
+FROM ruby:2.3.8-alpine
+
+RUN apk update && \
+    apk upgrade && \
+    apk add --no-cache alpine-sdk wget nodejs libressl pkgconf openssl openssl-dev linux-headers tzdata
+
+RUN wget ftp://ftp.freetds.org/pub/freetds/stable/freetds-1.00.99.tar.gz && tar -xzf freetds-1.00.99.tar.gz
+WORKDIR freetds-1.00.99
+RUN ./configure --prefix=/usr/local --with-tdsver=7.3 --with-openssl=/usr/bin && make && make install
+
+WORKDIR /usr/src/app
+COPY Gemfile* ./
+RUN bundle install
+RUN rails new --database=sqlserver .
+COPY . .
+EXPOSE 3000 1433 80
+CMD rails server -b 0.0.0.0 -P /tmp/puma.pid
+```
+
+Note that the Gemfile should specify rails in 5.1 version, you should also have tiny_tds and activerecord-sqlserver-adapter gems listed. It's best to first create gemfile with just the rails version listed and than container will run bundle install finding apropriate gems for the specifed Ruby version. We could achive the same by for example switching locally ruby version with rbenv to (in this case) 2.3.8 with `$ rbenv local 2.3.8`.
+
+If you want to get full gemfile and gemfile.lock check [this repo](https://github.com/OfftheCode/rails-sqlserver)
+
+to run the app type:
+`$ docker run --rm -d -p 3000:3000 -p 1433:1433 offthecode/rails-sqlserver:latest`
+This will run the container in the deatched mode, remove it after it's finished and map the ports 3000 and 1433 from the container.
+
+If you want to attach to the runing server You can do so by typing:
+`$ docker exec -it <container_name> ash`
+
+or to build your own with provided Dockerfile
+`$ docker build -t <docker_hub_nickname>/<docker_image_name>:<version_or_tag> .`
+And than just run as before just remember about chaning the name to what You just set.
+
+
 ## Help & Support
 
 * Github Source: http://github.com/rails-sqlserver/tiny_tds

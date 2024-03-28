@@ -138,6 +138,10 @@ jobs:
 
   test_windows:
     parameters:
+      mssql_version:
+        description: 'Version of MSSQL to be used'
+        type: string
+
       ruby_version:
         description: 'version tag for rubydev environment'
         type: string
@@ -198,18 +202,18 @@ jobs:
 
       - restore_cache:
           name: restore mssql installation file
-          key: downloads-{{ checksum "test/bin/install-mssql.ps1" }}
+          key: downloads-<< parameters.mssql_version >>
 
       - run:
           name: setup mssql
           command: |
-            .\test\bin\install-mssql.ps1
+            .\test\bin\install-mssql.ps1 -Version << parameters.mssql_version >>
 
       - save_cache:
           name: save downloads cache
           paths:
             - C:\Downloads
-          key: downloads-{{ checksum "test/bin/install-mssql.ps1" }}
+          key: downloads-<< parameters.mssql_version >>
 
       - run:
           name: install toxiproxy-server
@@ -389,6 +393,11 @@ workflows:
             - cross_compile_gem
           matrix:
             parameters:
+              mssql_version: &mssql_versions
+                - '2017'
+                - '2019'
+                - '2022'
+
               ruby_version: &ruby_versions
                 - '2.7'
                 - '3.0'
@@ -399,10 +408,7 @@ workflows:
       - test_linux:
           matrix:
             parameters:
-              mssql_version:
-                - '2017'
-                - '2019'
-                - '2022'
+              mssql_version: *mssql_versions
               ruby_version: *ruby_versions
 
       - install_windows:

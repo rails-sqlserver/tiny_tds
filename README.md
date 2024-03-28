@@ -427,12 +427,12 @@ After that, the quickest way to get setup for development is to use [Docker](htt
 $ docker-compose up -d
 ```
 
-This will download our SQL Server for Linux Docker image based from [microsoft/mssql-server-linux/](https://hub.docker.com/r/microsoft/mssql-server-linux/). Our image already has the `[tinytdstest]` DB and `tinytds` users created. This will also download a [toxiproxy](https://github.com/shopify/toxiproxy) Docker image which we can use to simulate network failures for tests. Basically, it does the following.
+This will download our SQL Server for Linux Docker image based from [microsoft/mssql-server-linux/](https://hub.docker.com/r/microsoft/mssql-server-linux/). Our image already has the `[tinytdstest]` DB and `tinytds` users created. This will also download a [toxiproxy](https://github.com/shopify/toxiproxy) Docker image which we can use to simulate network failures for tests. Basically, it does the following:
 
 ```shell
 $ docker network create main-network
-$ docker pull metaskills/mssql-server-linux-tinytds
-$ docker run -p 1433:1433 -d --name sqlserver --network main-network metaskills/mssql-server-linux-tinytds
+$ docker pull mcr.microsoft.com/mssql/server:2017-latest
+$ docker run -p 1433:1433 -d --name sqlserver --network main-network mcr.microsoft.com/mssql/server:2017-latest
 $ docker pull shopify/toxiproxy
 $ docker run -p 8474:8474 -p 1234:1234 -d --name toxiproxy --network main-network shopify/toxiproxy
 ```

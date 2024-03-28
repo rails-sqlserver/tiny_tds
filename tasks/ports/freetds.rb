@@ -15,12 +15,7 @@ module Ports
 
       opts << '--with-pic'
       opts << '--disable-odbc'
-
-      if version =~ /0\.91/
-        opts << '--with-tdsver=7.1'
-      else
-        opts << '--with-tdsver=7.3'
-      end
+      opts << '--with-tdsver=7.3'
 
       if windows?
         opts << '--sysconfdir=C:/Sites'

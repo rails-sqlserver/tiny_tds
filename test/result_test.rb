@@ -154,7 +154,7 @@ class ResultTest < TinyTds::TestCase
         inserted_rows = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
         assert_equal 1, inserted_rows, 'should have inserted row for one above'
         updated_rows = @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
-        assert_equal 1, updated_rows, 'should have updated row for one above' unless sqlserver_2000? # Will report -1
+        assert_equal 1, updated_rows, 'should have updated row for one above'
       end
     end
 
@@ -166,7 +166,7 @@ class ResultTest < TinyTds::TestCase
         inserted_rows = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
         assert_equal 1, inserted_rows, 'should have inserted row for one above'
         updated_rows = @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
-        assert_equal 1, updated_rows, 'should have updated row for one above' unless sqlserver_2000? # Will report -1
+        assert_equal 1, updated_rows, 'should have updated row for one above'
       end
     end
 
@@ -177,19 +177,18 @@ class ResultTest < TinyTds::TestCase
         @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
         sql_identity = @client.execute(@client.identity_sql).each.first['Ident']
         native_identity = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").insert
-        assert_equal sql_identity+1, native_identity
+        assert_equal sql_identity + 1, native_identity
       end
     end
 
     it 'returns bigint for #insert when needed' do
       return if sqlserver_azure? # We can not alter clustered index like this test does.
-      return if sybase_ase?      # On Sybase, sp_helpindex cannot be used inside a transaction since it does a
-                                 # 'CREATE TABLE' command is not allowed within a multi-statement transaction
-                                 # and and sp_helpindex creates a temporary table #spindtab.
+      # 'CREATE TABLE' command is not allowed within a multi-statement transaction
+      # and and sp_helpindex creates a temporary table #spindtab.
       rollback_transaction(@client) do
         seed = 9223372036854775805
         @client.execute("DELETE FROM [datatypes]").do
-        id_constraint_name = @client.execute("EXEC sp_helpindex [datatypes]").detect{ |row| row['index_keys'] == 'id' }['index_name']
+        id_constraint_name = @client.execute("EXEC sp_helpindex [datatypes]").detect { |row| row['index_keys'] == 'id' }['index_name']
         @client.execute("ALTER TABLE [datatypes] DROP CONSTRAINT [#{id_constraint_name}]").do
         @client.execute("ALTER TABLE [datatypes] DROP COLUMN [id]").do
         @client.execute("ALTER TABLE [datatypes] ADD [id] [bigint] NOT NULL IDENTITY(1,1) PRIMARY KEY").do
@@ -236,13 +235,13 @@ class ResultTest < TinyTds::TestCase
       no_results_query = "SELECT [id], [varchar_50] FROM [datatypes] WHERE [varchar_50] = 'NOTFOUND'"
       # Fields before each.
       result = @client.execute(no_results_query)
-      _(result.fields).must_equal ['id','varchar_50']
+      _(result.fields).must_equal ['id', 'varchar_50']
       result.each
-      _(result.fields).must_equal ['id','varchar_50']
+      _(result.fields).must_equal ['id', 'varchar_50']
       # Each then fields
       result = @client.execute(no_results_query)
       result.each
-      _(result.fields).must_equal ['id','varchar_50']
+      _(result.fields).must_equal ['id', 'varchar_50']
     end
 
     it 'allows the result to be canceled before reading' do
@@ -307,7 +306,7 @@ class ResultTest < TinyTds::TestCase
 
     it 'use same string object for hash keys' do
       data = @client.execute("SELECT [id], [bigint] FROM [datatypes]").each
-      assert_equal data.first.keys.map{ |r| r.object_id }, data.last.keys.map{ |r| r.object_id }
+      assert_equal data.first.keys.map { |r| r.object_id }, data.last.keys.map { |r| r.object_id }
     end
 
     it 'has properly encoded column names with symbol keys' do
@@ -326,7 +325,7 @@ class ResultTest < TinyTds::TestCase
     it 'allows #return_code to work with stored procedures and reset per sql batch' do
       assert_nil @client.return_code
       result = @client.execute("EXEC tinytds_TestReturnCodes")
-      assert_equal [{"one"=>1}], result.each
+      assert_equal [{ "one" => 1 }], result.each
       assert_equal 420, @client.return_code
       assert_equal 420, result.return_code
       result = @client.execute('SELECT 1 as [one]')
@@ -343,7 +342,7 @@ class ResultTest < TinyTds::TestCase
     describe 'with multiple result sets' do
 
       before do
-        @empty_select  = "SELECT 1 AS [rs1] WHERE 1 = 0"
+        @empty_select = "SELECT 1 AS [rs1] WHERE 1 = 0"
         @double_select = "SELECT 1 AS [rs1]
                           SELECT 2 AS [rs2]"
         @triple_select_1st_empty = "SELECT 1 AS [rs1] WHERE 1 = 0
@@ -361,8 +360,8 @@ class ResultTest < TinyTds::TestCase
         result = @client.execute(@double_select)
         result_sets = result.each
         assert_equal 2, result_sets.size
-        assert_equal [{'rs1' => 1}], result_sets.first
-        assert_equal [{'rs2' => 2}], result_sets.last
+        assert_equal [{ 'rs1' => 1 }], result_sets.first
+        assert_equal [{ 'rs2' => 2 }], result_sets.last
         assert_equal [['rs1'], ['rs2']], result.fields
         assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
         # As array
@@ -383,20 +382,12 @@ class ResultTest < TinyTds::TestCase
       end
 
       it 'works from a stored procedure' do
-        if sqlserver?
-          results1, results2 = @client.execute("EXEC sp_helpconstraint '[datatypes]'").each
-          assert_equal [{"Object Name"=>"[datatypes]"}], results1
-          constraint_info = results2.first
-          assert constraint_info.key?("constraint_keys")
-          assert constraint_info.key?("constraint_type")
-          assert constraint_info.key?("constraint_name")
-        elsif sybase_ase?
-          results1, results2 = @client.execute("EXEC sp_helpconstraint 'datatypes'").each
-          assert results1['name']      =~ /^datatypes_bit/
-          assert results1['defintion'] == 'DEFAULT  0'
-          assert results2['name']      =~ /^datatypes_id/
-          assert results2['defintion'] =~ /^PRIMARY KEY/
-        end
+        results1, results2 = @client.execute("EXEC sp_helpconstraint '[datatypes]'").each
+        assert_equal [{ "Object Name" => "[datatypes]" }], results1
+        constraint_info = results2.first
+        assert constraint_info.key?("constraint_keys")
+        assert constraint_info.key?("constraint_type")
+        assert constraint_info.key?("constraint_name")
       end
 
       describe 'using :empty_sets TRUE' do
@@ -423,8 +414,8 @@ class ResultTest < TinyTds::TestCase
           result_sets = result.each
           assert_equal 3, result_sets.size
           assert_equal [], result_sets[0]
-          assert_equal [{'rs2' => 2}], result_sets[1]
-          assert_equal [{'rs3' => 3}], result_sets[2]
+          assert_equal [{ 'rs2' => 2 }], result_sets[1]
+          assert_equal [{ 'rs3' => 3 }], result_sets[2]
           assert_equal [['rs1'], ['rs2'], ['rs3']], result.fields
           assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
           # As array
@@ -442,9 +433,9 @@ class ResultTest < TinyTds::TestCase
           result = @client.execute(@triple_select_2nd_empty)
           result_sets = result.each
           assert_equal 3, result_sets.size
-          assert_equal [{'rs1' => 1}], result_sets[0]
+          assert_equal [{ 'rs1' => 1 }], result_sets[0]
           assert_equal [], result_sets[1]
-          assert_equal [{'rs3' => 3}], result_sets[2]
+          assert_equal [{ 'rs3' => 3 }], result_sets[2]
           assert_equal [['rs1'], ['rs2'], ['rs3']], result.fields
           assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
           # As array
@@ -462,8 +453,8 @@ class ResultTest < TinyTds::TestCase
           result = @client.execute(@triple_select_3rd_empty)
           result_sets = result.each
           assert_equal 3, result_sets.size
-          assert_equal [{'rs1' => 1}], result_sets[0]
-          assert_equal [{'rs2' => 2}], result_sets[1]
+          assert_equal [{ 'rs1' => 1 }], result_sets[0]
+          assert_equal [{ 'rs2' => 2 }], result_sets[1]
           assert_equal [], result_sets[2]
           assert_equal [['rs1'], ['rs2'], ['rs3']], result.fields
           assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
@@ -503,8 +494,8 @@ class ResultTest < TinyTds::TestCase
           result = @client.execute(@triple_select_1st_empty)
           result_sets = result.each
           assert_equal 2, result_sets.size
-          assert_equal [{'rs2' => 2}], result_sets[0]
-          assert_equal [{'rs3' => 3}], result_sets[1]
+          assert_equal [{ 'rs2' => 2 }], result_sets[0]
+          assert_equal [{ 'rs3' => 3 }], result_sets[1]
           assert_equal [['rs2'], ['rs3']], result.fields
           assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
           # As array
@@ -521,8 +512,8 @@ class ResultTest < TinyTds::TestCase
           result = @client.execute(@triple_select_2nd_empty)
           result_sets = result.each
           assert_equal 2, result_sets.size
-          assert_equal [{'rs1' => 1}], result_sets[0]
-          assert_equal [{'rs3' => 3}], result_sets[1]
+          assert_equal [{ 'rs1' => 1 }], result_sets[0]
+          assert_equal [{ 'rs3' => 3 }], result_sets[1]
           assert_equal [['rs1'], ['rs3']], result.fields
           assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
           # As array
@@ -539,8 +530,8 @@ class ResultTest < TinyTds::TestCase
           result = @client.execute(@triple_select_3rd_empty)
           result_sets = result.each
           assert_equal 2, result_sets.size
-          assert_equal [{'rs1' => 1}], result_sets[0]
-          assert_equal [{'rs2' => 2}], result_sets[1]
+          assert_equal [{ 'rs1' => 1 }], result_sets[0]
+          assert_equal [{ 'rs2' => 2 }], result_sets[1]
           assert_equal [['rs1'], ['rs2']], result.fields
           assert_equal result.each.object_id, result.each.object_id, 'same cached rows'
           # As array
@@ -590,7 +581,7 @@ class ResultTest < TinyTds::TestCase
         before do
           @big_text = 'x' * 2_000_000
           @old_textsize = @client.execute("SELECT @@TEXTSIZE AS [textsize]").each.first['textsize'].inspect
-          @client.execute("SET TEXTSIZE #{(@big_text.length*2)+1}").do
+          @client.execute("SET TEXTSIZE #{(@big_text.length * 2) + 1}").do
         end
 
         it 'must insert and select large varchar_max' do
@@ -601,7 +592,7 @@ class ResultTest < TinyTds::TestCase
           insert_and_select_datatype :nvarchar_max
         end
 
-      end unless sqlserver_2000? || sybase_ase?
+      end
 
     end
 
@@ -612,188 +603,104 @@ class ResultTest < TinyTds::TestCase
         assert_equal [], @client.execute('').each
       end
 
-      if sqlserver?
+      describe 'using :message_handler option' do
+        let(:messages) { Array.new }
 
-        describe 'using :message_handler option' do
-          let(:messages) { Array.new }
-
-          before do
-            close_client
-            @client = new_connection message_handler: Proc.new { |m| messages << m }
-          end
-
-          after do
-            messages.clear
-          end
-
-          it 'has a message handler that responds to call' do
-            assert @client.message_handler.respond_to?(:call)
-          end
-
-          it 'calls the provided message handler when severity is 10 or less' do
-            (1..10).to_a.each do |severity|
-              messages.clear
-              msg = "Test #{severity} severity"
-              state = rand(1..255)
-              @client.execute("RAISERROR(N'#{msg}', #{severity}, #{state})").do
-              m = messages.first
-              assert_equal 1, messages.length, 'there should be one message after one raiserror'
-              assert_equal msg, m.message, 'message text'
-              assert_equal severity, m.severity, 'message severity' unless severity == 10 && m.severity.to_i == 0
-              assert_equal state, m.os_error_number, 'message state'
-            end
-          end
-
-          it 'calls the provided message handler for `print` messages' do
-            messages.clear
-            msg = 'hello'
-            @client.execute("PRINT '#{msg}'").do
-            m = messages.first
-            assert_equal 1, messages.length, 'there should be one message after one print statement'
-            assert_equal msg, m.message, 'message text'
-          end
-
-          it 'must raise an error preceded by a `print` message' do
-            messages.clear
-            action = lambda { @client.execute("EXEC tinytds_TestPrintWithError").do }
-            assert_raise_tinytds_error(action) do |e|
-              assert_equal 'hello', messages.first.message, 'message text'
-
-              assert_equal "Error following print", e.message
-              assert_equal 16, e.severity
-              assert_equal 50000, e.db_error_number
-            end
-          end
-
-          it 'calls the provided message handler for each of a series of `print` messages' do
-            messages.clear
-            @client.execute("EXEC tinytds_TestSeveralPrints").do
-            assert_equal ['hello 1', 'hello 2', 'hello 3'], messages.map { |e| e.message }, 'message list'
-          end
-
-          it 'should flush info messages before raising error in cases of timeout' do
-            @client = new_connection timeout: 1, message_handler: Proc.new { |m| messages << m }
-            action = lambda { @client.execute("print 'hello'; waitfor delay '00:00:02'").do }
-            messages.clear
-            assert_raise_tinytds_error(action) do |e|
-              assert_match %r{timed out}i, e.message, 'ignore if non-english test run'
-              assert_equal 6, e.severity
-              assert_equal 20003, e.db_error_number
-              assert_equal 'hello', messages.first&.message, 'message text'
-            end
-          end
-
-          it 'should print info messages before raising error in cases of timeout' do
-            @client = new_connection timeout: 1, message_handler: Proc.new { |m| messages << m }
-            action = lambda { @client.execute("raiserror('hello', 1, 1) with nowait; waitfor delay '00:00:02'").do }
-            messages.clear
-            assert_raise_tinytds_error(action) do |e|
-              assert_match %r{timed out}i, e.message, 'ignore if non-english test run'
-              assert_equal 6, e.severity
-              assert_equal 20003, e.db_error_number
-              assert_equal 'hello', messages.first&.message, 'message text'
-            end
-          end
+        before do
+          close_client
+          @client = new_connection message_handler: Proc.new { |m| messages << m }
         end
 
-        it 'must not raise an error when severity is 10 or less' do
+        after do
+          messages.clear
+        end
+
+        it 'has a message handler that responds to call' do
+          assert @client.message_handler.respond_to?(:call)
+        end
+
+        it 'calls the provided message handler when severity is 10 or less' do
           (1..10).to_a.each do |severity|
-            @client.execute("RAISERROR(N'Test #{severity} severity', #{severity}, 1)").do
+            messages.clear
+            msg = "Test #{severity} severity"
+            state = rand(1..255)
+            @client.execute("RAISERROR(N'#{msg}', #{severity}, #{state})").do
+            m = messages.first
+            assert_equal 1, messages.length, 'there should be one message after one raiserror'
+            assert_equal msg, m.message, 'message text'
+            assert_equal severity, m.severity, 'message severity' unless severity == 10 && m.severity.to_i == 0
+            assert_equal state, m.os_error_number, 'message state'
           end
         end
 
-        it 'raises an error when severity is greater than 10' do
-          action = lambda { @client.execute("RAISERROR(N'Test 11 severity', 11, 1)").do }
+        it 'calls the provided message handler for `print` messages' do
+          messages.clear
+          msg = 'hello'
+          @client.execute("PRINT '#{msg}'").do
+          m = messages.first
+          assert_equal 1, messages.length, 'there should be one message after one print statement'
+          assert_equal msg, m.message, 'message text'
+        end
+
+        it 'must raise an error preceded by a `print` message' do
+          messages.clear
+          action = lambda { @client.execute("EXEC tinytds_TestPrintWithError").do }
           assert_raise_tinytds_error(action) do |e|
-            assert_equal "Test 11 severity", e.message
-            assert_equal 11, e.severity
+            assert_equal 'hello', messages.first.message, 'message text'
+
+            assert_equal "Error following print", e.message
+            assert_equal 16, e.severity
             assert_equal 50000, e.db_error_number
           end
         end
 
-      else
+        it 'calls the provided message handler for each of a series of `print` messages' do
+          messages.clear
+          @client.execute("EXEC tinytds_TestSeveralPrints").do
+          assert_equal ['hello 1', 'hello 2', 'hello 3'], messages.map { |e| e.message }, 'message list'
+        end
 
-        it 'raises an error' do
-          action = lambda { @client.execute("RAISERROR 50000 N'Hello World'").do }
+        it 'should flush info messages before raising error in cases of timeout' do
+          @client = new_connection timeout: 1, message_handler: Proc.new { |m| messages << m }
+          action = lambda { @client.execute("print 'hello'; waitfor delay '00:00:02'").do }
+          messages.clear
           assert_raise_tinytds_error(action) do |e|
-            assert_equal "Hello World", e.message
-            assert_equal 16, e.severity # predefined on ASE
-            assert_equal 50000, e.db_error_number
+            assert_match %r{timed out}i, e.message, 'ignore if non-english test run'
+            assert_equal 6, e.severity
+            assert_equal 20003, e.db_error_number
+            assert_equal 'hello', messages.first&.message, 'message text'
           end
-          assert_followup_query
         end
 
-      end
-
-      it 'throws an error when you execute another query with other results pending' do
-        @client.execute(@query1)
-        action = lambda { @client.execute(@query1) }
-        assert_raise_tinytds_error(action) do |e|
-          assert_match %r|with results pending|i, e.message
-          assert_equal 7, e.severity
-          assert_equal 20019, e.db_error_number
-        end
-      end
-
-      it 'must error gracefully with bad table name' do
-        action = lambda { @client.execute('SELECT * FROM [foobar]').each }
-        assert_raise_tinytds_error(action) do |e|
-          pattern = sybase_ase? ? /foobar not found/ : %r|invalid object name.*foobar|i
-          assert_match pattern, e.message
-          assert_equal 16, e.severity
-          assert_equal 208, e.db_error_number
-        end
-        assert_followup_query
-      end
-
-      it 'must error gracefully with incorrect syntax' do
-        action = lambda { @client.execute('this will not work').each }
-        assert_raise_tinytds_error(action) do |e|
-          assert_match %r|incorrect syntax|i, e.message
-          assert_equal 15, e.severity
-          assert_equal 156, e.db_error_number
-        end
-        assert_followup_query
-      end
-
-      it 'must not error at all from reading non-convertable charcters and just use ? marks' do
-        close_client
-        @client = new_connection :encoding => 'ASCII'
-        _(@client.charset).must_equal 'ASCII'
-        _(find_value(202, :nvarchar_50)).must_equal 'test nvarchar_50 ??'
-      end
-
-      it 'must error gracefully from writing non-convertable characters' do
-        close_client
-        @client = new_connection :encoding => 'ASCII'
-        _(@client.charset).must_equal 'ASCII'
-        rollback_transaction(@client) do
-          text = 'Test ✓'
-          @client.execute("DELETE FROM [datatypes] WHERE [nvarchar_50] IS NOT NULL").do
-          action = lambda { @client.execute("INSERT INTO [datatypes] ([nvarchar_50]) VALUES ('#{text}')").do }
+        it 'should print info messages before raising error in cases of timeout' do
+          @client = new_connection timeout: 1, message_handler: Proc.new { |m| messages << m }
+          action = lambda { @client.execute("raiserror('hello', 1, 1) with nowait; waitfor delay '00:00:02'").do }
+          messages.clear
           assert_raise_tinytds_error(action) do |e|
-            _(e.message).must_match %r{Unclosed quotation mark}i
-            _(e.severity).must_equal 15
-            _(e.db_error_number).must_equal 105
+            assert_match %r{timed out}i, e.message, 'ignore if non-english test run'
+            assert_equal 6, e.severity
+            assert_equal 20003, e.db_error_number
+            assert_equal 'hello', messages.first&.message, 'message text'
           end
-          assert_followup_query
         end
       end
 
-      it 'errors gracefully with incorrect syntax in sp_executesql' do
-        action = lambda { @client.execute("EXEC sp_executesql N'this will not work'").each }
-        assert_raise_tinytds_error(action) do |e|
-          assert_match %r|incorrect syntax|i, e.message
-          assert_equal 15, e.severity
-          assert_equal 156, e.db_error_number
+      it 'must not raise an error when severity is 10 or less' do
+        (1..10).to_a.each do |severity|
+          @client.execute("RAISERROR(N'Test #{severity} severity', #{severity}, 1)").do
         end
-        assert_followup_query
-      end unless sybase_ase?
+      end
 
+      it 'raises an error when severity is greater than 10' do
+        action = lambda { @client.execute("RAISERROR(N'Test 11 severity', 11, 1)").do }
+        assert_raise_tinytds_error(action) do |e|
+          assert_equal "Test 11 severity", e.message
+          assert_equal 11, e.severity
+          assert_equal 50000, e.db_error_number
+        end
+      end
     end
-
   end
-
 
   protected
 

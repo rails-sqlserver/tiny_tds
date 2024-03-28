@@ -4,7 +4,7 @@ require 'tiny_tds'
 require 'minitest/autorun'
 require 'toxiproxy'
 
-TINYTDS_SCHEMAS = ['sqlserver_2000', 'sqlserver_2005', 'sqlserver_2008', 'sqlserver_2014', 'sqlserver_azure', 'sybase_ase'].freeze
+TINYTDS_SCHEMAS = ['sqlserver_2016', 'sqlserver_azure'].freeze
 
 module TinyTds
   class TestCase < MiniTest::Spec
@@ -12,7 +12,7 @@ module TinyTds
     class << self
 
       def current_schema
-        ENV['TINYTDS_SCHEMA'] || 'sqlserver_2014'
+        ENV['TINYTDS_SCHEMA'] || 'sqlserver_2016'
       end
 
       TINYTDS_SCHEMAS.each do |schema|
@@ -20,11 +20,6 @@ module TinyTds
           schema == self.current_schema
         end
       end
-
-      def sqlserver?
-        current_schema =~ /sqlserver/
-      end
-
     end
 
     after { close_client }
@@ -41,20 +36,13 @@ module TinyTds
       self.class.current_schema
     end
 
-    def sqlserver?
-      self.class.sqlserver?
-    end
-
     def close_client(client=@client)
       client.close if defined?(client) && client.is_a?(TinyTds::Client)
     end
 
     def new_connection(options={})
       client = TinyTds::Client.new(connection_options(options))
-      if sybase_ase?
-        client.execute("SET ANSINULL ON").do
-        return client
-      elsif sqlserver_azure?
+      if sqlserver_azure?
         client.execute('SET ANSI_NULLS ON').do
         client.execute('SET CURSOR_CLOSE_ON_COMMIT OFF').do
         client.execute('SET ANSI_NULL_DFLT_ON ON').do
@@ -161,28 +149,6 @@ module TinyTds
     end
 
     def drop_sql
-      sybase_ase? ? drop_sql_sybase : drop_sql_microsoft
-    end
-
-    def drop_sql_sybase
-      %|IF EXISTS(
-          SELECT 1 FROM sysobjects WHERE type = 'U' AND name = 'datatypes'
-        ) DROP TABLE datatypes
-        IF EXISTS(
-          SELECT 1 FROM sysobjects WHERE type = 'P' AND name = 'tinytds_TestReturnCodes'
-        ) DROP PROCEDURE tinytds_TestReturnCodes
-        IF EXISTS(
-          SELECT 1 FROM sysobjects WHERE type = 'P' AND name = 'tinytds_TestPrintWithError'
-        ) DROP PROCEDURE tinytds_TestPrintWithError
-        IF EXISTS(
-          SELECT 1 FROM sysobjects WHERE type = 'P' AND name = 'tinytds_TestPrintWithError'
-        ) DROP PROCEDURE tinytds_TestPrintWithError
-        IF EXISTS(
-          SELECT 1 FROM sysobjects WHERE type = 'P' AND name = 'tinytds_TestSeveralPrints'
-        ) DROP PROCEDURE tinytds_TestSeveralPrints|
-    end
-
-    def drop_sql_microsoft
       %|IF EXISTS (
           SELECT TABLE_NAME
           FROM INFORMATION_SCHEMA.TABLES

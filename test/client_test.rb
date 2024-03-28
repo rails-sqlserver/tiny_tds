@@ -24,10 +24,7 @@ class ClientTest < TinyTds::TestCase
     end
 
     it 'has getters for the tds version information (brittle since conf takes precedence)' do
-      if sybase_ase?
-        assert_equal 7, @client.tds_version
-        assert_equal 'DBTDS_5_0 - 5.0 SQL Server', @client.tds_version_info
-      elsif @client.tds_73?
+      if @client.tds_73?
         assert_equal 11, @client.tds_version
         assert_equal 'DBTDS_7_3 - Microsoft SQL Server 2008', @client.tds_version_info
       else
@@ -199,7 +196,7 @@ class ClientTest < TinyTds::TestCase
       options = connection_options :username => 'willnotwork'
       action = lambda { new_connection(options) }
       assert_raise_tinytds_error(action) do |e|
-        assert_equal sybase_ase? ? 4002 : 18456, e.db_error_number
+        assert_equal 18456, e.db_error_number
         assert_equal 14, e.severity
         assert_match %r{login failed}i, e.message, 'ignore if non-english test run'
       end

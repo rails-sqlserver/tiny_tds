@@ -404,14 +404,8 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts) {
       #endif
     }
   }
-  #ifdef DBSETUTF16
-    if (use_utf16 == Qtrue)  { DBSETLUTF16(cwrap->login, 1); }
-    if (use_utf16 == Qfalse) { DBSETLUTF16(cwrap->login, 0); }
-  #else
-    if (use_utf16 == Qtrue || use_utf16 == Qfalse) {
-      rb_warning("TinyTds: Please consider upgrading to FreeTDS 0.99 or higher for better unicode support.\n");
-    }
-  #endif
+  if (use_utf16 == Qtrue)  { DBSETLUTF16(cwrap->login, 1); }
+  if (use_utf16 == Qfalse) { DBSETLUTF16(cwrap->login, 0); }
 
   cwrap->client = dbopen(cwrap->login, StringValueCStr(dataserver));
   if (cwrap->client) {

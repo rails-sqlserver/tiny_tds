@@ -38,6 +38,5 @@ Write-Host "Starting SQL Express ..."
 start-service MSSQL`$SQLEXPRESS
 
 Write-Host "Configuring MSSQL for TinyTDS ..."
-& sqlcmd -Q "CREATE DATABASE [tinytdstest];"
-& sqlcmd -Q "CREATE LOGIN [tinytds] WITH PASSWORD = '', CHECK_POLICY = OFF, DEFAULT_DATABASE = [tinytdstest];"
-& sqlcmd -Q "USE [tinytdstest]; CREATE USER [tinytds] FOR LOGIN [tinytds]; EXEC sp_addrolemember N'db_owner', N'tinytds';"
+& sqlcmd -i './test/sql/db-create.sql'
+& sqlcmd -i './test/sql/db-login.sql'

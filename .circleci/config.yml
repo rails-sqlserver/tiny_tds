@@ -55,6 +55,10 @@ commands:
 jobs:
   test_linux:
     parameters:
+      mssql_version:
+        description: 'Version of MSSQL to be used'
+        type: string
+
       ruby_version:
         description: 'version tag for the cimg/ruby container'
         type: string
@@ -74,6 +78,7 @@ jobs:
             echo "Waiting for containers to start..."
             sleep 10
           environment:
+            MSSQL_VERSION: << parameters.mssql_version >>
             RUBY_VERSION: << parameters.ruby_version >>
 
       - run:
@@ -382,16 +387,25 @@ workflows:
       - test_windows:
           requires:
             - cross_compile_gem
-          matrix: &ruby_versions
+          matrix:
             parameters:
-              ruby_version:
+              ruby_version: &ruby_versions
                 - '2.7'
                 - '3.0'
                 - '3.1'
                 - '3.2'
                 - '3.3'
+
       - test_linux:
-          matrix: *ruby_versions
+          matrix:
+            parameters:
+              mssql_version:
+                - '2017'
+                - '2019'
+                - '2022'
+              ruby_version: *ruby_versions
 
       - install_windows:
-          matrix: *ruby_versions
+          matrix:
+            parameters:
+              ruby_version: *ruby_versions

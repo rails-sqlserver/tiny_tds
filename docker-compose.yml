@@ -5,7 +5,7 @@ networks:
 
 services:
   mssql:
-    image: mcr.microsoft.com/mssql/server:2017-latest
+    image: mcr.microsoft.com/mssql/server:${MSSQL_VERSION:-2017}-latest
     container_name: sqlserver
     environment:
       ACCEPT_EULA: Y

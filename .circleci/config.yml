@@ -202,7 +202,7 @@ jobs:
 
       - restore_cache:
           name: restore mssql installation file
-          key: downloads-<< parameters.mssql_version >>
+          key: downloads-<< parameters.mssql_version >>-{{ checksum "test/bin/install-mssql.ps1" }}
 
       - run:
           name: setup mssql
@@ -213,7 +213,7 @@ jobs:
           name: save downloads cache
           paths:
             - C:\Downloads
-          key: downloads-<< parameters.mssql_version >>
+          key: downloads-<< parameters.mssql_version >>-{{ checksum "test/bin/install-mssql.ps1" }}
 
       - run:
           name: install toxiproxy-server

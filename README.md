@@ -386,7 +386,7 @@ Please read our [thread_test.rb](https://github.com/rails-sqlserver/tiny_tds/blo
 
 ## Emoji Support 😍
 
-This is possible. Since FreeTDS v1.0, utf-16 is enabled by default and supported by tiny_tds.
+This is possible. Since FreeTDS v1.0, utf-16 is enabled by default and supported by tiny_tds. You can toggle it by using `use_utf16` when establishing the connection.
 
 ## Compiling Gems for Windows
 

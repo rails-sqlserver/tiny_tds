@@ -298,28 +298,28 @@ static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_
           }
           break;
         }
-        case 40:   // SYBMSDATE
-        case 41:   // SYBMSTIME
-        case 42:   // SYBMSDATETIME2
-        case 43: { // SYBMSDATETIMEOFFSET
+        case SYBMSDATE:
+        case SYBMSTIME:
+        case SYBMSDATETIME2:
+        case SYBMSDATETIMEOFFSET: {
           DBDATEREC2 dr2;
           dbanydatecrack(rwrap->client, &dr2, coltype, data);
           switch(coltype) {
-            case 40: { // SYBMSDATE
+            case SYBMSDATE: {
               val = rb_funcall(cDate, intern_new, 3, INT2NUM(dr2.year), INT2NUM(dr2.month), INT2NUM(dr2.day));
               break;
             }
-            case 41: { // SYBMSTIME
+            case SYBMSTIME: {
               VALUE rational_nsec = rb_Rational(INT2NUM(dr2.nanosecond), opt_onek);
               val = rb_funcall(rb_cTime, timezone, 7, INT2NUM(1900), INT2NUM(1), INT2NUM(1), INT2NUM(dr2.hour), INT2NUM(dr2.minute), INT2NUM(dr2.second), rational_nsec);
               break;
             }
-            case 42: { // SYBMSDATETIME2
+            case SYBMSDATETIME2: {
               VALUE rational_nsec = rb_Rational(INT2NUM(dr2.nanosecond), opt_onek);
               val = rb_funcall(rb_cTime, timezone, 7, INT2NUM(dr2.year), INT2NUM(dr2.month), INT2NUM(dr2.day), INT2NUM(dr2.hour), INT2NUM(dr2.minute), INT2NUM(dr2.second), rational_nsec);
               break;
             }
-            case 43: { // SYBMSDATETIMEOFFSET
+            case SYBMSDATETIMEOFFSET: {
               long long numerator = ((long)dr2.second * (long long)1000000000) + (long long)dr2.nanosecond;
               VALUE rational_sec = rb_Rational(LL2NUM(numerator), opt_onebil);
               val = rb_funcall(rb_cTime, intern_new, 7, INT2NUM(dr2.year), INT2NUM(dr2.month), INT2NUM(dr2.day), INT2NUM(dr2.hour), INT2NUM(dr2.minute), rational_sec, INT2NUM(dr2.tzone*60));

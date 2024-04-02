@@ -4,7 +4,7 @@ require 'tiny_tds'
 require 'minitest/autorun'
 require 'toxiproxy'
 
-TINYTDS_SCHEMAS = ['sqlserver_2016', 'sqlserver_azure'].freeze
+TINYTDS_SCHEMAS = ['sqlserver_2017', 'sqlserver_azure'].freeze
 
 module TinyTds
   class TestCase < MiniTest::Spec
@@ -12,7 +12,7 @@ module TinyTds
     class << self
 
       def current_schema
-        ENV['TINYTDS_SCHEMA'] || 'sqlserver_2016'
+        ENV['TINYTDS_SCHEMA'] || 'sqlserver_2017'
       end
 
       TINYTDS_SCHEMAS.each do |schema|

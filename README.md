@@ -443,7 +443,7 @@ Examples us using enviornment variables to customize the test task.
 
 ```
 $ rake TINYTDS_UNIT_DATASERVER=mydbserver
-$ rake TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2016
+$ rake TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2017
 $ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_SCHEMA=sqlserver_azure
 ```
 

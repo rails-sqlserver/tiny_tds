@@ -1,5 +1,8 @@
-
 #include <tiny_tds_ext.h>
+
+#ifndef DBVERSION_73
+  #error "DBVERSION_73 is not defined. Aborting compilation."
+#endif
 
 VALUE mTinyTds, cTinyTdsError;
 

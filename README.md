@@ -386,12 +386,7 @@ Please read our [thread_test.rb](https://github.com/rails-sqlserver/tiny_tds/blo
 
 ## Emoji Support 😍
 
-This is possible. You must use the `use_utf16` login option or add the following config to your `freetds.conf` in either the global section or a specfic dataserver. If you are on Windows, the default location for your conf file will be in `C:\Sites`.
-
-```ini
-[global]
-  use utf-16 = true
-```
+This is possible. Since FreeTDS v1.0, utf-16 is enabled by default and supported by tiny_tds.
 
 ## Compiling Gems for Windows
 
@@ -420,7 +415,7 @@ After that, the quickest way to get setup for development is to use [Docker](htt
 $ docker-compose up -d
 ```
 
-This will download our SQL Server for Linux Docker image based from [microsoft/mssql-server-linux/](https://hub.docker.com/r/microsoft/mssql-server-linux/). Our image already has the `[tinytdstest]` DB and `tinytds` users created. This will also download a [toxiproxy](https://github.com/shopify/toxiproxy) Docker image which we can use to simulate network failures for tests. Basically, it does the following:
+This will download the official SQL Server for Linux Docker image from [Microsoft](https://hub.docker.com/r/microsoft/mssql-server-linux/). This will also download a [toxiproxy](https://github.com/shopify/toxiproxy) Docker image which we can use to simulate network failures for tests. Basically, it does the following:
 
 ```shell
 $ docker network create main-network
@@ -430,17 +425,11 @@ $ docker pull shopify/toxiproxy
 $ docker run -p 8474:8474 -p 1234:1234 -d --name toxiproxy --network main-network shopify/toxiproxy
 ```
 
-If you are using your own database. Make sure to run these SQL commands as SA to get the test database and user installed.
+Make sure to run these SQL scripts as SA to get the test database and user installed. If needed, install [sqlcmd as described by Microsoft for your platform](https://learn.microsoft.com/en-us/sql/tools/sqlcmd/sqlcmd-utility?view=sql-server-ver16&tabs=go%2Clinux&pivots=cs1-bash).
 
-```sql
-CREATE DATABASE [tinytdstest];
-```
-
-```sql
-CREATE LOGIN [tinytds] WITH PASSWORD = '', CHECK_POLICY = OFF, DEFAULT_DATABASE = [tinytdstest];
-USE [tinytdstest];
-CREATE USER [tinytds] FOR LOGIN [tinytds];
-EXEC sp_addrolemember N'db_owner', N'tinytds';
+```shell
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P super01S3cUr3 -i ./test/sql/db-create.sql
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P super01S3cUr3 -i ./test/sql/db-login.sql
 ```
 
 From here you can build and run tests against an installed version of FreeTDS.

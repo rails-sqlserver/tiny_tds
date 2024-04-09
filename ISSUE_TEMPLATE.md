@@ -2,7 +2,7 @@
 
 * On Windows? If so, do you need devkit for your ruby install?
 * Using Ubuntu? If so, you may have forgotten to install FreeTDS first.
-* Are you using FreeTDS 0.95.80 or later? Check `$ tsql -C` to find out.
+* Are you using FreeTDS 1.0.0 or later? Check `$ tsql -C` to find out.
 * If not, please update then uninstall the TinyTDS gem and re-install it.
 * Have you made sure to [enable SQL Server authentication](http://bit.ly/1Kw3set)?
 * Doing work with threads and the raw client? Use the ConnectionPool gem?

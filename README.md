@@ -6,9 +6,9 @@
 
 ## About TinyTDS
 
-The TinyTDS gem is meant to serve the extremely common use-case of connecting, querying and iterating over results to Microsoft SQL Server or Sybase databases from Ruby using the FreeTDS's DB-Library API.
+The TinyTDS gem is meant to serve the extremely common use-case of connecting, querying and iterating over results to Microsoft SQL Server from Ruby using the FreeTDS's DB-Library API.
 
-TinyTDS offers automatic casting to Ruby primitives along with proper encoding support. It converts all SQL Server datatypes to native Ruby primitives while supporting :utc or :local time zones for time-like types. To date it is the only Ruby client library that allows client encoding options, defaulting to UTF-8, while connecting to SQL Server. It also  properly encodes all string and binary data. The motivation for TinyTDS is to become the de-facto low level connection mode for the SQL Server Adapter for ActiveRecord.
+TinyTDS offers automatic casting to Ruby primitives along with proper encoding support. It converts all SQL Server datatypes to native Ruby primitives while supporting :utc or :local time zones for time-like types. To date it is the only Ruby client library that allows client encoding options, defaulting to UTF-8, while connecting to SQL Server. It also  properly encodes all string and binary data.
 
 The API is simple and consists of these classes:
 
@@ -19,14 +19,14 @@ The API is simple and consists of these classes:
 
 ## Install
 
-Installing with rubygems should just work. TinyTDS is currently tested on Ruby version 2.0.0 and upward.
+Installing with rubygems should just work. TinyTDS is currently tested on Ruby version 2.7.0 and upward.
 
 ```
 $ gem install tiny_tds
 ```
 
 If you use Windows, we pre-compile TinyTDS with static versions of FreeTDS and supporting libraries.
-If you're using RubyInstaller the binary gem will require that devkit is installed and in your path to operate properly.
+If you're using RubyInstaller, the binary gem will require that devkit is installed and in your path to operate properly.
 
 On all other platforms, we will find these dependencies. It is recommended that you install the latest FreeTDS via your method of choice. For example, here is how to install FreeTDS on Ubuntu. You might also need the `build-essential` and possibly the `libc6-dev` packages.
 
@@ -35,10 +35,10 @@ $ apt-get install wget
 $ apt-get install build-essential
 $ apt-get install libc6-dev
 
-$ wget http://www.freetds.org/files/stable/freetds-1.1.24.tar.gz
-$ tar -xzf freetds-1.1.24.tar.gz
-$ cd freetds-1.1.24
-$ ./configure --prefix=/usr/local --with-tdsver=7.3
+$ wget http://www.freetds.org/files/stable/freetds-1.4.10.tar.gz
+$ tar -xzf freetds-1.4.10.tar.gz
+$ cd freetds-1.4.10
+$ ./configure --prefix=/usr/local --with-tdsver=7.4
 $ make
 $ make install
 ```
@@ -53,26 +53,22 @@ Please read the MiniPortile and/or Windows sections at the end of this file for 
 
 ## Getting Started
 
-Optionally, Microsoft has done a great job writing some articles on how to get started with SQL Server and Ruby using TinyTDS. Please checkout one of the following posts that match your platform.
-
-* [SQL Server on a Mac](https://www.microsoft.com/en-us/sql-server/developer-get-started/ruby/mac)
-* [SQL Server on RHEL](https://www.microsoft.com/en-us/sql-server/developer-get-started/ruby/rhel)
-* [SQL Server on Ubuntu](https://www.microsoft.com/en-us/sql-server/developer-get-started/ruby/ubuntu)
+Optionally, Microsoft has done a great job writing [an article](https://learn.microsoft.com/en-us/sql/connect/ruby/ruby-driver-for-sql-server?view=sql-server-ver16) on how to get started with SQL Server and Ruby using TinyTDS, however, the articles are using outdated versions.
 
 
 ## FreeTDS Compatibility & Configuration
 
-TinyTDS is developed against FreeTDS 0.95, 0.99, and 1.0 current. Our default and recommended is 1.0. We also test with SQL Server 2008, 2014, and Azure. However, usage of TinyTDS with SQL Server 2000 or 2005 should be just fine. Below are a few QA style notes about installing FreeTDS.
+TinyTDS is developed against FreeTDs 1.1+. We also test with SQL Server 2017, 2019, 2022 and Azure. Older version of SQL Server or FreeTDS could work, but are not supported.
 
-**NOTE:** Windows users of our pre-compiled native gems need not worry about installing FreeTDS and its dependencies.
+> [!IMPORTANT]
+>
+> Windows users of our pre-compiled native gems need not worry about installing FreeTDS and its dependencies.
 
 * **Do I need to install FreeTDS?** Yes! Somehow, someway, you are going to need FreeTDS for TinyTDS to compile against.
 
 * **OK, I am installing FreeTDS, how do I configure it?** Contrary to what most people think, you do not need to specially configure FreeTDS in any way for client libraries like TinyTDS to use it. About the only requirement is that you compile it with libiconv for proper encoding support. FreeTDS must also be compiled with OpenSSL (or the like) to use it with Azure. See the "Using TinyTDS with Azure" section below for more info.
 
-* **Do I need to configure `--with-tdsver` equal to anything?** Most likely! Technically you should not have to. This is only a default for clients/configs that do not specify what TDS version they want to use. We are currently having issues with passing down a TDS version with the login bit. Till we get that fixed, if you are not using a freetds.conf or a TDSVER environment variable, then make sure to use 7.1.
-
-* **But I want to use TDS version 7.2 for SQL Server 2005 and up!** TinyTDS uses TDS version 7.1 (previously named 8.0) and fully supports all the data types supported by FreeTDS, this includes `varchar(max)` and `nvarchar(max)`. Technically compiling and using TDS version 7.2 with FreeTDS is not supported. But this does not mean those data types will not work. I know, it's confusing If you want to learn more, read this thread. http://lists.ibiblio.org/pipermail/freetds/2011q3/027306.html
+* **Do I need to configure `--with-tdsver` equal to anything?** Most likely! Technically you should not have to. This is only a default for clients/configs that do not specify what TDS version they want to use. We are currently having issues with passing down a TDS version with the login bit. Till we get that fixed, if you are not using a freetds.conf or a TDSVER environment variable, then make sure to use 7.4.
 
 * **I want to configure FreeTDS using `--enable-msdblib` and/or `--enable-sybase-compat` so it works for my database. Cool?** It's a waste of time and totally moot! Client libraries like TinyTDS define their own C structure names where they diverge from Sybase to SQL Server. Technically we use the MSDBLIB structures which does not mean we only work with that database vs Sybase. These configs are just a low level default for C libraries that do not define what they want. So I repeat, you do not NEED to use any of these, nor will they hurt anything since we control what C structure names we use internally!
 
@@ -81,7 +77,7 @@ TinyTDS is developed against FreeTDS 0.95, 0.99, and 1.0 current. Our default an
 
 Our goal is to support every SQL Server data type and covert it to a logical Ruby object. When dates or times are returned, they are instantiated to either `:utc` or `:local` time depending on the query options. Only [datetimeoffset] types are excluded. All strings are associated the to the connection's encoding and all binary data types are associated to Ruby's `ASCII-8BIT/BINARY` encoding.
 
-Below is a list of the data types we support when using the 7.3 TDS protocol version. Using a lower protocol version will result in these types being returned as strings.
+Below is a list of the data types we support when using the 7.4 TDS protocol version. Using a lower protocol version will result in these types being returned as strings.
 
 * [date]
 * [datetime2]
@@ -108,7 +104,7 @@ Creating a new client takes a hash of options. For valid iconv encoding options,
 * :appname - Short string seen in SQL Servers process/activity window.
 * :tds_version - TDS version. Defaults to "7.3".
 * :login_timeout - Seconds to wait for login. Default to 60 seconds.
-* :timeout - Seconds to wait for a response to a SQL command. Default 5 seconds. Prior to 1.0rc5, FreeTDS was unable to set the timeout on a per-client basis, permitting only a global timeout value. This means that if you're using an older version, the timeout values for all clients will be overwritten each time you instantiate a new `TinyTds::Client` object. If you are using 1.0rc5 or later, all clients will have an independent timeout setting as you'd expect. Timeouts caused by network failure will raise a timeout error 1 second after the configured timeout limit is hit (see [#481](https://github.com/rails-sqlserver/tiny_tds/pull/481) for details).
+* :timeout - Seconds to wait for a response to a SQL command. Default 5 seconds. Timeouts caused by network failure will raise a timeout error 1 second after the configured timeout limit is hit (see [#481](https://github.com/rails-sqlserver/tiny_tds/pull/481) for details).
 * :encoding - Any valid iconv value like CP1251 or ISO-8859-1. Default UTF-8.
 * :azure - Pass true to signal that you are connecting to azure.
 * :contained - Pass true to signal that you are connecting with a contained database user.
@@ -390,15 +386,7 @@ Please read our [thread_test.rb](https://github.com/rails-sqlserver/tiny_tds/blo
 
 ## Emoji Support 😍
 
-This is possible using FreeTDS version 0.95 or higher. You must use the `use_utf16` login option or add the following config to your `freetds.conf` in either the global section or a specfic dataserver. If you are on Windows, the default location for your conf file will be in `C:\Sites`.
-
-```ini
-[global]
-  use utf-16 = true
-```
-
-The default is true and since FreeTDS v1.0 would do this as well.
-
+This is possible. Since FreeTDS v1.0, utf-16 is enabled by default and supported by tiny_tds. You can toggle it by using `use_utf16` when establishing the connection.
 
 ## Compiling Gems for Windows
 
@@ -427,27 +415,21 @@ After that, the quickest way to get setup for development is to use [Docker](htt
 $ docker-compose up -d
 ```
 
-This will download our SQL Server for Linux Docker image based from [microsoft/mssql-server-linux/](https://hub.docker.com/r/microsoft/mssql-server-linux/). Our image already has the `[tinytdstest]` DB and `tinytds` users created. This will also download a [toxiproxy](https://github.com/shopify/toxiproxy) Docker image which we can use to simulate network failures for tests. Basically, it does the following.
+This will download the official SQL Server for Linux Docker image from [Microsoft](https://hub.docker.com/r/microsoft/mssql-server-linux/). This will also download a [toxiproxy](https://github.com/shopify/toxiproxy) Docker image which we can use to simulate network failures for tests. Basically, it does the following:
 
 ```shell
 $ docker network create main-network
-$ docker pull metaskills/mssql-server-linux-tinytds
-$ docker run -p 1433:1433 -d --name sqlserver --network main-network metaskills/mssql-server-linux-tinytds
+$ docker pull mcr.microsoft.com/mssql/server:2017-latest
+$ docker run -p 1433:1433 -d --name sqlserver --network main-network mcr.microsoft.com/mssql/server:2017-latest
 $ docker pull shopify/toxiproxy
 $ docker run -p 8474:8474 -p 1234:1234 -d --name toxiproxy --network main-network shopify/toxiproxy
 ```
 
-If you are using your own database. Make sure to run these SQL commands as SA to get the test database and user installed.
+Make sure to run these SQL scripts as SA to get the test database and user installed. If needed, install [sqlcmd as described by Microsoft for your platform](https://learn.microsoft.com/en-us/sql/tools/sqlcmd/sqlcmd-utility?view=sql-server-ver16&tabs=go%2Clinux&pivots=cs1-bash).
 
-```sql
-CREATE DATABASE [tinytdstest];
-```
-
-```sql
-CREATE LOGIN [tinytds] WITH PASSWORD = '', CHECK_POLICY = OFF, DEFAULT_DATABASE = [tinytdstest];
-USE [tinytdstest];
-CREATE USER [tinytds] FOR LOGIN [tinytds];
-EXEC sp_addrolemember N'db_owner', N'tinytds';
+```shell
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P super01S3cUr3 -i ./test/sql/db-create.sql
+/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P super01S3cUr3 -i ./test/sql/db-login.sql
 ```
 
 From here you can build and run tests against an installed version of FreeTDS.
@@ -461,9 +443,8 @@ Examples us using enviornment variables to customize the test task.
 
 ```
 $ rake TINYTDS_UNIT_DATASERVER=mydbserver
-$ rake TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2008
+$ rake TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2017
 $ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_SCHEMA=sqlserver_azure
-$ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_UNIT_PORT=5000 TINYTDS_SCHEMA=sybase_ase
 ```
 
 ## Docker Builds

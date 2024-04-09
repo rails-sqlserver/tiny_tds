@@ -5,11 +5,11 @@ networks:
 
 services:
   mssql:
-    image: metaskills/mssql-server-linux-tinytds:2017-GA
+    image: mcr.microsoft.com/mssql/server:${MSSQL_VERSION:-2017}-latest
     container_name: sqlserver
     environment:
       ACCEPT_EULA: Y
-      SA_PASSWORD: super01S3cUr3
+      MSSQL_SA_PASSWORD: super01S3cUr3
     ports:
       - "1433:1433"
     network_mode: "host"

@@ -1,15 +1,27 @@
+param ([int] $Version)
+
 $ProgressPreference = 'SilentlyContinue'
 
-if (-not(Test-path "C:\Downloads"))
-{
+$DownloadLinkTable = @{
+    2017 = "https://go.microsoft.com/fwlink/?linkid=829176";
+    2019 = "https://download.microsoft.com/download/7/c/1/7c14e92e-bdcb-4f89-b7cf-93543e7112d1/SQLEXPR_x64_ENU.exe";
+    2022 = "https://download.microsoft.com/download/3/8/d/38de7036-2433-4207-8eae-06e247e17b25/SQLEXPR_x64_ENU.exe";
+}
+
+$MajorVersionTable = @{
+    2017 = 14;
+    2019 = 15;
+    2022 = 16;
+}
+
+if (-not(Test-path "C:\Downloads")) {
     mkdir "C:\Downloads"
 }
 
 $sqlInstallationFile = "C:\Downloads\sqlexpress.exe"
-if (-not(Test-path $sqlInstallationFile -PathType leaf))
-{
+if (-not(Test-path $sqlInstallationFile -PathType leaf)) {
     Write-Host "Downloading SQL Express ..."
-    Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=829176" -OutFile "C:\Downloads\sqlexpress.exe"
+    Invoke-WebRequest -Uri $DownloadLinkTable[$Version] -OutFile "C:\Downloads\sqlexpress.exe"
 }
 
 Write-Host "Installing SQL Express ..."
@@ -18,14 +30,13 @@ C:\Downloads\setup\setup.exe /q /ACTION=Install /INSTANCENAME=SQLEXPRESS /FEATUR
 
 Write-Host "Configuring SQL Express ..."
 stop-service MSSQL`$SQLEXPRESS
-set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql14.SQLEXPRESS\mssqlserver\supersocketnetlib\tcp\ipall' -name tcpdynamicports -value ''
-set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql14.SQLEXPRESS\mssqlserver\supersocketnetlib\tcp\ipall' -name tcpport -value 1433
-set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql14.SQLEXPRESS\mssqlserver\' -name LoginMode -value 2
+set-itemproperty -path "HKLM:\software\microsoft\microsoft sql server\mssql$($MajorVersionTable[$Version]).SQLEXPRESS\mssqlserver\supersocketnetlib\tcp\ipall" -name tcpdynamicports -value ''
+set-itemproperty -path "HKLM:\software\microsoft\microsoft sql server\mssql$($MajorVersionTable[$Version]).SQLEXPRESS\mssqlserver\supersocketnetlib\tcp\ipall" -name tcpport -value 1433
+set-itemproperty -path "HKLM:\software\microsoft\microsoft sql server\mssql$($MajorVersionTable[$Version]).SQLEXPRESS\mssqlserver\" -name LoginMode -value 2
 
 Write-Host "Starting SQL Express ..."
 start-service MSSQL`$SQLEXPRESS
 
 Write-Host "Configuring MSSQL for TinyTDS ..."
-& sqlcmd -Q "CREATE DATABASE [tinytdstest];"
-& sqlcmd -Q "CREATE LOGIN [tinytds] WITH PASSWORD = '', CHECK_POLICY = OFF, DEFAULT_DATABASE = [tinytdstest];"
-& sqlcmd -Q "USE [tinytdstest]; CREATE USER [tinytds] FOR LOGIN [tinytds]; EXEC sp_addrolemember N'db_owner', N'tinytds';"
+& sqlcmd -i './test/sql/db-create.sql'
+& sqlcmd -i './test/sql/db-login.sql'

@@ -84,7 +84,7 @@ have_dependencies = [
 end
 
 unless have_dependencies
-  abort 'Failed! Do you have FreeTDS 0.95.80 or higher installed?'
+  abort 'Failed! Do you have FreeTDS 1.0.0 or higher installed?'
 end
 
 create_makefile('tiny_tds/tiny_tds')

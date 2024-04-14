@@ -1,0 +1,390 @@
+name: Build and test gem
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  cross-compile:
+    strategy:
+      matrix:
+        platform:
+          - "x64-mingw32"
+          - "x86-mingw32"
+          - "x64-mingw-ucrt"
+    name: Cross-compile gem
+    runs-on: ubuntu-latest
+    container:
+      image: "ghcr.io/rake-compiler/rake-compiler-dock-image:1.4.0-mri-${{ matrix.platform }}"
+    steps:
+      - uses: actions/checkout@v4
+      - run: git config --global --add safe.directory /__w/tiny_tds/tiny_tds # shrug
+      - name: Install gems
+        shell: bash
+        run: bundle install
+      - name: Write used versions into file
+        shell: bash
+        run: bundle exec rake ports:version_file[${{ matrix.platform }}]
+      - name: Cache ports
+        uses: actions/cache@v4
+        with:
+          path: ports
+          key: cross-compiled-${{ hashFiles('**/.ports_versions') }}
+          restore-keys: |
+            cross-compiled-${{ hashFiles('**/.ports_versions') }}
+            cross-compiled-v2-
+      - name: Build gem
+        shell: bash
+        run: bundle exec rake gem:for_platform[${{ matrix.platform }}]
+      - name: Move gems into separate directory before persisting
+        run: |
+          mkdir -p artifacts/gem
+          mv pkg/*.gem artifacts/gem
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gem-${{ matrix.platform }}
+          path: artifacts/gem
+
+  install-windows-mingw:
+    needs:
+      - cross-compile
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version:
+          - 2.7
+          - '3.0'
+
+    name: Install on Windows (MingW)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Download precompiled gem
+        uses: actions/download-artifact@v4
+        with:
+          name: gem-x64-mingw32
+
+      - name: Install native gem and test if TinyTDS loads
+        shell: pwsh
+        run: |
+          $rubyArchitecture = (ruby -e "puts RbConfig::CONFIG['arch']").Trim()
+          $gemVersion = (Get-Content VERSION).Trim()
+          $gemToInstall = "./tiny_tds-$gemVersion-$rubyArchitecture.gem"
+          
+          Write-Host "Looking to install $gemToInstall"
+          gem install --local "$gemToInstall"
+          
+          ruby -e "require 'tiny_tds'; puts TinyTds::Gem.root_path"
+          exit $LASTEXITCODE
+
+  test-windows-mingw:
+    needs:
+      - cross-compile
+    strategy:
+      fail-fast: false
+      matrix:
+        mssql-version:
+          - 2017
+          - 2019
+          - 2022
+        ruby-version:
+          - 2.7
+          - '3.0'
+
+    name: Test on Windows (MingW)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true
+
+      - name: Download precompiled gem
+        uses: actions/download-artifact@v4
+        with:
+          name: gem-x64-mingw32
+
+      - name: Install native gem and restore cross-compiled code from it
+        shell: pwsh
+        run: |
+          $rubyArchitecture = (ruby -e "puts RbConfig::CONFIG['arch']").Trim()
+          $gemVersion = (Get-Content VERSION).Trim()
+          $gemToInstall = "./tiny_tds-$gemVersion-$rubyArchitecture.gem"
+
+          Write-Host "Looking to install $gemToInstall"
+          gem install --local --install-dir=./tmp "$gemToInstall"
+
+          # Restore precompiled code
+          $source = (Resolve-Path ".\tmp\gems\tiny_tds-$gemVersion-$rubyArchitecture\lib\tiny_tds").Path
+          $destination = (Resolve-Path ".\lib\tiny_tds").Path
+          Get-ChildItem $source -Recurse -Exclude "*.rb" | Copy-Item -Destination {Join-Path $destination $_.FullName.Substring($source.length)}
+
+          # Restore ports
+          Copy-Item -Path ".\tmp\gems\tiny_tds-$gemVersion-$rubyArchitecture\ports" -Destination "." -Recurse
+
+      - name: Setup MSSQL
+        uses: potatoqualitee/mssqlsuite@v1.7
+        with:
+          install: sqlengine, sqlclient
+          version: ${{ matrix.mssql-version }}
+          sa-password: c0MplicatedP@ssword
+          show-log: true
+
+      - name: Setup MSSQL database
+        shell: pwsh
+        run: |
+          & sqlcmd -S localhost -U sa -P "c0MplicatedP@ssword" -i ./test/sql/db-create.sql
+          & sqlcmd -S localhost -U sa -P "c0MplicatedP@ssword" -i ./test/sql/db-login.sql
+
+      - name: Install toxiproxy-server
+        shell: pwsh
+        run: |
+          choco install toxiproxy-server --version=2.5.0 -y
+          Start-Process toxiproxy-server
+
+      - name: Test gem
+        shell: pwsh
+        run: bundle exec rake test
+        env:
+          TOXIPROXY_HOST: "localhost"
+
+  install-windows-ucrt:
+    needs:
+      - cross-compile
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version:
+          - 3.1
+          - 3.2
+          - 3.3
+
+    name: Install on Windows (UCRT)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Download precompiled gem
+        uses: actions/download-artifact@v4
+        with:
+          name: gem-x64-mingw-ucrt
+
+      - name: Install native gem and test if TinyTDS loads
+        shell: pwsh
+        run: |
+          $rubyArchitecture = (ruby -e "puts RbConfig::CONFIG['arch']").Trim()
+          $gemVersion = (Get-Content VERSION).Trim()
+          $gemToInstall = "./tiny_tds-$gemVersion-$rubyArchitecture.gem"
+
+          Write-Host "Looking to install $gemToInstall"
+          gem install --local "$gemToInstall"
+
+          ruby -e "require 'tiny_tds'; puts TinyTds::Gem.root_path"
+          exit $LASTEXITCODE
+
+  test-windows-ucrt:
+    needs:
+      - cross-compile
+    strategy:
+      fail-fast: false
+      matrix:
+        mssql-version:
+          - 2017
+          - 2019
+          - 2022
+        ruby-version:
+          - 3.1
+          - 3.2
+          - 3.3
+    name: Test on Windows (UCRT)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true
+
+      - name: Download precompiled gem
+        uses: actions/download-artifact@v4
+        with:
+          name: gem-x64-mingw-ucrt
+
+      - name: Install native gem and restore cross-compiled code from it
+        shell: pwsh
+        run: |
+          $rubyArchitecture = (ruby -e "puts RbConfig::CONFIG['arch']").Trim()
+          $gemVersion = (Get-Content VERSION).Trim()
+          $gemToInstall = "./tiny_tds-$gemVersion-$rubyArchitecture.gem"
+
+          Write-Host "Looking to install $gemToInstall"
+          gem install --local --install-dir=./tmp "$gemToInstall"
+
+          # Restore precompiled code
+          $source = (Resolve-Path ".\tmp\gems\tiny_tds-$gemVersion-$rubyArchitecture\lib\tiny_tds").Path
+          $destination = (Resolve-Path ".\lib\tiny_tds").Path
+          Get-ChildItem $source -Recurse -Exclude "*.rb" | Copy-Item -Destination {Join-Path $destination $_.FullName.Substring($source.length)}
+          
+          # Restore ports
+          Copy-Item -Path ".\tmp\gems\tiny_tds-$gemVersion-$rubyArchitecture\ports" -Destination "." -Recurse
+
+      - name: Setup MSSQL
+        uses: potatoqualitee/mssqlsuite@v1.7
+        with:
+          install: sqlengine, sqlclient
+          version: ${{ matrix.mssql-version }}
+          sa-password: c0MplicatedP@ssword
+          show-log: true
+
+      - name: Setup MSSQL database
+        shell: pwsh
+        run: |
+          & sqlcmd -S localhost -U sa -P "c0MplicatedP@ssword" -i ./test/sql/db-create.sql
+          & sqlcmd -S localhost -U sa -P "c0MplicatedP@ssword" -i ./test/sql/db-login.sql
+
+      - name: Install toxiproxy-server
+        shell: pwsh
+        run: |
+          choco install toxiproxy-server --version=2.5.0 -y
+          Start-Process toxiproxy-server
+
+      - name: Test gem
+        shell: pwsh
+        run: bundle exec rake test
+        env:
+          TOXIPROXY_HOST: "localhost"
+
+  install-windows-native:
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version:
+          - 2.7
+          - "3.0"
+          - 3.1
+          - 3.2
+          - 3.3
+
+    name: Install on Windows (Native)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Build gem
+        shell: pwsh
+        run: gem build tiny_tds.gemspec
+
+      - name: Install gem and test if TinyTDS loads
+        shell: pwsh
+        run: |
+          $gemVersion = (Get-Content VERSION).Trim()
+          gem install --local "tiny_tds-$gemVersion.gem"
+
+          ruby -e "require 'tiny_tds'; puts TinyTds::Gem.root_path"
+          exit $LASTEXITCODE
+
+  compile-native-ports:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3
+          bundler-cache: true
+
+      - name: Write used versions into file
+        run: bundle exec rake ports:version_file
+
+      - name: Cache ports
+        uses: actions/cache@v4
+        with:
+          path: ports
+          key: native-v2-${{ hashFiles('**/.ports_versions') }}
+          restore-keys: |
+            native-${{ hashFiles('* */.ports_versions') }}
+            native-v2-
+
+      - name: Build required libraries
+        run: |
+          bundle exec rake ports
+
+  test-linux:
+    needs:
+      - compile-native-ports
+    strategy:
+      matrix:
+        mssql-version:
+          - 2017
+          - 2019
+          - 2022
+        ruby-version:
+          - 2.7
+          - '3.0'
+          - 3.1
+          - 3.2
+          - 3.3
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true
+
+      - name: Write used versions into file
+        run: |
+          bundle exec rake ports:version_file
+
+      - name: Cache ports
+        uses: actions/cache@v4
+        with:
+          path: ports
+          key: native-v2-${{ hashFiles('**/.ports_versions') }}
+          fail-on-cache-miss: true
+
+      - name: Build gem
+        run: |
+          bundle exec rake build
+
+      - name: Setup MSSQL
+        uses: potatoqualitee/mssqlsuite@v1.7
+        with:
+          install: sqlengine, sqlclient
+          version: ${{ matrix.mssql-version }}
+          sa-password: "c0MplicatedP@ssword"
+          show-log: true
+
+      - name: Setup MSSQL database
+        run: |
+          sqlcmd -S localhost -U sa -P "c0MplicatedP@ssword" -i ./test/sql/db-create.sql
+          sqlcmd -S localhost -U sa -P "c0MplicatedP@ssword" -i ./test/sql/db-login.sql
+
+      - name: Install toxiproxy-server
+        run: |
+          wget -O toxiproxy-2.5.0.deb https://github.com/Shopify/toxiproxy/releases/download/v2.5.0/toxiproxy_2.5.0_linux_amd64.deb
+          sudo dpkg -i toxiproxy-2.5.0.deb
+          sudo toxiproxy-server &
+
+      - name: Run tests
+        run: bundle exec rake test
+        env:
+          TOXIPROXY_HOST: "localhost"

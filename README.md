@@ -1,6 +1,5 @@
 # TinyTDS - Simple and fast FreeTDS bindings for Ruby using DB-Library.
 
-* [![CircleCI](https://circleci.com/gh/rails-sqlserver/tiny_tds.svg?style=svg)](https://app.circleci.com/pipelines/github/rails-sqlserver/tiny_tds) - CircleCi
 * [![Gem Version](https://img.shields.io/gem/v/tiny_tds.svg)](https://rubygems.org/gems/tiny_tds) - Gem Version
 * [![Gitter chat](https://img.shields.io/badge/%E2%8A%AA%20GITTER%20-JOIN%20CHAT%20%E2%86%92-brightgreen.svg?style=flat)](https://gitter.im/rails-sqlserver/activerecord-sqlserver-adapter) - Community
 

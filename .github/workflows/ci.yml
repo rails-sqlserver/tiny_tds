@@ -406,3 +406,38 @@ jobs:
         with:
           paths: "test/reports/TEST-*.xml"
         if: always()
+
+  install_macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version:
+          - 2.7
+          - "3.0"
+          - 3.1
+          - 3.2
+          - 3.3
+
+    name: Install on Mac OS (M1)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install FreeTDS
+        run: brew install freetds
+        shell: bash
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Build gem
+        shell: bash
+        run: gem build tiny_tds.gemspec
+
+      - name: Install gem and test if TinyTDS loads
+        shell: bash
+        run: |
+          gemVersion=$(<VERSION tr -d '[:space:]')
+          gem install --local "tiny_tds-$gemVersion.gem"
+          ruby -e "require 'tiny_tds'; puts TinyTds::Gem.root_path"

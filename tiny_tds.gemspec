@@ -25,7 +25,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rake-compiler', '~> 1.2'
   s.add_development_dependency 'rake-compiler-dock', '~> 1.4.0'
   s.add_development_dependency 'minitest', '~> 5.14.0'
-  s.add_development_dependency 'minitest-ci', '~> 3.4.0'
+  s.add_development_dependency 'minitest-reporters', '~> 1.6.1'
   s.add_development_dependency 'connection_pool', '~> 2.2.0'
   s.add_development_dependency 'toxiproxy', '~> 2.0.0'
 end

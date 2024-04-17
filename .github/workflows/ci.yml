@@ -156,6 +156,12 @@ jobs:
         env:
           TOXIPROXY_HOST: "localhost"
 
+      - name: Test Summary
+        uses: test-summary/action@v2
+        with:
+          paths: "test/reports/TEST-*.xml"
+        if: always()
+
   install-windows-ucrt:
     needs:
       - cross-compile
@@ -266,6 +272,12 @@ jobs:
         run: bundle exec rake test
         env:
           TOXIPROXY_HOST: "localhost"
+
+      - name: Test Summary
+        uses: test-summary/action@v2
+        with:
+          paths: "test/reports/TEST-*.xml"
+        if: always()
 
   install-windows-native:
     strategy:
@@ -388,3 +400,9 @@ jobs:
         run: bundle exec rake test
         env:
           TOXIPROXY_HOST: "localhost"
+
+      - name: Test Summary
+        uses: test-summary/action@v2
+        with:
+          paths: "test/reports/TEST-*.xml"
+        if: always()

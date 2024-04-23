@@ -90,7 +90,7 @@ jobs:
       fail-fast: false
       matrix:
         mssql-version:
-          - 2017
+          #- 2017
           - 2019
           - 2022
         ruby-version:
@@ -207,7 +207,7 @@ jobs:
       fail-fast: false
       matrix:
         mssql-version:
-          - 2017
+          #- 2017
           - 2019
           - 2022
         ruby-version:

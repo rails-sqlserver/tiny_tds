@@ -37,14 +37,10 @@ jobs:
       - name: Build gem
         shell: bash
         run: bundle exec rake gem:for_platform[${{ matrix.platform }}]
-      - name: Move gems into separate directory before persisting
-        run: |
-          mkdir -p artifacts/gem
-          mv pkg/*.gem artifacts/gem
       - uses: actions/upload-artifact@v4
         with:
           name: gem-${{ matrix.platform }}
-          path: artifacts/gem
+          path: pkg/*.gem
 
   install-windows-mingw:
     needs:

@@ -13,7 +13,7 @@ jobs:
           - "x64-mingw32"
           - "x86-mingw32"
           - "x64-mingw-ucrt"
-    name: Cross-compile gem
+    name: cross-compile-windows
     runs-on: ubuntu-latest
     container:
       image: "ghcr.io/rake-compiler/rake-compiler-dock-image:1.4.0-mri-${{ matrix.platform }}"
@@ -58,7 +58,7 @@ jobs:
           - "2.7"
           - "3.0"
 
-    name: Install on Windows (MingW)
+    name: install-windows-mingw
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -102,7 +102,7 @@ jobs:
           - "2.7"
           - "3.0"
 
-    name: Test on Windows (MingW)
+    name: test-windows-mingw
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -178,7 +178,7 @@ jobs:
           - "3.2"
           - "3.3"
 
-    name: Install on Windows (UCRT)
+    name: install-windows-ucrt
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -222,7 +222,7 @@ jobs:
           - "3.1"
           - "3.2"
           - "3.3"
-    name: Test on Windows (UCRT)
+    name: test-windows-ucrt
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -298,7 +298,7 @@ jobs:
           - "3.2"
           - "3.3"
 
-    name: Install on Windows (Native)
+    name: install-windows-native
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -325,6 +325,7 @@ jobs:
 
   compile-native-ports:
     runs-on: ubuntu-latest
+    name: cross-compile-linux
     steps:
       - uses: actions/checkout@v4
 
@@ -352,6 +353,7 @@ jobs:
   test-linux:
     needs:
       - compile-native-ports
+    name: test-linux
     strategy:
       matrix:
         mssql-version:
@@ -429,7 +431,7 @@ jobs:
           - "3.2"
           - "3.3"
 
-    name: Install on Mac OS (M1)
+    name: install-macos-m1
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4

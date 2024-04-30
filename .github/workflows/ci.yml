@@ -72,7 +72,7 @@ jobs:
         with:
           name: gem-x64-mingw32
 
-      - name: Install native gem and test if TinyTDS loads
+      - name: Install native gem
         shell: pwsh
         run: |
           $rubyArchitecture = (ruby -e "puts RbConfig::CONFIG['arch']").Trim()
@@ -82,6 +82,9 @@ jobs:
           Write-Host "Looking to install $gemToInstall"
           gem install --local "$gemToInstall"
 
+      - name: Test if TinyTDS loads
+        shell: pwsh
+        run: |
           ruby -e "require 'tiny_tds'; puts TinyTds::Gem.root_path"
           exit $LASTEXITCODE
 
@@ -189,7 +192,7 @@ jobs:
         with:
           name: gem-x64-mingw-ucrt
 
-      - name: Install native gem and test if TinyTDS loads
+      - name: Install native gem
         shell: pwsh
         run: |
           $rubyArchitecture = (ruby -e "puts RbConfig::CONFIG['arch']").Trim()
@@ -199,6 +202,9 @@ jobs:
           Write-Host "Looking to install $gemToInstall"
           gem install --local "$gemToInstall"
 
+      - name: Test if TinyTDS loads
+        shell: pwsh
+        run: |
           ruby -e "require 'tiny_tds'; puts TinyTds::Gem.root_path"
           exit $LASTEXITCODE
 
@@ -305,12 +311,15 @@ jobs:
         shell: pwsh
         run: gem build tiny_tds.gemspec
 
-      - name: Install gem and test if TinyTDS loads
+      - name: Install gem
         shell: pwsh
         run: |
           $gemVersion = (Get-Content VERSION).Trim()
           gem install --local "tiny_tds-$gemVersion.gem"
 
+      - name: Test if TinyTDS loads
+        shell: pwsh
+        run: |
           ruby -e "require 'tiny_tds'; puts TinyTds::Gem.root_path"
           exit $LASTEXITCODE
 
@@ -442,4 +451,8 @@ jobs:
         run: |
           gemVersion=$(<VERSION tr -d '[:space:]')
           gem install --local "tiny_tds-$gemVersion.gem"
+
+      - name: Test if TinyTDS loads
+        shell: bash
+        run: |
           ruby -e "require 'tiny_tds'; puts TinyTds::Gem.root_path"

@@ -1,0 +1,242 @@
+name: Test
+on:
+  push:
+    branches:
+    - master
+jobs:
+  cross_compile_gem:
+    runs-on: ubuntu-latest
+    container:
+      image: "${{ matrix.platform }}"
+    strategy:
+      matrix:
+        platform:
+        - x86-mingw32
+        - x64-mingw32
+        - x64-mingw-ucrt
+    steps:
+    - uses: actions/checkout@v4.1.0
+    - name: bundle install gems
+      run: bundle install
+    - name: Write used versions for ports into file
+      run: rake ports:version_file[${{ matrix.platform }}]
+    - name: restore_cache
+      uses: actions/cache@v3.3.2
+      with:
+        key: ports-win-{{ arch }}-{{ checksum ".ports_versions" }}
+        path: "./ports"
+        restore-keys: |-
+          ports-win-{{ arch }}-{{ checksum ".ports_versions" }}
+          ports-win-{{ arch }}-
+    - name: Build gem
+      run: rake gem:for_platform[${{ matrix.platform }}]
+    - name: Move gems into separate directory before caching
+      run: |-
+        mkdir -p artifacts-${{ matrix.platform }}/gems
+        mv pkg/*.gem artifacts-${{ matrix.platform }}/gems
+    - name: Remove non-native gem to avoid conflict in workspace
+      run: |-
+        gemVersion=$(cat VERSION | tr -d "[:space:]")
+        rm -rf artifacts-${{ matrix.platform }}/gems/tiny_tds-$gemVersion.gem
+    - uses: actions/upload-artifact@v4.1.0
+      with:
+        path: artifacts-${{ matrix.platform }}/gems
+    - uses: actions/upload-artifact@v4.1.0
+      with:
+        path: artifacts-${{ matrix.platform }}/gems
+  test_windows:
+    runs-on: ubuntu-latest
+    needs:
+    - cross_compile_gem
+    env:
+      RAKEOPT: "-rdevkit"
+      TESTOPTS: "-v"
+      MAKE: make V=1 -j2
+    strategy:
+      matrix:
+        mssql_version:
+        - '2017'
+        - '2019'
+        - '2022'
+        ruby_version:
+        - '2.7'
+        - '3.0'
+        - '3.1'
+        - '3.2'
+        - '3.3'
+    steps:
+    - uses: "./.github/actions/install-ruby-windows"
+      with:
+        ruby_version: "${{ matrix.ruby_version }}"
+    - uses: actions/checkout@v4.1.0
+    - name: restore_cache
+      uses: actions/cache@v3.3.2
+      with:
+        key: v1-bundle-${{ matrix.ruby_version }}-{{ arch }}-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
+        path: "./vendor/bundle"
+        restore-keys: |-
+          v1-bundle-${{ matrix.ruby_version }}-{{ arch }}-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
+          v1-bundle-${{ matrix.ruby_version }}-{{ arch }}-{{ .Branch }}-
+          v1-bundle-${{ matrix.ruby_version }}-{{ arch }}-
+    - name: bundle install gems
+      run: |-
+        $Env:PATH = "C:\\Ruby${{ matrix.ruby_version }}-x64\\bin;$Env:PATH"
+        bundle install --path vendor/bundle
+    - uses: actions/download-artifact@v4.1.0
+      with:
+        path: artifacts
+    - name: install native gem and restore cross-compiled code from gem
+      run: |-
+        $Env:PATH = "C:\\Ruby${{ matrix.ruby_version }}-x64\\bin;$Env:PATH"
+        $rubyArchitecture = (ruby -e 'puts RUBY_PLATFORM').Trim()
+        $gemVersion = (Get-Content VERSION).Trim()
+        gem install --local --install-dir=./tmp "artifacts/gems/tiny_tds-$gemVersion-$rubyArchitecture.gem"
+        # Restore precompiled code
+        $source = (Resolve-Path ".\tmp\gems\tiny_tds-$gemVersion-$rubyArchitecture\lib\tiny_tds").Path
+        $destination = (Resolve-Path ".\lib\tiny_tds").Path
+        Get-ChildItem $source -Recurse -Exclude "*.rb" | Copy-Item -Destination {Join-Path $destination $_.FullName.Substring($source.length)}
+        # Restore ports
+        Copy-Item -Path ".\tmp\gems\tiny_tds-$gemVersion-$rubyArchitecture\ports" -Destination "." -Recurse
+    - name: restore_cache
+      uses: actions/cache@v3.3.2
+      with:
+        key: downloads-${{ matrix.mssql_version }}-{{ checksum "test/bin/install-mssql.ps1" }}
+        path: C:\Downloads
+    - name: setup mssql
+      run: ".\\test\\bin\\install-mssql.ps1 -Version ${{ matrix.mssql_version }}"
+    - name: install toxiproxy-server
+      run: |-
+        choco install toxiproxy-server --version=2.5.0 -y
+        Start-Process toxiproxy-server
+    - name: test gem
+      run: |-
+        $Env:PATH = "C:\\Ruby${{ matrix.ruby_version }}-x64\\bin;$Env:PATH"
+        bundle exec rake test
+      env:
+        TOXIPROXY_HOST: localhost
+    - uses: actions/upload-artifact@v4.1.0
+      with:
+        path: test/reports
+    - name: Rename gem to a consistent name to store artifact
+      run: |-
+        $Env:PATH = "C:\\Ruby${{ matrix.ruby_version }}-x64\\bin;$Env:PATH"
+        $rubyArchitecture = (ruby -e 'puts RUBY_PLATFORM').Trim()
+        $gemVersion = (Get-Content VERSION).Trim()
+        New-Item -Path . -Name "tested_artifact" -ItemType "directory"
+        Move-Item "artifacts/gems/tiny_tds-$gemVersion-$rubyArchitecture.gem" "tested_artifact"
+    - uses: actions/upload-artifact@v4.1.0
+      with:
+        path: tested_artifact
+  test_linux:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        mssql_version:
+        - '2017'
+        - '2019'
+        - '2022'
+        ruby_version:
+        - '2.7'
+        - '3.0'
+        - '3.1'
+        - '3.2'
+        - '3.3'
+    steps:
+    - uses: actions/checkout@v4.1.0
+    - name: start docker-compose build environment
+      run: |-
+        sudo ./test/bin/setup_volume_permissions.sh
+        docker-compose up -d
+        echo "Waiting for containers to start..."
+        sleep 10
+      env:
+        MSSQL_VERSION: "${{ matrix.mssql_version }}"
+        RUBY_VERSION: "${{ matrix.ruby_version }}"
+    - name: install sql prereqs
+      run: docker exec cimg_ruby bash -c 'sudo -E ./test/bin/install-mssqltools.sh'
+    - name: setup tiny_tds test database
+      run: docker exec cimg_ruby bash -c './test/bin/setup_tinytds_db.sh'
+    - name: bundle install gems
+      run: docker exec cimg_ruby bash -c 'bundle install'
+    - name: Write used versions into file
+      run: docker exec cimg_ruby bash -c 'bundle exec rake ports:version_file'
+    - name: restore_cache
+      uses: actions/cache@v3.3.2
+      with:
+        key: ports-${{ matrix.ruby_version }}-{{ arch }}-{{ checksum ".ports_versions" }}
+        path: UPDATE_ME
+        restore-keys: |-
+          ports-${{ matrix.ruby_version }}-{{ arch }}-{{ checksum ".ports_versions" }}
+          ports-${{ matrix.ruby_version }}-{{ arch }}-
+    - name: compile ports
+      run: docker exec cimg_ruby bash -c 'bundle exec rake ports'
+    - name: build gem
+      run: docker exec cimg_ruby bash -c 'bundle exec rake build'
+    - name: Fix permissions on ports directory
+      run: docker exec cimg_ruby bash -c 'sudo chown -R $(id -u):$(id -g) ports'
+    - name: test gem
+      run: docker exec cimg_ruby bash -c 'bundle exec rake test'
+    - name: save_cache
+      uses: actions/cache@v3.3.2
+      with:
+        path: "./ports"
+        key: ports-${{ matrix.ruby_version }}-{{ arch }}-{{ arch }}-{{ checksum ".ports_versions" }}
+    - uses: actions/upload-artifact@v4.1.0
+      with:
+        path: test/reports
+  install_windows:
+    runs-on: ubuntu-latest
+    env:
+      RAKEOPT: "-rdevkit"
+      TESTOPTS: "-v"
+      MAKE: make V=1 -j2
+    strategy:
+      matrix:
+        ruby_version:
+        - '2.7'
+        - '3.0'
+        - '3.1'
+        - '3.2'
+        - '3.3'
+    steps:
+    - uses: "./.github/actions/install-ruby-windows"
+      with:
+        ruby_version: "${{ matrix.ruby_version }}"
+    - name: Ensure msys2 installation is complete
+      run: |-
+        $Env:PATH = "C:\\Ruby${{ matrix.ruby_version }}-x64\\bin;$Env:PATH"
+        # on older Ruby version, the msys version shipped with RubyInstaller is quite old
+        # and RubyInstaller will be unable to install anything because of outdated keys
+        # With this those commands, we force to get a new set of keys
+        # see https://www.msys2.org/docs/updating/#potential-issues
+        ridk exec pacman-key --init
+        ridk exec pacman-key --refresh-keys
+        ridk install 1 2 3
+    - uses: actions/checkout@v4.1.0
+    - name: restore_cache
+      uses: actions/cache@v3.3.2
+      with:
+        key: v1-bundle-${{ matrix.ruby_version }}-{{ arch }}-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
+        path: "./vendor/bundle"
+        restore-keys: |-
+          v1-bundle-${{ matrix.ruby_version }}-{{ arch }}-{{ .Branch }}-{{ checksum "tiny_tds.gemspec" }}
+          v1-bundle-${{ matrix.ruby_version }}-{{ arch }}-{{ .Branch }}-
+          v1-bundle-${{ matrix.ruby_version }}-{{ arch }}-
+    - name: bundle install gems
+      run: |-
+        $Env:PATH = "C:\\Ruby${{ matrix.ruby_version }}-x64\\bin;$Env:PATH"
+        bundle install --path vendor/bundle
+    - name: build gem
+      run: |-
+        $Env:PATH = "C:\\Ruby${{ matrix.ruby_version }}-x64\\bin;$Env:PATH"
+        gem build tiny_tds.gemspec
+    - name: Install gem
+      run: |-
+        $Env:PATH = "C:\\Ruby${{ matrix.ruby_version }}-x64\\bin;$Env:PATH"
+        $gemVersion = (Get-Content VERSION).Trim()
+        gem install --local "tiny_tds-$gemVersion.gem"
+    - name: Check if gem loads correctly
+      run: |-
+        $Env:PATH = "C:\\Ruby${{ matrix.ruby_version }}-x64\\bin;$Env:PATH"
+        ruby -e "require 'tiny_tds'; puts TinyTds::Gem.root_path"
+        exit $LASTEXITCODE

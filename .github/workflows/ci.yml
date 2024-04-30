@@ -1,4 +1,4 @@
-name: Build and test gem
+name: CI
 
 on:
   push:

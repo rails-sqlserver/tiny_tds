@@ -8,6 +8,7 @@ on:
 jobs:
   cross-compile:
     strategy:
+      fail-fast: false
       matrix:
         platform:
           - "x64-mingw32"
@@ -358,6 +359,7 @@ jobs:
       - compile-native-ports
     name: test-linux
     strategy:
+      fail-fast: false
       matrix:
         mssql-version:
           - 2017

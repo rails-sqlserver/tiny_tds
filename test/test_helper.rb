@@ -4,6 +4,9 @@ require 'tiny_tds'
 require 'minitest/autorun'
 require 'toxiproxy'
 
+require "minitest/reporters"
+Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new, Minitest::Reporters::JUnitReporter.new]
+
 TINYTDS_SCHEMAS = ['sqlserver_2017', 'sqlserver_azure'].freeze
 
 module TinyTds

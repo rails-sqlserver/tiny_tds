@@ -268,5 +268,24 @@ class ClientTest < TinyTds::TestCase
         )
       ).must_equal 'user'
     end
+
+    it 'raises error when query cannot be sent' do
+      client = new_connection
+      assert_client_works(client)
+
+      thread1 = Thread.new do
+        client.execute("SELECT 1 as [one]").do
+        sleep 1
+      end
+
+      thread2 = Thread.new do
+        assert_raise_tinytds_error(-> { client.execute("SELECT 1 as [one]") }) do |e|
+          assert_match %r{failed dbsqlsend\(\) function}i, e.message
+        end
+      end
+
+      thread1.join
+      thread2.join
+    end
   end
 end

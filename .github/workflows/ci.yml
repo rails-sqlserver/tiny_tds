@@ -82,7 +82,7 @@ jobs:
           $gemToInstall = "./tiny_tds-$gemVersion-$rubyArchitecture.gem"
 
           Write-Host "Looking to install $gemToInstall"
-          gem install --local "$gemToInstall"
+          gem install "$gemToInstall"
 
       - name: Test if TinyTDS loads
         shell: pwsh
@@ -203,7 +203,7 @@ jobs:
           $gemToInstall = "./tiny_tds-$gemVersion-$rubyArchitecture.gem"
 
           Write-Host "Looking to install $gemToInstall"
-          gem install --local "$gemToInstall"
+          gem install "$gemToInstall"
 
       - name: Test if TinyTDS loads
         shell: pwsh
@@ -319,7 +319,7 @@ jobs:
         shell: pwsh
         run: |
           $gemVersion = (Get-Content VERSION).Trim()
-          gem install --local "tiny_tds-$gemVersion.gem"
+          gem install "tiny_tds-$gemVersion.gem"
 
       - name: Test if TinyTDS loads
         shell: pwsh
@@ -458,7 +458,7 @@ jobs:
         shell: bash
         run: |
           gemVersion=$(<VERSION tr -d '[:space:]')
-          gem install --local "tiny_tds-$gemVersion.gem"
+          gem install "tiny_tds-$gemVersion.gem"
 
       - name: Test if TinyTDS loads
         shell: bash

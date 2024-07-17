@@ -82,7 +82,7 @@ jobs:
           $gemToInstall = "./tiny_tds-$gemVersion-$rubyArchitecture.gem"
 
           Write-Host "Looking to install $gemToInstall"
-          gem install --local "$gemToInstall"
+          gem install "$gemToInstall"
 
       - name: Test if TinyTDS loads
         shell: pwsh
@@ -124,18 +124,18 @@ jobs:
         run: |
           $rubyArchitecture = (ruby -e "puts RbConfig::CONFIG['arch']").Trim()
           $gemVersion = (Get-Content VERSION).Trim()
-          $gemToInstall = "./tiny_tds-$gemVersion-$rubyArchitecture.gem"
+          $gemToUnpack = "./tiny_tds-$gemVersion-$rubyArchitecture.gem"
 
-          Write-Host "Looking to install $gemToInstall"
-          gem install --local --install-dir=./tmp "$gemToInstall"
+          Write-Host "Looking to unpack $gemToUnpack"
+          gem unpack --target ./tmp "$gemToUnpack"
 
           # Restore precompiled code
-          $source = (Resolve-Path ".\tmp\gems\tiny_tds-$gemVersion-$rubyArchitecture\lib\tiny_tds").Path
+          $source = (Resolve-Path ".\tmp\tiny_tds-$gemVersion-$rubyArchitecture\lib\tiny_tds").Path
           $destination = (Resolve-Path ".\lib\tiny_tds").Path
           Get-ChildItem $source -Recurse -Exclude "*.rb" | Copy-Item -Destination {Join-Path $destination $_.FullName.Substring($source.length)}
 
           # Restore ports
-          Copy-Item -Path ".\tmp\gems\tiny_tds-$gemVersion-$rubyArchitecture\ports" -Destination "." -Recurse
+          Copy-Item -Path ".\tmp\tiny_tds-$gemVersion-$rubyArchitecture\ports" -Destination "." -Recurse
 
       - name: Setup MSSQL
         uses: potatoqualitee/mssqlsuite@v1.7
@@ -203,7 +203,7 @@ jobs:
           $gemToInstall = "./tiny_tds-$gemVersion-$rubyArchitecture.gem"
 
           Write-Host "Looking to install $gemToInstall"
-          gem install --local "$gemToInstall"
+          gem install "$gemToInstall"
 
       - name: Test if TinyTDS loads
         shell: pwsh
@@ -245,18 +245,18 @@ jobs:
         run: |
           $rubyArchitecture = (ruby -e "puts RbConfig::CONFIG['arch']").Trim()
           $gemVersion = (Get-Content VERSION).Trim()
-          $gemToInstall = "./tiny_tds-$gemVersion-$rubyArchitecture.gem"
+          $gemToUnpack = "./tiny_tds-$gemVersion-$rubyArchitecture.gem"
 
-          Write-Host "Looking to install $gemToInstall"
-          gem install --local --install-dir=./tmp "$gemToInstall"
+          Write-Host "Looking to unpack $gemToUnpack"
+          gem unpack --target ./tmp "$gemToUnpack"
 
           # Restore precompiled code
-          $source = (Resolve-Path ".\tmp\gems\tiny_tds-$gemVersion-$rubyArchitecture\lib\tiny_tds").Path
+          $source = (Resolve-Path ".\tmp\tiny_tds-$gemVersion-$rubyArchitecture\lib\tiny_tds").Path
           $destination = (Resolve-Path ".\lib\tiny_tds").Path
           Get-ChildItem $source -Recurse -Exclude "*.rb" | Copy-Item -Destination {Join-Path $destination $_.FullName.Substring($source.length)}
 
           # Restore ports
-          Copy-Item -Path ".\tmp\gems\tiny_tds-$gemVersion-$rubyArchitecture\ports" -Destination "." -Recurse
+          Copy-Item -Path ".\tmp\tiny_tds-$gemVersion-$rubyArchitecture\ports" -Destination "." -Recurse
 
       - name: Setup MSSQL
         uses: potatoqualitee/mssqlsuite@v1.7
@@ -319,7 +319,7 @@ jobs:
         shell: pwsh
         run: |
           $gemVersion = (Get-Content VERSION).Trim()
-          gem install --local "tiny_tds-$gemVersion.gem"
+          gem install "tiny_tds-$gemVersion.gem"
 
       - name: Test if TinyTDS loads
         shell: pwsh
@@ -458,7 +458,7 @@ jobs:
         shell: bash
         run: |
           gemVersion=$(<VERSION tr -d '[:space:]')
-          gem install --local "tiny_tds-$gemVersion.gem"
+          gem install "tiny_tds-$gemVersion.gem"
 
       - name: Test if TinyTDS loads
         shell: bash

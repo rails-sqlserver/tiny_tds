@@ -20,6 +20,7 @@ Gem::Specification.new do |s|
   s.license       = 'MIT'
   s.required_ruby_version = '>= 2.7.0'
   s.metadata['msys2_mingw_dependencies'] = 'freetds'
+  s.add_dependency 'bigdecimal', '~> 3'
   s.add_development_dependency 'mini_portile2', '~> 2.5.0'
   s.add_development_dependency 'rake', '~> 13.0.0'
   s.add_development_dependency 'rake-compiler', '~> 1.2'

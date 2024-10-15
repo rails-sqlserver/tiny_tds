@@ -15,12 +15,6 @@ VALUE opt_escape_regex, opt_escape_dblquote;
   tinytds_client_wrapper *cwrap; \
   Data_Get_Struct(self, tinytds_client_wrapper, cwrap)
 
-#define REQUIRE_OPEN_CLIENT(cwrap) \
-  if (cwrap->closed || cwrap->userdata->closed) { \
-    rb_raise(cTinyTdsError, "closed connection"); \
-    return Qnil; \
-  }
-
 
 // Lib Backend (Helpers)
 
@@ -55,6 +49,128 @@ VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, tinytds_errordata error) {
   return Qnil;
 }
 
+static void rb_tinytds_client_reset_userdata(tinytds_client_userdata *userdata) {
+  userdata->timing_out = 0;
+  userdata->dbsql_sent = 0;
+  userdata->dbsqlok_sent = 0;
+  userdata->dbcancel_sent = 0;
+  userdata->nonblocking = 0;
+  // the following is mainly done for consistency since the values are reset accordingly in nogvl_setup/cleanup.
+  // the nonblocking_errors array does not need to be freed here. That is done as part of nogvl_cleanup.
+  userdata->nonblocking_errors_length = 0;
+  userdata->nonblocking_errors_size = 0;
+}
+
+static VALUE rb_tinytds_send_sql_to_server(tinytds_client_wrapper *cwrap, VALUE sql) {
+  rb_tinytds_client_reset_userdata(cwrap->userdata);
+
+  if (cwrap->closed || cwrap->userdata->closed) { \
+    rb_raise(cTinyTdsError, "closed connection"); \
+    return Qnil; \
+  }
+
+  dbcmd(cwrap->client, StringValueCStr(sql));
+  if (dbsqlsend(cwrap->client) == FAIL) {
+    rb_raise(cTinyTdsError, "failed dbsqlsend() function");
+  }
+
+  cwrap->userdata->dbsql_sent = 1;
+}
+
+// code part used to invoke FreeTDS functions with releasing the Ruby GVL
+// basically, while FreeTDS is interacting with the SQL server, other Ruby code can be executed
+#define NOGVL_DBCALL(_dbfunction, _client) ( \
+  (RETCODE)(intptr_t)rb_thread_call_without_gvl( \
+    (void *(*)(void *))_dbfunction, _client, \
+    (rb_unblock_function_t*)dbcancel_ubf, _client ) \
+)
+
+static void dbcancel_ubf(DBPROCESS *client) {
+  GET_CLIENT_USERDATA(client);
+  dbcancel(client);
+  userdata->dbcancel_sent = 1;
+}
+
+static void nogvl_setup(DBPROCESS *client) {
+  GET_CLIENT_USERDATA(client);
+  userdata->nonblocking = 1;
+  userdata->nonblocking_errors_length = 0;
+  userdata->nonblocking_errors = malloc(ERRORS_STACK_INIT_SIZE * sizeof(tinytds_errordata));
+  userdata->nonblocking_errors_size = ERRORS_STACK_INIT_SIZE;
+}
+
+static void nogvl_cleanup(DBPROCESS *client) {
+  GET_CLIENT_USERDATA(client);
+  userdata->nonblocking = 0;
+  userdata->timing_out = 0;
+  /*
+  Now that the blocking operation is done, we can finally throw any
+  exceptions based on errors from SQL Server.
+  */
+  short int i;
+  for (i = 0; i < userdata->nonblocking_errors_length; i++) {
+    tinytds_errordata error = userdata->nonblocking_errors[i];
+
+    // lookahead to drain any info messages ahead of raising error
+    if (!error.is_message) {
+      short int j;
+      for (j = i; j < userdata->nonblocking_errors_length; j++) {
+        tinytds_errordata msg_error = userdata->nonblocking_errors[j];
+        if (msg_error.is_message) {
+          rb_tinytds_raise_error(client, msg_error);
+        }
+      }
+    }
+
+    rb_tinytds_raise_error(client, error);
+  }
+
+  free(userdata->nonblocking_errors);
+  userdata->nonblocking_errors_length = 0;
+  userdata->nonblocking_errors_size = 0;
+}
+
+static RETCODE nogvl_dbnextrow(DBPROCESS * client) {
+  int retcode = FAIL;
+  nogvl_setup(client);
+  retcode = NOGVL_DBCALL(dbnextrow, client);
+  nogvl_cleanup(client);
+  return retcode;
+}
+
+static RETCODE nogvl_dbresults(DBPROCESS *client) {
+  int retcode = FAIL;
+  nogvl_setup(client);
+  retcode = NOGVL_DBCALL(dbresults, client);
+  nogvl_cleanup(client);
+  return retcode;
+}
+
+static RETCODE nogvl_dbsqlexec(DBPROCESS *client) {
+  int retcode = FAIL;
+  nogvl_setup(client);
+  retcode = NOGVL_DBCALL(dbsqlexec, client);
+  nogvl_cleanup(client);
+  return retcode;
+}
+
+static RETCODE nogvl_dbsqlok(DBPROCESS *client) {
+  int retcode = FAIL;
+  GET_CLIENT_USERDATA(client);
+  nogvl_setup(client);
+  retcode = NOGVL_DBCALL(dbsqlok, client);
+  nogvl_cleanup(client);
+  userdata->dbsqlok_sent = 1;
+  return retcode;
+}
+
+static RETCODE rb_tinytds_result_ok_helper(DBPROCESS *client) {
+  GET_CLIENT_USERDATA(client);
+  if (userdata->dbsqlok_sent == 0) {
+    userdata->dbsqlok_retcode = nogvl_dbsqlok(client);
+  }
+  return userdata->dbsqlok_retcode;
+}
 
 // Lib Backend (Memory Management & Handlers)
 static void push_userdata_error(tinytds_client_userdata *userdata, tinytds_errordata error) {
@@ -207,18 +323,6 @@ static int handle_interrupt(void *ptr) {
   return INT_CONTINUE;
 }
 
-static void rb_tinytds_client_reset_userdata(tinytds_client_userdata *userdata) {
-  userdata->timing_out = 0;
-  userdata->dbsql_sent = 0;
-  userdata->dbsqlok_sent = 0;
-  userdata->dbcancel_sent = 0;
-  userdata->nonblocking = 0;
-  // the following is mainly done for consistency since the values are reset accordingly in nogvl_setup/cleanup.
-  // the nonblocking_errors array does not need to be freed here. That is done as part of nogvl_cleanup.
-  userdata->nonblocking_errors_length = 0;
-  userdata->nonblocking_errors_size = 0;
-}
-
 static void rb_tinytds_client_mark(void *ptr) {
   tinytds_client_wrapper *cwrap = (tinytds_client_wrapper *)ptr;
   if (cwrap) {
@@ -295,13 +399,7 @@ static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
   VALUE result;
 
   GET_CLIENT_WRAPPER(self);
-  rb_tinytds_client_reset_userdata(cwrap->userdata);
-  REQUIRE_OPEN_CLIENT(cwrap);
-  dbcmd(cwrap->client, StringValueCStr(sql));
-  if (dbsqlsend(cwrap->client) == FAIL) {
-    rb_raise(cTinyTdsError, "failed dbsqlsend() function");
-  }
-  cwrap->userdata->dbsql_sent = 1;
+  rb_tinytds_send_sql_to_server(cwrap, sql);
   result = rb_tinytds_new_result_obj(cwrap);
   rb_iv_set(result, "@query_options", rb_funcall(rb_iv_get(self, "@query_options"), intern_dup, 0));
   {
@@ -310,6 +408,55 @@ static VALUE rb_tinytds_execute(VALUE self, VALUE sql) {
     rwrap->encoding = cwrap->encoding;
     return result;
   }
+}
+
+static VALUE rb_tiny_tds_insert(VALUE self, VALUE sql) {
+  VALUE identity = Qnil;
+  GET_CLIENT_WRAPPER(self);  
+  rb_tinytds_send_sql_to_server(cwrap, sql);
+
+  RETCODE dbsqlok_rc = rb_tinytds_result_ok_helper(cwrap->client);
+  if (dbsqlok_rc == SUCCEED) {
+    /*
+    This is to just process each result set. Commands such as backup and
+    restore are not done when the first result set is returned, so we need to
+    exhaust the result sets before it is complete.
+    */
+    while (nogvl_dbresults(cwrap->client) == SUCCEED) {
+      /*
+      If we don't loop through each row for calls to TinyTds::Result.do that
+      actually do return result sets, we will trigger error 20019 about trying
+      to execute a new command with pending results. Oh well.
+      */
+      while (nogvl_dbnextrow(cwrap->client) != NO_MORE_ROWS);
+    }
+  }
+
+  dbcancel(cwrap->client);
+  cwrap->userdata->dbcancel_sent = 1;
+  cwrap->userdata->dbsql_sent = 0;
+
+  // prepare second query to fetch last identity
+  dbcmd(cwrap->client, cwrap->identity_insert_sql);
+
+  if (
+    nogvl_dbsqlexec(cwrap->client) != FAIL
+    && nogvl_dbresults(cwrap->client) != FAIL
+    && DBROWS(cwrap->client) != FAIL
+  ) {
+    while (nogvl_dbnextrow(cwrap->client) != NO_MORE_ROWS) {
+      int col = 1;
+      BYTE *data = dbdata(cwrap->client, col);
+      DBINT data_len = dbdatlen(cwrap->client, col);
+      int null_val = ((data == NULL) && (data_len == 0));
+
+      if (!null_val) {
+        identity = LL2NUM(*(DBBIGINT *)data);
+      }
+    }
+  }
+
+  return identity;
 }
 
 static VALUE rb_tinytds_charset(VALUE self) {
@@ -451,6 +598,7 @@ void init_tinytds_client() {
   rb_define_method(cTinyTdsClient, "dead?", rb_tinytds_dead, 0);
   rb_define_method(cTinyTdsClient, "sqlsent?", rb_tinytds_sqlsent, 0);
   rb_define_method(cTinyTdsClient, "execute", rb_tinytds_execute, 1);
+  rb_define_method(cTinyTdsClient, "insert", rb_tiny_tds_insert, 1);
   rb_define_method(cTinyTdsClient, "charset", rb_tinytds_charset, 0);
   rb_define_method(cTinyTdsClient, "encoding", rb_tinytds_encoding, 0);
   rb_define_method(cTinyTdsClient, "escape", rb_tinytds_escape, 1);

@@ -132,14 +132,6 @@ static RETCODE nogvl_dbsqlok(DBPROCESS *client) {
   return retcode;
 }
 
-static RETCODE nogvl_dbsqlexec(DBPROCESS *client) {
-  int retcode = FAIL;
-  nogvl_setup(client);
-  retcode = NOGVL_DBCALL(dbsqlexec, client);
-  nogvl_cleanup(client);
-  return retcode;
-}
-
 static RETCODE nogvl_dbresults(DBPROCESS *client) {
   int retcode = FAIL;
   nogvl_setup(client);
@@ -543,31 +535,6 @@ static VALUE rb_tinytds_result_return_code(VALUE self) {
   }
 }
 
-static VALUE rb_tinytds_result_insert(VALUE self) {
-  GET_RESULT_WRAPPER(self);
-  if (rwrap->client) {
-    VALUE identity = Qnil;
-    rb_tinytds_result_exec_helper(rwrap->client);
-    dbcmd(rwrap->client, rwrap->cwrap->identity_insert_sql);
-    if (nogvl_dbsqlexec(rwrap->client) != FAIL
-      && nogvl_dbresults(rwrap->client) != FAIL
-      && DBROWS(rwrap->client) != FAIL) {
-      while (nogvl_dbnextrow(rwrap->client) != NO_MORE_ROWS) {
-        int col = 1;
-        BYTE *data = dbdata(rwrap->client, col);
-        DBINT data_len = dbdatlen(rwrap->client, col);
-        int null_val = ((data == NULL) && (data_len == 0));
-        if (!null_val)
-          identity = LL2NUM(*(DBBIGINT *)data);
-      }
-    }
-    return identity;
-  } else {
-    return Qnil;
-  }
-}
-
-
 // Lib Init
 
 void init_tinytds_result() {
@@ -584,7 +551,6 @@ void init_tinytds_result() {
   rb_define_method(cTinyTdsResult, "do", rb_tinytds_result_do, 0);
   rb_define_method(cTinyTdsResult, "affected_rows", rb_tinytds_result_affected_rows, 0);
   rb_define_method(cTinyTdsResult, "return_code", rb_tinytds_result_return_code, 0);
-  rb_define_method(cTinyTdsResult, "insert", rb_tinytds_result_insert, 0);
   /* Intern String Helpers */
   intern_new = rb_intern("new");
   intern_utc = rb_intern("utc");

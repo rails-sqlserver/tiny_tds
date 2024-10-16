@@ -1,6 +1,7 @@
 ## (unreleased)
 
 * Use freetds v1.5.1 and OpenSSL v3.5.0 for Windows and Linux builds.
+* Cancel previous query results automatically when invoking a new query
 
 ## 3.2.1
 

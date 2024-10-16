@@ -15,12 +15,6 @@ VALUE opt_escape_regex, opt_escape_dblquote;
   tinytds_client_wrapper *cwrap; \
   Data_Get_Struct(self, tinytds_client_wrapper, cwrap)
 
-#define REQUIRE_OPEN_CLIENT(cwrap) \
-  if (cwrap->closed || cwrap->userdata->closed) { \
-    rb_raise(cTinyTdsError, "closed connection"); \
-    return Qnil; \
-  }
-
 
 // Lib Backend (Helpers)
 
@@ -337,8 +331,32 @@ static VALUE rb_tinytds_execute(VALUE self, VALUE sql)
   VALUE result;
 
   GET_CLIENT_WRAPPER(self);
+  
+  if (cwrap->closed || cwrap->userdata->closed) {
+    rb_raise(cTinyTdsError, "closed connection");
+    return Qnil;
+  }
+
+  if (rb_tinytds_dead(self) == Qtrue) {
+    rb_raise(cTinyTdsError, "client is dead, please create a new instance");
+    return Qnil;
+  }
+
+  // user is coming back from an each loop, make sure we cancel the pending results
+  if (cwrap->userdata->dbsql_sent) {
+    // if we do not run dbsqlok, FreeTDS will throw an error
+    // Attempt to initiate a new Adaptive Server operation with results pending
+    // note that both of these operations are blocking as we do not have access to these
+    // "NOGVL" methods from result.c
+    if (cwrap->userdata->dbsqlok_sent == 0) {
+      dbsqlok(cwrap->client);
+    }
+
+    dbcancel(cwrap->client);
+  }
+
   rb_tinytds_client_reset_userdata(cwrap->userdata);
-  REQUIRE_OPEN_CLIENT(cwrap);
+
   dbcmd(cwrap->client, StringValueCStr(sql));
 
   if (dbsqlsend(cwrap->client) == FAIL) {

@@ -263,4 +263,45 @@ class ClientTest < TinyTds::TestCase
       ).must_equal "user"
     end
   end
+
+  describe "#execute" do
+    it "cancels pending select query" do
+      client = new_connection
+      client.execute("SELECT 1 as [one]")
+
+      assert client.sqlsent?
+      assert !client.canceled?
+
+      result = client.execute("SELECT 1 as [one]")
+      assert_equal [{"one"=>1}], result.to_a
+      assert_client_works(client)
+    end
+
+    it "cancels pending wait query" do
+      client = new_connection
+      client.execute("WaitFor Delay '00:00:05'")
+
+      assert client.sqlsent?
+      assert !client.canceled?
+
+      result = client.execute("SELECT 1 as [one]")
+      assert_equal [{"one"=>1}], result.to_a
+      assert_client_works(client)
+    end
+
+    # this requires to not send another `dbsqlok` compared to the previous to test cases
+    it "cancel partially retrieved results" do
+      client = new_connection
+      result = client.execute("SELECT 1 as [one]; SELECT 2 as [two]; SELECT 3 as [three]")
+      result.each { |r| break if r.key?("two") }
+
+      assert_equal 1, result.count
+      assert client.sqlsent?
+      assert !client.canceled?
+
+      result = client.execute("SELECT 1 as [one]")
+      assert_equal [{"one"=>1}], result.to_a
+      assert_client_works(client)
+    end
+  end
 end

@@ -273,7 +273,7 @@ class ClientTest < TinyTds::TestCase
       assert !client.canceled?
 
       result = client.execute("SELECT 1 as [one]")
-      assert_equal [{"one"=>1}], result.to_a
+      assert_equal [{"one" => 1}], result.to_a
       assert_client_works(client)
     end
 
@@ -285,7 +285,7 @@ class ClientTest < TinyTds::TestCase
       assert !client.canceled?
 
       result = client.execute("SELECT 1 as [one]")
-      assert_equal [{"one"=>1}], result.to_a
+      assert_equal [{"one" => 1}], result.to_a
       assert_client_works(client)
     end
 
@@ -300,7 +300,7 @@ class ClientTest < TinyTds::TestCase
       assert !client.canceled?
 
       result = client.execute("SELECT 1 as [one]")
-      assert_equal [{"one"=>1}], result.to_a
+      assert_equal [{"one" => 1}], result.to_a
       assert_client_works(client)
     end
   end

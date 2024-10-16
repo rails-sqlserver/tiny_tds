@@ -1,5 +1,6 @@
 #include <tiny_tds_ext.h>
 #include <errno.h>
+#include <nogvl.h>
 
 VALUE cTinyTdsClient;
 extern VALUE mTinyTds, cTinyTdsError;
@@ -331,7 +332,7 @@ static VALUE rb_tinytds_execute(VALUE self, VALUE sql)
   VALUE result;
 
   GET_CLIENT_WRAPPER(self);
-  
+
   if (cwrap->closed || cwrap->userdata->closed) {
     rb_raise(cTinyTdsError, "closed connection");
     return Qnil;

@@ -15,7 +15,7 @@ jobs:
           - "x86-mingw32"
           - "x64-mingw-ucrt"
     name: cross-compile-windows
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     container:
       image: "ghcr.io/rake-compiler/rake-compiler-dock-image:1.4.0-mri-${{ matrix.platform }}"
     steps:
@@ -328,7 +328,7 @@ jobs:
           exit $LASTEXITCODE
 
   compile-native-ports:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: cross-compile-linux
     steps:
       - uses: actions/checkout@v4
@@ -371,7 +371,7 @@ jobs:
           - "3.1"
           - "3.2"
           - "3.3"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 

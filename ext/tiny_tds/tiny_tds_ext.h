@@ -11,6 +11,7 @@
 #include <sybfront.h>
 #include <sybdb.h>
 
+#include <nogvl.h>
 #include <client.h>
 #include <result.h>
 

@@ -4,6 +4,7 @@
 * Drop support for SQL Server < 2017
 * Drop support for FreeTDS < 1.0
 * Raise error if FreeTDS is unable to sent command buffer to the server
+* Cancel previous query results automatically when invoking a new query
 
 ## 2.1.7
 * Add Ruby 3.3 to the cross compile list

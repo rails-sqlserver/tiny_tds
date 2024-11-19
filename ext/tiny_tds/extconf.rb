@@ -22,7 +22,6 @@ do_help if arg_config('--help')
 
 # Make sure to check the ports path for the configured host
 architecture = RbConfig::CONFIG['arch']
-architecture = "x86-mingw32" if architecture == "i386-mingw32"
 
 project_dir = File.expand_path("../../..", __FILE__)
 freetds_ports_dir = File.join(project_dir, 'ports', architecture, 'freetds', FREETDS_VERSION)

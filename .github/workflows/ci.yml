@@ -12,7 +12,6 @@ jobs:
       matrix:
         platform:
           - "x64-mingw32"
-          - "x86-mingw32"
           - "x64-mingw-ucrt"
     name: cross-compile-windows
     runs-on: ubuntu-22.04

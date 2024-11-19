@@ -3,6 +3,7 @@
 * Drop support for Ruby < 2.7
 * Drop support for SQL Server < 2017
 * Drop support for FreeTDS < 1.0
+* No longer provide a 32-bit Windows build
 * Raise error if FreeTDS is unable to sent command buffer to the server
 * Use freetds v1.4.23, libiconv v1.17 and OpenSSL v3.4.0 for Windows builds
 

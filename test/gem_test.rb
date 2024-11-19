@@ -158,7 +158,6 @@ class GemTest < MiniTest::Spec
       {
         'x64-mingw-ucrt' => 'x64-mingw-ucrt',
         'x64-mingw32' => 'x64-mingw32',
-        'x86-mingw32' => 'x86-mingw32',
         'x86_64-linux' => 'x86_64-linux',
       }.each do |host,expected|
         describe "on a #{host} architecture" do

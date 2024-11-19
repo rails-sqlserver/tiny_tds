@@ -96,6 +96,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        force-encryption:
+          - "false"
+          - "true"
         mssql-version:
           - 2017
           - 2019
@@ -143,6 +146,7 @@ jobs:
           components: sqlcmd,sqlengine
           version: ${{ matrix.mssql-version }}
           sa-password: c0MplicatedP@ssword
+          force-encryption: ${{ matrix.force-encryption }}
 
       - name: Setup MSSQL database
         shell: pwsh
@@ -216,6 +220,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        force-encryption:
+          - "false"
+          - "true"
         mssql-version:
           - 2017
           - 2019
@@ -263,6 +270,7 @@ jobs:
           components: sqlcmd,sqlengine
           version: ${{ matrix.mssql-version }}
           sa-password: c0MplicatedP@ssword
+          force-encryption: ${{ matrix.force-encryption }}
 
       - name: Setup MSSQL database
         shell: pwsh

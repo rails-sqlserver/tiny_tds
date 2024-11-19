@@ -35,10 +35,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ports
-          key: cross-compiled-${{ hashFiles('**/.ports_versions') }}
+          key: cross-compiled-${{ matrix.platform }}-${{ hashFiles('**/.ports_versions') }}
           restore-keys: |
-            cross-compiled-${{ hashFiles('**/.ports_versions') }}
-            cross-compiled-v2-
+            cross-compiled-${{ matrix.platform }}-${{ hashFiles('**/.ports_versions') }}
+            cross-compiled-${{ matrix.platform }}-
 
       - name: Build gem
         shell: bash
@@ -351,10 +351,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ports
-          key: native-v2-${{ hashFiles('**/.ports_versions') }}
+          key: native-${{ hashFiles('**/.ports_versions') }}
           restore-keys: |
             native-${{ hashFiles('* */.ports_versions') }}
-            native-v2-
+            native-
 
       - name: Build required libraries
         run: |
@@ -394,7 +394,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ports
-          key: native-v2-${{ hashFiles('**/.ports_versions') }}
+          key: native-${{ hashFiles('**/.ports_versions') }}
           fail-on-cache-miss: true
 
       - name: Build gem

@@ -96,8 +96,8 @@ jobs:
       fail-fast: false
       matrix:
         force-encryption:
-          - "false"
-          - "true"
+          - false
+          - true
         mssql-version:
           - 2017
           - 2019
@@ -220,8 +220,8 @@ jobs:
       fail-fast: false
       matrix:
         force-encryption:
-          - "false"
-          - "true"
+          - false
+          - true
         mssql-version:
           - 2017
           - 2019

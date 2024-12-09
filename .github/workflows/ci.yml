@@ -140,7 +140,7 @@ jobs:
           Copy-Item -Path ".\tmp\tiny_tds-$gemVersion-$rubyArchitecture\ports" -Destination "." -Recurse
 
       - name: Setup MSSQL
-        uses: andyundso/setup-mssql@v1
+        uses: rails-sqlserver/setup-mssql@v1
         with:
           components: sqlcmd,sqlengine
           version: ${{ matrix.mssql-version }}
@@ -264,7 +264,7 @@ jobs:
           Copy-Item -Path ".\tmp\tiny_tds-$gemVersion-$rubyArchitecture\ports" -Destination "." -Recurse
 
       - name: Setup MSSQL
-        uses: andyundso/setup-mssql@v1
+        uses: rails-sqlserver/setup-mssql@v1
         with:
           components: sqlcmd,sqlengine
           version: ${{ matrix.mssql-version }}
@@ -401,7 +401,7 @@ jobs:
           bundle exec rake build
 
       - name: Setup MSSQL
-        uses: andyundso/setup-mssql@v1
+        uses: rails-sqlserver/setup-mssql@v1
         with:
           components: sqlcmd,sqlengine
           version: ${{ matrix.mssql-version }}

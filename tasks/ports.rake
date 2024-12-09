@@ -48,10 +48,10 @@ namespace :ports do
     if libraries_to_compile[:openssl]
       # freetds doesn't have an option that will provide an rpath
       # so we do it manually
-      ENV['OPENSSL_CFLAGS'] = "-Wl,-rpath -Wl,#{libraries_to_compile[:openssl].path}/lib"
+      ENV['OPENSSL_CFLAGS'] = "-Wl,-rpath -Wl,#{libraries_to_compile[:openssl].path}/lib64"
       # Add the pkgconfig file with MSYS2'ish path, to prefer our ports build
       # over MSYS2 system OpenSSL.
-      ENV['PKG_CONFIG_PATH'] = "#{libraries_to_compile[:openssl].path.gsub(/^(\w):/i) { "/" + $1.downcase }}/lib/pkgconfig:#{ENV['PKG_CONFIG_PATH']}"
+      ENV['PKG_CONFIG_PATH'] = "#{libraries_to_compile[:openssl].path.gsub(/^(\w):/i) { "/" + $1.downcase }}/lib64/pkgconfig:#{ENV['PKG_CONFIG_PATH']}"
       libraries_to_compile[:freetds].configure_options << "--with-openssl=#{libraries_to_compile[:openssl].path}"
     end
 

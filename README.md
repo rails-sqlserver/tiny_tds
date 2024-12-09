@@ -34,9 +34,9 @@ $ apt-get install wget
 $ apt-get install build-essential
 $ apt-get install libc6-dev
 
-$ wget http://www.freetds.org/files/stable/freetds-1.4.10.tar.gz
-$ tar -xzf freetds-1.4.10.tar.gz
-$ cd freetds-1.4.10
+$ wget http://www.freetds.org/files/stable/freetds-1.4.23.tar.gz
+$ tar -xzf freetds-1.4.23.tar.gz
+$ cd freetds-1.4.23
 $ ./configure --prefix=/usr/local --with-tdsver=7.4
 $ make
 $ make install

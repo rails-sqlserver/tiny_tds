@@ -12,7 +12,6 @@ jobs:
       matrix:
         platform:
           - "x64-mingw32"
-          - "x86-mingw32"
           - "x64-mingw-ucrt"
     name: cross-compile-windows
     runs-on: ubuntu-22.04
@@ -35,10 +34,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ports
-          key: cross-compiled-${{ hashFiles('**/.ports_versions') }}
+          key: cross-compiled-v3-${{ matrix.platform }}-${{ hashFiles('**/.ports_versions') }}
           restore-keys: |
-            cross-compiled-${{ hashFiles('**/.ports_versions') }}
-            cross-compiled-v2-
+            cross-compiled-v3-${{ matrix.platform }}-${{ hashFiles('**/.ports_versions') }}
+            cross-compiled-v3-${{ matrix.platform }}-
 
       - name: Build gem
         shell: bash
@@ -96,8 +95,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        force-encryption:
+          - false
+          - true
         mssql-version:
-          #- 2017
+          - 2017
           - 2019
           - 2022
         ruby-version:
@@ -138,12 +140,12 @@ jobs:
           Copy-Item -Path ".\tmp\tiny_tds-$gemVersion-$rubyArchitecture\ports" -Destination "." -Recurse
 
       - name: Setup MSSQL
-        uses: potatoqualitee/mssqlsuite@v1.7
+        uses: rails-sqlserver/setup-mssql@v1
         with:
-          install: sqlengine, sqlclient
+          components: sqlcmd,sqlengine
           version: ${{ matrix.mssql-version }}
           sa-password: c0MplicatedP@ssword
-          show-log: true
+          force-encryption: ${{ matrix.force-encryption }}
 
       - name: Setup MSSQL database
         shell: pwsh
@@ -217,8 +219,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        force-encryption:
+          - false
+          - true
         mssql-version:
-          #- 2017
+          - 2017
           - 2019
           - 2022
         ruby-version:
@@ -259,12 +264,12 @@ jobs:
           Copy-Item -Path ".\tmp\tiny_tds-$gemVersion-$rubyArchitecture\ports" -Destination "." -Recurse
 
       - name: Setup MSSQL
-        uses: potatoqualitee/mssqlsuite@v1.7
+        uses: rails-sqlserver/setup-mssql@v1
         with:
-          install: sqlengine, sqlclient
+          components: sqlcmd,sqlengine
           version: ${{ matrix.mssql-version }}
           sa-password: c0MplicatedP@ssword
-          show-log: true
+          force-encryption: ${{ matrix.force-encryption }}
 
       - name: Setup MSSQL database
         shell: pwsh
@@ -345,10 +350,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ports
-          key: native-v2-${{ hashFiles('**/.ports_versions') }}
+          key: native-v3-${{ hashFiles('**/.ports_versions') }}
           restore-keys: |
-            native-${{ hashFiles('* */.ports_versions') }}
-            native-v2-
+            native-v3-${{ hashFiles('* */.ports_versions') }}
+            native-v3-
 
       - name: Build required libraries
         run: |
@@ -388,7 +393,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ports
-          key: native-v2-${{ hashFiles('**/.ports_versions') }}
+          key: native-v3-${{ hashFiles('**/.ports_versions') }}
           fail-on-cache-miss: true
 
       - name: Build gem
@@ -396,12 +401,11 @@ jobs:
           bundle exec rake build
 
       - name: Setup MSSQL
-        uses: potatoqualitee/mssqlsuite@v1.7
+        uses: rails-sqlserver/setup-mssql@v1
         with:
-          install: sqlengine, sqlclient
+          components: sqlcmd,sqlengine
           version: ${{ matrix.mssql-version }}
           sa-password: "c0MplicatedP@ssword"
-          show-log: true
 
       - name: Setup MSSQL database
         run: |

@@ -1,4 +1,4 @@
-## (unreleased)
+## 3.0.0
 
 * Drop support for Ruby < 2.7
 * Drop support for SQL Server < 2017

@@ -6,6 +6,7 @@
 * No longer provide a 32-bit Windows build
 * Raise error if FreeTDS is unable to send command buffer to the server
 * Use freetds v1.4.23, libiconv v1.17 and OpenSSL v3.4.0 for Windows builds
+* Add `bigdecimal` to dependencies
 
 ## 2.1.7
 * Add Ruby 3.3 to the cross compile list

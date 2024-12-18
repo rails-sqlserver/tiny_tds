@@ -2,6 +2,10 @@
 require 'test_helper'
 
 class ClientTest < TinyTds::TestCase
+  before do
+    @@current_schema_loaded ||= load_current_schema
+  end
+
   describe 'with valid credentials' do
     before do
       @client = new_connection
@@ -327,7 +331,7 @@ class ClientTest < TinyTds::TestCase
     it 'has a #do method that cancels result rows and returns affected rows natively' do
       rollback_transaction(@client) do
         text = 'test affected rows native'
-        count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").each.first['count']
+        count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").first['count']
         deleted_rows = @client.do("DELETE FROM [datatypes]")
         assert_equal count, deleted_rows, 'should have deleted rows equal to count'
         inserted_rows = @client.do("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')")

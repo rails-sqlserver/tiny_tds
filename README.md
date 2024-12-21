@@ -67,7 +67,7 @@ TinyTDS is developed against FreeTDs 1.1+. We also test with SQL Server 2017, 20
 
 * **OK, I am installing FreeTDS, how do I configure it?** Contrary to what most people think, you do not need to specially configure FreeTDS in any way for client libraries like TinyTDS to use it. About the only requirement is that you compile it with libiconv for proper encoding support. FreeTDS must also be compiled with OpenSSL (or the like) to use it with Azure. See the "Using TinyTDS with Azure" section below for more info.
 
-* **Do I need to configure `--with-tdsver` equal to anything?** Most likely! Technically you should not have to. This is only a default for clients/configs that do not specify what TDS version they want to use. We are currently having issues with passing down a TDS version with the login bit. Till we get that fixed, if you are not using a freetds.conf or a TDSVER environment variable, then make sure to use 7.4.
+* **Do I need to configure `--with-tdsver` equal to anything?** Most likely! Technically you should not have to. This is only a default for clients/configs that do not specify what TDS version they want to use.
 
 * **I want to configure FreeTDS using `--enable-msdblib` and/or `--enable-sybase-compat` so it works for my database. Cool?** It's a waste of time and totally moot! Client libraries like TinyTDS define their own C structure names where they diverge from Sybase to SQL Server. Technically we use the MSDBLIB structures which does not mean we only work with that database vs Sybase. These configs are just a low level default for C libraries that do not define what they want. So I repeat, you do not NEED to use any of these, nor will they hurt anything since we control what C structure names we use internally!
 

@@ -2,7 +2,7 @@
 require 'test_helper'
 require 'tiny_tds/gem'
 
-class GemTest < MiniTest::Spec
+class GemTest < Minitest::Spec
   gem_root ||= File.expand_path '../..', __FILE__
 
   describe TinyTds::Gem do

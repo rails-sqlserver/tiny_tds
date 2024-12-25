@@ -10,7 +10,7 @@ Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new, Minitest::Repor
 TINYTDS_SCHEMAS = ['sqlserver_2017', 'sqlserver_azure'].freeze
 
 module TinyTds
-  class TestCase < MiniTest::Spec
+  class TestCase < Minitest::Spec
 
     class << self
 

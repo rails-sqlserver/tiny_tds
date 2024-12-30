@@ -1,3 +1,7 @@
+## 3.1.0
+
+* Add Ruby 3.4 to the cross compile list
+
 ## 3.0.0
 
 * Drop support for Ruby < 2.7

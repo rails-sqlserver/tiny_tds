@@ -16,7 +16,7 @@ jobs:
     name: cross-compile-windows
     runs-on: ubuntu-22.04
     container:
-      image: "ghcr.io/rake-compiler/rake-compiler-dock-image:1.4.0-mri-${{ matrix.platform }}"
+      image: "ghcr.io/rake-compiler/rake-compiler-dock-image:1.7.0-mri-${{ matrix.platform }}"
     steps:
       - uses: actions/checkout@v4
 
@@ -181,6 +181,7 @@ jobs:
           - "3.1"
           - "3.2"
           - "3.3"
+          - "3.4"
 
     name: install-windows-ucrt
     runs-on: windows-latest
@@ -230,6 +231,8 @@ jobs:
           - "3.1"
           - "3.2"
           - "3.3"
+          - "3.4"
+
     name: test-windows-ucrt
     runs-on: windows-latest
     steps:
@@ -305,6 +308,7 @@ jobs:
           - "3.1"
           - "3.2"
           - "3.3"
+          - "3.4"
 
     name: install-windows-native
     runs-on: windows-latest
@@ -340,7 +344,7 @@ jobs:
 
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.3
+          ruby-version: 3.4
           bundler-cache: true
 
       - name: Write used versions into file
@@ -376,6 +380,8 @@ jobs:
           - "3.1"
           - "3.2"
           - "3.3"
+          - "3.4"
+
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -439,6 +445,7 @@ jobs:
           - "3.1"
           - "3.2"
           - "3.3"
+          - "3.4"
 
     name: install-macos-m1
     runs-on: macos-14

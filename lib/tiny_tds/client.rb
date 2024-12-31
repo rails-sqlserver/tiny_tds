@@ -3,10 +3,8 @@ module TinyTds
 
     @default_query_options = {
       as: :hash,
-      symbolize_keys: false,
-      cache_rows: true,
-      timezone: :local,
-      empty_sets: true
+      empty_sets: true,
+      timezone: :local
     }
 
     attr_reader :query_options
@@ -45,7 +43,6 @@ module TinyTds
       end
 
       opts[:username] = parse_username(opts)
-      @query_options = self.class.default_query_options.dup
       opts[:password] = opts[:password].to_s if opts[:password] && opts[:password].to_s.strip != ''
       opts[:appname] ||= 'TinyTds'
       opts[:tds_version] = tds_versions_setter(opts)

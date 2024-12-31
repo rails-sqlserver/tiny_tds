@@ -6,8 +6,8 @@ require 'rational'
 require 'tiny_tds/version'
 require 'tiny_tds/error'
 require 'tiny_tds/client'
-require 'tiny_tds/result'
 require 'tiny_tds/gem'
+require 'tiny_tds/result'
 
 # Support multiple ruby versions, fat binaries under Windows.
 if RUBY_PLATFORM =~ /mingw|mswin/ && RUBY_VERSION =~ /(\d+.\d+)/

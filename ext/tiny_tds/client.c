@@ -17,10 +17,6 @@ VALUE opt_onek, opt_onebil, opt_float_zero, opt_four, opt_tenk;
 
 // Lib Macros
 
-#define GET_CLIENT_WRAPPER(self) \
-  tinytds_client_wrapper *cwrap; \
-  Data_Get_Struct(self, tinytds_client_wrapper, cwrap)
-
 #ifdef _WIN32
   #define LONG_LONG_FORMAT "I64d"
 #else
@@ -395,10 +391,30 @@ static void rb_tinytds_client_free(void *ptr) {
   xfree(ptr);
 }
 
+size_t rb_tinytds_client_size(const void* data)
+{
+	return sizeof(tinytds_client_wrapper);
+}
+
+static const rb_data_type_t tinytds_client_wrapper_type = {
+	.wrap_struct_name = "tinytds_client_wrapper",
+	.function = {
+		.dmark = rb_tinytds_client_mark,
+		.dfree = rb_tinytds_client_free,
+		.dsize = rb_tinytds_client_size,
+	},
+	.data = NULL,
+	.flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+#define GET_CLIENT_WRAPPER(self) \
+  tinytds_client_wrapper *cwrap; \
+  TypedData_Get_Struct(self, tinytds_client_wrapper, &tinytds_client_wrapper_type, cwrap);
+
 static VALUE allocate(VALUE klass) {
   VALUE obj;
   tinytds_client_wrapper *cwrap;
-  obj = Data_Make_Struct(klass, tinytds_client_wrapper, rb_tinytds_client_mark, rb_tinytds_client_free, cwrap);
+  obj = TypedData_Make_Struct(klass, tinytds_client_wrapper, &tinytds_client_wrapper_type, cwrap);
   cwrap->closed = 1;
   cwrap->charset = Qnil;
   cwrap->userdata = malloc(sizeof(tinytds_client_userdata));

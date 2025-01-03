@@ -1,9 +1,9 @@
-require_relative './recipe'
+require_relative "recipe"
 
 module Ports
   class Libiconv < Recipe
     def initialize(version)
-      super('libiconv', version)
+      super("libiconv", version)
 
       set_patches
     end
@@ -13,14 +13,14 @@ module Ports
     def configure_defaults
       [
         "--host=#{@host}",
-        '--disable-static',
-        '--enable-shared',
-        'CFLAGS=-fPIC -O2'
+        "--disable-static",
+        "--enable-shared",
+        "CFLAGS=-fPIC -O2"
       ]
     end
 
     def set_patches
-      self.patch_files.concat get_patches(name, version)
+      patch_files.concat get_patches(name, version)
     end
   end
 end

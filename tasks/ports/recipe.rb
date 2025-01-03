@@ -1,7 +1,6 @@
-# encoding: UTF-8
-require 'mini_portile2'
-require 'fileutils'
-require 'rbconfig'
+require "mini_portile2"
+require "fileutils"
+require "rbconfig"
 
 module Ports
   class Recipe < MiniPortile
@@ -32,8 +31,8 @@ module Ports
     def configure_defaults
       [
         "--host=#{@host}",
-        '--disable-static',
-        '--enable-shared'
+        "--disable-static",
+        "--enable-shared"
       ]
     end
 
@@ -42,7 +41,7 @@ module Ports
     end
 
     def system_host
-      RbConfig::CONFIG['host']
+      RbConfig::CONFIG["host"]
     end
 
     def cross_build?
@@ -53,12 +52,12 @@ module Ports
       patches = []
 
       patch_path = File.expand_path(
-        File.join('..','..','..','patches',libname,version),
+        File.join("..", "..", "..", "patches", libname, version),
         __FILE__
       )
 
-      patches.concat(Dir[File.join(patch_path, '*.patch')].sort)
-      patches.concat(Dir[File.join(patch_path, '*.diff')].sort)
+      patches.concat(Dir[File.join(patch_path, "*.patch")].sort)
+      patches.concat(Dir[File.join(patch_path, "*.diff")].sort)
     end
   end
 end

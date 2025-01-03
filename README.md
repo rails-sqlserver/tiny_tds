@@ -446,6 +446,10 @@ $ rake TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2017
 $ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_SCHEMA=sqlserver_azure
 ```
 
+### Code formatting
+
+We are using `standardrb` to format our code. Just run `bundle exec standardrb --fix` to format all Ruby files.
+
 ## Docker Builds
 
 If you use a [multi stage](https://docs.docker.com/develop/develop-images/multistage-build/) Docker build to assemble your gems in one phase and then copy your app and gems

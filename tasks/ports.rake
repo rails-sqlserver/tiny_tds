@@ -1,10 +1,9 @@
-# encoding: UTF-8
-require 'mini_portile2'
-require 'fileutils'
-require_relative 'ports/libiconv'
-require_relative 'ports/openssl'
-require_relative 'ports/freetds'
-require_relative '../ext/tiny_tds/extconsts'
+require "mini_portile2"
+require "fileutils"
+require_relative "ports/libiconv"
+require_relative "ports/openssl"
+require_relative "ports/freetds"
+require_relative "../ext/tiny_tds/extconsts"
 
 namespace :ports do
   libraries_to_compile = {
@@ -18,7 +17,7 @@ namespace :ports do
   CLEAN.include "ports/*.installed"
 
   task :openssl, [:host, :gem_platform] do |_task, args|
-    args.with_defaults(host: RbConfig::CONFIG['host'], gem_platform: RbConfig::CONFIG["arch"])
+    args.with_defaults(host: RbConfig::CONFIG["host"], gem_platform: RbConfig::CONFIG["arch"])
 
     libraries_to_compile[:openssl].files = [OPENSSL_SOURCE_URI]
     libraries_to_compile[:openssl].host = args.host
@@ -29,7 +28,7 @@ namespace :ports do
   end
 
   task :libiconv, [:host, :gem_platform] do |_task, args|
-    args.with_defaults(host: RbConfig::CONFIG['host'], gem_platform: RbConfig::CONFIG["arch"])
+    args.with_defaults(host: RbConfig::CONFIG["host"], gem_platform: RbConfig::CONFIG["arch"])
 
     libraries_to_compile[:libiconv].files = [ICONV_SOURCE_URI]
     libraries_to_compile[:libiconv].host = args.host
@@ -39,7 +38,7 @@ namespace :ports do
   end
 
   task :freetds, [:host, :gem_platform] do |_task, args|
-    args.with_defaults(host: RbConfig::CONFIG['host'], gem_platform: RbConfig::CONFIG["arch"])
+    args.with_defaults(host: RbConfig::CONFIG["host"], gem_platform: RbConfig::CONFIG["arch"])
 
     libraries_to_compile[:freetds].files = [FREETDS_SOURCE_URI]
     libraries_to_compile[:freetds].host = args.host
@@ -48,10 +47,10 @@ namespace :ports do
     if libraries_to_compile[:openssl]
       # freetds doesn't have an option that will provide an rpath
       # so we do it manually
-      ENV['OPENSSL_CFLAGS'] = "-Wl,-rpath -Wl,#{libraries_to_compile[:openssl].path}/lib64"
+      ENV["OPENSSL_CFLAGS"] = "-Wl,-rpath -Wl,#{libraries_to_compile[:openssl].path}/lib64"
       # Add the pkgconfig file with MSYS2'ish path, to prefer our ports build
       # over MSYS2 system OpenSSL.
-      ENV['PKG_CONFIG_PATH'] = "#{libraries_to_compile[:openssl].path.gsub(/^(\w):/i) { "/" + $1.downcase }}/lib64/pkgconfig:#{ENV['PKG_CONFIG_PATH']}"
+      ENV["PKG_CONFIG_PATH"] = "#{libraries_to_compile[:openssl].path.gsub(/^(\w):/i) { "/" + $1.downcase }}/lib64/pkgconfig:#{ENV["PKG_CONFIG_PATH"]}"
       libraries_to_compile[:freetds].configure_options << "--with-openssl=#{libraries_to_compile[:openssl].path}"
     end
 
@@ -64,7 +63,7 @@ namespace :ports do
   end
 
   task :compile, [:host, :gem_platform] do |_task, args|
-    args.with_defaults(host: RbConfig::CONFIG['host'], gem_platform: RbConfig::CONFIG["arch"])
+    args.with_defaults(host: RbConfig::CONFIG["host"], gem_platform: RbConfig::CONFIG["arch"])
 
     puts "Compiling ports for #{args.host} (Ruby platform #{args.gem_platform}) ..."
 
@@ -73,16 +72,16 @@ namespace :ports do
     end
   end
 
-  desc 'Build the ports windows binaries via rake-compiler-dock'
-  task 'cross' do
-    require 'rake_compiler_dock'
+  desc "Build the ports windows binaries via rake-compiler-dock"
+  task "cross" do
+    require "rake_compiler_dock"
 
     # build the ports for all our cross compile hosts
     GEM_PLATFORM_HOSTS.each do |gem_platform, meta|
       # make sure to install our bundle
-      build = ['bundle']
+      build = ["bundle"]
       build << "RUBY_CC_VERSION=#{meta[:ruby_versions]} rake ports:compile[#{meta[:host]},#{gem_platform}] MAKE='make -j`nproc`'"
-      RakeCompilerDock.sh build.join(' && '), platform: gem_platform
+      RakeCompilerDock.sh build.join(" && "), platform: gem_platform
     end
   end
 
@@ -98,11 +97,9 @@ namespace :ports do
 
     ports_version[:platform] = args.gem_platform
 
-    File.open(".ports_versions", "w") do |f|
-      f.write ports_version
-    end
+    File.write(".ports_versions", ports_version)
   end
 end
 
-desc 'Build ports and activate libraries for the current architecture.'
-task :ports => ['ports:compile']
+desc "Build ports and activate libraries for the current architecture."
+task ports: ["ports:compile"]

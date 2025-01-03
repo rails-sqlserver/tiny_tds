@@ -475,3 +475,18 @@ jobs:
         shell: bash
         run: |
           ruby -e "require 'tiny_tds'; puts TinyTds::Gem.root_path"
+
+  standardrb:
+    name: standardrb
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "2.7"
+          bundler-cache: true
+
+      - name: Check standardrb
+        shell: bash
+        run: bundle exec standardrb

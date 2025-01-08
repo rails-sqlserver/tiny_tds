@@ -38,7 +38,7 @@ if RUBY_PLATFORM =~ /mingw|mswin/ && RUBY_VERSION =~ /(\d+.\d+)/
     end
   end
 
-  # Temporary add bin directories for DLL search, so that freetds DLLs can be found.
+  # Temporary add bin directories for DLL search, so that freetds DLL can be found.
   add_dll_paths.call( TinyTds::Gem.ports_bin_paths ) do
     begin
       require "tiny_tds/#{ver}/tiny_tds"

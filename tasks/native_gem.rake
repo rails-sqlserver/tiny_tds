@@ -1,23 +1,16 @@
-# encoding: UTF-8
+CrossLibraries.each do |xlib|
+	platform = xlib.platform
+	
+    desc "Build fat binary gem for platform #{platform}"
+	task "gem:native:#{platform}" do
+        require "rake_compiler_dock"
 
-desc 'Build the native binary gems using rake-compiler-dock'
-task 'gem:native' => ['ports:cross'] do
-  require 'rake_compiler_dock'
+		RakeCompilerDock.sh <<-EOT, platform: platform
+			bundle install &&
+			rake native:#{platform} pkg/#{SPEC.full_name}-#{platform}.gem MAKEOPTS=-j`nproc` RUBY_CC_VERSION=3.4.1:3.3.5:3.2.0:3.1.0:3.0.0:2.7.0
+		EOT
+	end
 
-  # make sure to install our bundle
-  sh "bundle package --all" # Avoid repeated downloads of gems by using gem files from the host.
-
-  GEM_PLATFORM_HOSTS.each do |plat, meta|
-    RakeCompilerDock.sh "bundle --local && RUBY_CC_VERSION=#{meta[:ruby_versions]} rake native:#{plat} gem", platform: plat
-  end
-end
-
-# assumes you are in a container provided by Rake compiler
-# if not, use the task above
-task 'gem:for_platform', [:gem_platform] do |_task, args|
-  args.with_defaults(gem_platform: RbConfig::CONFIG["arch"])
-
-  sh "bundle install"
-  Rake::Task["ports:compile"].invoke(GEM_PLATFORM_HOSTS[args.gem_platform][:host], args.gem_platform)
-  sh "RUBY_CC_VERSION=#{GEM_PLATFORM_HOSTS[args.gem_platform][:ruby_versions]} rake native:#{args.gem_platform} gem"
+    desc "Build the native binary gems"
+	multitask 'gem:native' => "gem:native:#{platform}"
 end

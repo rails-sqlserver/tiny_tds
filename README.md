@@ -18,16 +18,41 @@ The API is simple and consists of these classes:
 
 ## Install
 
-Installing with rubygems should just work. TinyTDS is currently tested on Ruby version 2.7.0 and upward.
+tiny_tds is tested with Ruby v2.7 and upwards.
 
+### Windows and Linux (64-bit)
+
+We precompile tiny_tds with static versions of FreeTDS and supporting libraries. Just run:
+
+```shell
+gem install tiny_tds
 ```
-$ gem install tiny_tds
+
+It should find the platform-specific gem.
+
+You can also avoid getting the platform-specific gem if you want to compile FreeTDS yourself:
+
+```shell
+gem install tiny_tds --platform ruby
 ```
 
-If you use Windows, we pre-compile TinyTDS with static versions of FreeTDS and supporting libraries.
-If you're using RubyInstaller, the binary gem will require that devkit is installed and in your path to operate properly.
+### Mac
 
-On all other platforms, we will find these dependencies. It is recommended that you install the latest FreeTDS via your method of choice. For example, here is how to install FreeTDS on Ubuntu. You might also need the `build-essential` and possibly the `libc6-dev` packages.
+Install FreeTDS via Homebrew:
+
+```shell
+brew install freetds
+```
+
+Then you can install tiny_tds:
+
+```shell
+gem install tiny_tds
+```
+
+### Everybody else
+
+`tiny_tds` will find FreeTDS based on your compiler paths. Below you can see an example on how to install FreeTDS on a Debian system.
 
 ```shell
 $ apt-get install wget
@@ -37,40 +62,20 @@ $ apt-get install libc6-dev
 $ wget http://www.freetds.org/files/stable/freetds-1.4.23.tar.gz
 $ tar -xzf freetds-1.4.23.tar.gz
 $ cd freetds-1.4.23
-$ ./configure --prefix=/usr/local --with-tdsver=7.4
+$ ./configure --prefix=/usr/local --with-tdsver=7.4 --disable-odbc
 $ make
 $ make install
 ```
 
-Please read the MiniPortile and/or Windows sections at the end of this file for advanced configuration options past the following:
+You can also tell `tiny_tds` where to find your FreeTDS installation.
 
+```shell
+gem install tiny_tds -- --with-freetds-dir=/opt/freetds
 ```
---with-freetds-dir=DIR
-  Use the freetds library placed under DIR.
-```
-
 
 ## Getting Started
 
 Optionally, Microsoft has done a great job writing [an article](https://learn.microsoft.com/en-us/sql/connect/ruby/ruby-driver-for-sql-server?view=sql-server-ver16) on how to get started with SQL Server and Ruby using TinyTDS, however, the articles are using outdated versions.
-
-
-## FreeTDS Compatibility & Configuration
-
-TinyTDS is developed against FreeTDs 1.1+. We also test with SQL Server 2017, 2019, 2022 and Azure. Older version of SQL Server or FreeTDS could work, but are not supported.
-
-> [!IMPORTANT]
->
-> Windows users of our pre-compiled native gems need not worry about installing FreeTDS and its dependencies.
-
-* **Do I need to install FreeTDS?** Yes! Somehow, someway, you are going to need FreeTDS for TinyTDS to compile against.
-
-* **OK, I am installing FreeTDS, how do I configure it?** Contrary to what most people think, you do not need to specially configure FreeTDS in any way for client libraries like TinyTDS to use it. About the only requirement is that you compile it with libiconv for proper encoding support. FreeTDS must also be compiled with OpenSSL (or the like) to use it with Azure. See the "Using TinyTDS with Azure" section below for more info.
-
-* **Do I need to configure `--with-tdsver` equal to anything?** Most likely! Technically you should not have to. This is only a default for clients/configs that do not specify what TDS version they want to use.
-
-* **I want to configure FreeTDS using `--enable-msdblib` and/or `--enable-sybase-compat` so it works for my database. Cool?** It's a waste of time and totally moot! Client libraries like TinyTDS define their own C structure names where they diverge from Sybase to SQL Server. Technically we use the MSDBLIB structures which does not mean we only work with that database vs Sybase. These configs are just a low level default for C libraries that do not define what they want. So I repeat, you do not NEED to use any of these, nor will they hurt anything since we control what C structure names we use internally!
-
 
 ## Data Types
 
@@ -387,11 +392,11 @@ Please read our [thread_test.rb](https://github.com/rails-sqlserver/tiny_tds/blo
 
 This is possible. Since FreeTDS v1.0, utf-16 is enabled by default and supported by tiny_tds. You can toggle it by using `use_utf16` when establishing the connection.
 
-## Compiling Gems for Windows
+## Compiling Gems for Windows and Linux
 
-For the convenience of Windows users, TinyTDS ships pre-compiled gems for supported versions of Ruby on Windows. In order to generate these gems, [rake-compiler-dock](https://github.com/rake-compiler/rake-compiler-dock) is used. This project provides several [Docker images](https://registry.hub.docker.com/u/larskanis/) with rvm, cross-compilers and a number of different target versions of Ruby.
+For the convenience of Windows and Linux users, TinyTDS ships pre-compiled gems for supported versions of Ruby on Windows. In order to generate these gems, [rake-compiler-dock](https://github.com/rake-compiler/rake-compiler-dock) is used. This project provides several [Docker images](https://registry.hub.docker.com/u/larskanis/) with rvm, cross-compilers and a number of different target versions of Ruby.
 
-Run the following rake task to compile the gems for Windows. This will check the availability of [Docker](https://www.docker.com/) (and boot2docker on Windows or OS-X) and will give some advice for download and installation. When docker is running, it will download the docker image (once-only) and start the build:
+Run the following rake task to compile the gems for Windows. This will check the availability of [Docker](https://www.docker.com/) and will give some advice for download and installation. When docker is running, it will download the docker image (once-only) and start the build:
 
 ```
 $ rake gem:native
@@ -446,17 +451,6 @@ $ rake TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2017
 $ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_SCHEMA=sqlserver_azure
 ```
 
-## Docker Builds
-
-If you use a [multi stage](https://docs.docker.com/develop/develop-images/multistage-build/) Docker build to assemble your gems in one phase and then copy your app and gems
-into another, lighter, container without build tools you will need to make sure you tell the OS how to find dependencies for TinyTDS.
-
-After you have built and installed FreeTDS it will normally place library files in `/usr/local/lib`. When TinyTDS builds native extensions,
-it [already knows to look here](https://github.com/rails-sqlserver/tiny_tds/blob/master/ext/tiny_tds/extconf.rb#L31) but if you copy your app to a new container that link will be broken.
-
-Set the LD_LIBRARY_PATH environment variable `export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}` and run `ldconfig`. If you run `ldd tiny_tds.so` you should not see any broken links. Make
-sure you also copied in the library dependencies from your build container with a command like `COPY --from=builder /usr/local/lib /usr/local/lib`.
-
 ## Help & Support
 
 * Github Source: http://github.com/rails-sqlserver/tiny_tds
@@ -481,4 +475,4 @@ My name is Ken Collins and I currently maintain the SQL Server adapter for Activ
 
 ## License
 
-TinyTDS is Copyright (c) 2010-2015 Ken Collins, <ken@metaskills.net> and Will Bond (Veracross LLC) <wbond@breuer.com>. It is distributed under the MIT license. Windows binaries contain pre-compiled versions of FreeTDS <http://www.freetds.org/> which is licensed under the GNU LGPL license at <http://www.gnu.org/licenses/lgpl-2.0.html>
+TinyTDS is Copyright (c) 2010-2015 Ken Collins, <ken@metaskills.net> and Will Bond (Veracross LLC) <wbond@breuer.com>. It is distributed under the MIT license. Windows and Linux binaries contain pre-compiled versions of FreeTDS <http://www.freetds.org/> and `libconv` which is licensed under the GNU LGPL license at <http://www.gnu.org/licenses/lgpl-2.0.html>. They also contain OpenSSL, which is licensed under the OpenSSL license at <https://openssl-library.org/source/license/index.html>.

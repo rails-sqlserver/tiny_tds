@@ -14,6 +14,7 @@ jobs:
           - "x64-mingw32"
           - "x64-mingw-ucrt"
           - "x86_64-linux-gnu"
+          - "x86_64-linux-musl"
 
     name: cross-compile
     runs-on: ubuntu-22.04
@@ -322,6 +323,7 @@ jobs:
       matrix:
         platform:
           - "x86_64-linux-gnu"
+          - "x86_64-linux-musl"
 
         ruby-version:
           - "2.7"
@@ -330,6 +332,11 @@ jobs:
           - "3.2"
           - "3.3"
           - "3.4"
+
+        include:
+          - platform: x86_64-linux-musl
+            docker_tag: "-alpine"
+            bootstrap: "apk add -U build-base &&" # required to compile bigdecimal on Ruby 2.7
 
     name: install-linux
     runs-on: ubuntu-22.04
@@ -347,6 +354,7 @@ jobs:
             ${{ matrix.docker_platform }} ruby:${{ matrix.ruby-version }}${{ matrix.docker_tag }} \
             sh -c "
               gem update --system 3.3.22 &&
+              ${{ matrix.bootstrap }}
               gem install --no-document ./gems/tiny_tds-$(cat VERSION)-${{ matrix.platform }}.gem &&
               ruby -e \"require 'tiny_tds'; puts TinyTds::Gem.root_path\"
             "

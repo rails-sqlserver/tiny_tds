@@ -1,7 +1,7 @@
 ## 3.2.0
 
 * Reduce number of files shipped with precompiled Windows gem
-* Provide precompiled gem for Linux (GNU / 64-bit x86)
+* Provide precompiled gem for Linux (GNU + MUSL / 64-bit x86)
 
 ## 3.1.0
 

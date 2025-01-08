@@ -81,24 +81,11 @@ module TinyTds
           exe = File.expand_path File.join(path, "#{name}#{ext}"), @root
           next if exe == @binstub
           next unless File.executable?(exe)
-          next unless binary?(exe)
+
           return exe
         end
       end
       nil
-    end
-
-    # Implementation directly copied from ptools.
-    # https://github.com/djberg96/ptools
-    # https://opensource.org/licenses/Artistic-2.0
-    #
-    def binary?(file)
-      bytes = File.stat(file).blksize
-      return false unless bytes
-      bytes = 4096 if bytes > 4096
-      s = (File.read(file, bytes) || '')
-      s = s.encode('US-ASCII', undef: :replace).split(//)
-      ((s.size - s.grep(' '..'~').size) / s.size.to_f) > 0.30
     end
   end
 end

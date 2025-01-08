@@ -40,9 +40,17 @@ Rake::ExtensionTask.new('tiny_tds', SPEC) do |ext|
     spec.metadata.delete('msys2_mingw_dependencies')
     
     if spec.platform.to_s =~ /mingw/
-      spec.files << "ports/#{spec.platform.to_s}/bin/libsybdb-5.dll"
+      spec.files += [
+        "ports/#{spec.platform.to_s}/bin/libsybdb-5.dll",
+        "ports/#{spec.platform.to_s}/bin/defncopy.exe",
+        "ports/#{spec.platform.to_s}/bin/tsql.exe"
+      ]
     elsif spec.platform.to_s =~ /linux/
-      spec.files << "ports/#{spec.platform.to_s}/lib/libsybdb.so.5"
+      spec.files += [
+        "ports/#{spec.platform.to_s}/lib/libsybdb.so.5",
+        "ports/#{spec.platform.to_s}/bin/defncopy",
+        "ports/#{spec.platform.to_s}/bin/tsql"
+      ]
     end
   end
 

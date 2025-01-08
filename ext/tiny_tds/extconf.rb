@@ -105,8 +105,9 @@ if gem_platform=with_config("cross-build")
       recipe.configure_options << "--enable-sspi"
     end
 
-    recipe.configure_options << "LDFLAGS=-L#{openssl_recipe.path}/lib"
-		recipe.configure_options << "LIBS=-liconv -lssl -lcrypto #{"-lwsock32 -lgdi32 -lws2_32 -lcrypt32" if MiniPortile.windows?} #{"-ldl -lpthread" if MiniPortile.linux?}"
+    # pass an additional runtime path to the linker so defncopy and tsql can find our shared sybdb
+    recipe.configure_options << "LDFLAGS=-L#{openssl_recipe.path}/lib #{"-Wl,-rpath='$$ORIGIN/../lib'" if MiniPortile.linux?}"
+    recipe.configure_options << "LIBS=-liconv -lssl -lcrypto #{"-lwsock32 -lgdi32 -lws2_32 -lcrypt32" if MiniPortile.windows?} #{"-ldl -lpthread" if MiniPortile.linux?}"
     recipe.configure_options << "CPPFLAGS=-I#{openssl_recipe.path}/include"
 
     recipe.configure_options << "OPENSSL_CFLAGS=-L#{openssl_recipe.path}/lib"

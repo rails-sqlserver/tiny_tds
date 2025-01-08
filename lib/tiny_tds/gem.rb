@@ -12,15 +12,11 @@ module TinyTds
       end
 
       def ports_bin_paths
-        Dir.glob(File.join(ports_root_path,ports_host,'**','bin'))
+        Dir.glob(File.join(ports_root_path, '**', 'bin'))
       end
 
       def ports_lib_paths
-        Dir.glob(File.join(ports_root_path,ports_host,'**','lib'))
-      end
-
-      def ports_host
-        RbConfig::CONFIG["arch"]
+        Dir.glob(File.join(ports_root_path, '**', 'lib'))
       end
     end
   end

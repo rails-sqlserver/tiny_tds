@@ -2,6 +2,7 @@
 
 * Reduce number of files shipped with precompiled Windows gem
 * Provide precompiled gem for Linux (GNU + MUSL / 64-bit x86 + ARM)
+* Fix wrappers for `tsql` and `defncopy` utility.
 
 ## 3.1.0
 

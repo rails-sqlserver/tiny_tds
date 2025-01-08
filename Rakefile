@@ -10,6 +10,7 @@ CrossLibrary = Struct.new :platform, :openssl_config
 CrossLibraries = [
 	['x64-mingw-ucrt', 'mingw64'],
 	['x64-mingw32', 'mingw64'],
+  ['x86_64-linux-gnu', 'linux-x86_64'],
 ].map do |platform, openssl_config|
 	CrossLibrary.new platform, openssl_config
 end
@@ -35,9 +36,11 @@ Rake::ExtensionTask.new('tiny_tds', SPEC) do |ext|
     # The fat binary gem doesn't depend on the freetds package, since it bundles the library.
     spec.metadata.delete('msys2_mingw_dependencies')
     
-    spec.files += [
-      "ports/#{spec.platform.to_s}/bin/libsybdb-5.dll"
-    ]
+    if spec.platform.to_s =~ /mingw/
+      spec.files << "ports/#{spec.platform.to_s}/bin/libsybdb-5.dll"
+    elsif spec.platform.to_s =~ /linux/
+      spec.files << "ports/#{spec.platform.to_s}/lib/libsybdb.so.5"
+    end
   end
 
   ext.cross_config_options += CrossLibraries.map do |xlib|

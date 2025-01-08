@@ -52,8 +52,8 @@ if gem_platform=with_config("cross-build")
       
       def configure
         envs = []
-        envs << "CFLAGS=-DDSO_WIN32 -DOPENSSL_THREADS" if RUBY_PLATFORM =~ /mingw|mswin/
-        envs << "CFLAGS=-fPIC -DOPENSSL_THREADS" if RUBY_PLATFORM =~ /linux/
+        envs << "CFLAGS=-DDSO_WIN32 -DOPENSSL_THREADS" if MiniPortile.windows?
+        envs << "CFLAGS=-fPIC -DOPENSSL_THREADS" if MiniPortile.linux?
         execute('configure', ['env', *envs, "./Configure", openssl_platform, "threads", "-static", "CROSS_COMPILE=#{host}-", configure_prefix, "--libdir=lib"], altlog: "config.log")
       end
       
@@ -72,7 +72,7 @@ if gem_platform=with_config("cross-build")
   end
 
   libiconv_recipe = BuildRecipe.new("libiconv", ICONV_VERSION, [ICONV_SOURCE_URI]).tap do |recipe|
-    recipe.configure_options << "CFLAGS=-fPIC" if RUBY_PLATFORM =~ /linux/
+    recipe.configure_options << "CFLAGS=-fPIC" if MiniPortile.linux?
     recipe.gem_platform = gem_platform
 
     recipe.cook_and_activate
@@ -90,8 +90,7 @@ if gem_platform=with_config("cross-build")
           "--host=#{@host}",
           "--enable-shared",
           "--disable-static",
-          "--disable-odbc",
-          "--enable-sspi",
+          "--disable-odbc"
         ]
       end
     end
@@ -100,13 +99,18 @@ if gem_platform=with_config("cross-build")
     # it seems that FreeTDS build system prefers OPENSSL_CFLAGS and OPENSSL_LIBS
     # but the linker still relies on LIBS and CPPFLAGS
     # removing one or the other leads to build failures in any case of FreeTDS
-    recipe.configure_options << "CFLAGS=-fPIC" if RUBY_PLATFORM =~ /linux/
+    if MiniPortile.linux?
+      recipe.configure_options << "CFLAGS=-fPIC"
+    elsif MiniPortile.windows?
+      recipe.configure_options << "--enable-sspi"
+    end
+
     recipe.configure_options << "LDFLAGS=-L#{openssl_recipe.path}/lib"
-		recipe.configure_options << "LIBS=-liconv -lssl -lcrypto -lwsock32 -lgdi32 -lws2_32 -lcrypt32"
+		recipe.configure_options << "LIBS=-liconv -lssl -lcrypto #{"-lwsock32 -lgdi32 -lws2_32 -lcrypt32" if MiniPortile.windows?} #{"-ldl -lpthread" if MiniPortile.linux?}"
     recipe.configure_options << "CPPFLAGS=-I#{openssl_recipe.path}/include"
 
     recipe.configure_options << "OPENSSL_CFLAGS=-L#{openssl_recipe.path}/lib"
-    recipe.configure_options << "OPENSSL_LIBS=-lssl -lcrypto -lwsock32 -lgdi32 -lws2_32 -lcrypt32"
+    recipe.configure_options << "OPENSSL_LIBS=-lssl -lcrypto #{"-lwsock32 -lgdi32 -lws2_32 -lcrypt32" if MiniPortile.windows?} #{"-ldl -lpthread" if MiniPortile.linux?}"
 
     recipe.configure_options << "--with-openssl=#{openssl_recipe.path}"
     recipe.configure_options << "--with-libiconv-prefix=#{libiconv_recipe.path}"
@@ -115,7 +119,9 @@ if gem_platform=with_config("cross-build")
     recipe.cook_and_activate
   end
 
-  ENV["LDFLAGS"] = "-Wl,-rpath -Wl,#{freetds_recipe.path}/lib"
+  # enable relative path to later load the FreeTDS shared library
+  $LDFLAGS << " '-Wl,-rpath=$$ORIGIN/../../../ports/#{gem_platform}/lib'"
+
   dir_config('freetds', "#{freetds_recipe.path}/include", "#{freetds_recipe.path}/lib")
 else
   # Make sure to check the ports path for the configured host
@@ -172,14 +178,10 @@ else
   dir_config('freetds', idirs, ldirs)
 end
 
-if /solaris/ =~ RUBY_PLATFORM
-	append_cppflags( '-D__EXTENSIONS__' )
-end
-
 find_header('sybfront.h') or abort "Can't find the 'sybfront.h' header"
 find_header('sybdb.h') or abort "Can't find the 'sybdb.h' header"
 
-unless find_library('sybdb', 'dbanydatecrack')
+unless have_library('sybdb', 'dbanydatecrack')
   abort "Failed! Do you have FreeTDS 1.0.0 or higher installed?"
 end
 

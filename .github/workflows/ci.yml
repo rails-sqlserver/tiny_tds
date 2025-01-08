@@ -13,7 +13,9 @@ jobs:
         platform:
           - "x64-mingw32"
           - "x64-mingw-ucrt"
-    name: cross-compile-windows
+          - "x86_64-linux-gnu"
+
+    name: cross-compile
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -22,7 +24,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "2.7"
-      
+
       - name: "Install dependencies"
         run: bundle install
 
@@ -34,10 +36,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ports
-          key: cross-compiled-v7-${{ matrix.platform }}-${{ hashFiles('**/.ports_versions') }}
+          key: cross-compiled-v8-${{ matrix.platform }}-${{ hashFiles('**/.ports_versions') }}
           restore-keys: |
-            cross-compiled-v7-${{ matrix.platform }}-${{ hashFiles('**/.ports_versions') }}
-            cross-compiled-v7-${{ matrix.platform }}-
+            cross-compiled-v8-${{ matrix.platform }}-${{ hashFiles('**/.ports_versions') }}
+            cross-compiled-v8-${{ matrix.platform }}-
 
       - name: Build gem
         shell: bash
@@ -123,21 +125,9 @@ jobs:
 
       - name: Install native gem and restore cross-compiled code from it
         shell: pwsh
-        run: |
-          $rubyArchitecture = (ruby -e "puts RbConfig::CONFIG['arch']").Trim()
-          $gemVersion = (Get-Content VERSION).Trim()
-          $gemToUnpack = "./tiny_tds-$gemVersion-$rubyArchitecture.gem"
-
-          Write-Host "Looking to unpack $gemToUnpack"
-          gem unpack --target ./tmp "$gemToUnpack"
-
-          # Restore precompiled code
-          $source = (Resolve-Path ".\tmp\tiny_tds-$gemVersion-$rubyArchitecture\lib\tiny_tds").Path
-          $destination = (Resolve-Path ".\lib\tiny_tds").Path
-          Get-ChildItem $source -Recurse -Exclude "*.rb" | Copy-Item -Destination {Join-Path $destination $_.FullName.Substring($source.length)}
-
-          # Restore ports
-          Copy-Item -Path ".\tmp\tiny_tds-$gemVersion-$rubyArchitecture\ports" -Destination "." -Recurse
+        run: "& ./test/bin/restore-from-native-gem.ps1"
+        env:
+          RUBY_ARCHITECTURE: "x64-mingw32"
 
       - name: Setup MSSQL
         uses: rails-sqlserver/setup-mssql@v1
@@ -250,21 +240,9 @@ jobs:
 
       - name: Install native gem and restore cross-compiled code from it
         shell: pwsh
-        run: |
-          $rubyArchitecture = (ruby -e "puts RbConfig::CONFIG['arch']").Trim()
-          $gemVersion = (Get-Content VERSION).Trim()
-          $gemToUnpack = "./tiny_tds-$gemVersion-$rubyArchitecture.gem"
-
-          Write-Host "Looking to unpack $gemToUnpack"
-          gem unpack --target ./tmp "$gemToUnpack"
-
-          # Restore precompiled code
-          $source = (Resolve-Path ".\tmp\tiny_tds-$gemVersion-$rubyArchitecture\lib\tiny_tds").Path
-          $destination = (Resolve-Path ".\lib\tiny_tds").Path
-          Get-ChildItem $source -Recurse -Exclude "*.rb" | Copy-Item -Destination {Join-Path $destination $_.FullName.Substring($source.length)}
-
-          # Restore ports
-          Copy-Item -Path ".\tmp\tiny_tds-$gemVersion-$rubyArchitecture\ports" -Destination "." -Recurse
+        run: "& ./test/bin/restore-from-native-gem.ps1"
+        env:
+          RUBY_ARCHITECTURE: "x64-mingw-ucrt"
 
       - name: Setup MSSQL
         uses: rails-sqlserver/setup-mssql@v1
@@ -336,44 +314,59 @@ jobs:
           ruby -e "require 'tiny_tds'; puts TinyTds::Gem.root_path"
           exit $LASTEXITCODE
 
-  compile-native-ports:
+  install-linux:
+    needs:
+      - cross-compile
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - "x86_64-linux-gnu"
+
+        ruby-version:
+          - "2.7"
+          - "3.0"
+          - "3.1"
+          - "3.2"
+          - "3.3"
+          - "3.4"
+
+    name: install-linux
     runs-on: ubuntu-22.04
-    name: cross-compile-linux
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ruby/setup-ruby@v1
+      - name: Download precompiled gem
+        uses: actions/download-artifact@v4
         with:
-          ruby-version: 3.4
-          bundler-cache: true
+          name: gem-${{ matrix.platform }}
+          path: precompiled/gems
 
-      - name: Write used versions into file
-        run: bundle exec rake ports:version_file
-
-      - name: Cache ports
-        uses: actions/cache@v4
-        with:
-          path: ports
-          key: native-v3-${{ hashFiles('**/.ports_versions') }}
-          restore-keys: |
-            native-v3-${{ hashFiles('* */.ports_versions') }}
-            native-v3-
-
-      - name: Build required libraries
-        run: |
-          bundle exec rake ports
+      - run: |
+          docker run --rm -v $PWD/precompiled:/precompiled -w /precompiled \
+            ${{ matrix.docker_platform }} ruby:${{ matrix.ruby-version }}${{ matrix.docker_tag }} \
+            sh -c "
+              gem update --system 3.3.22 &&
+              gem install --no-document ./gems/tiny_tds-$(cat VERSION)-${{ matrix.platform }}.gem &&
+              ruby -e \"require 'tiny_tds'; puts TinyTds::Gem.root_path\"
+            "
 
   test-linux:
     needs:
-      - compile-native-ports
+      - cross-compile
     name: test-linux
     strategy:
       fail-fast: false
       matrix:
+        force-encryption:
+          - false
+          - true
+
         mssql-version:
           - 2017
           - 2019
           - 2022
+
         ruby-version:
           - "2.7"
           - "3.0"
@@ -391,20 +384,16 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true
 
-      - name: Write used versions into file
-        run: |
-          bundle exec rake ports:version_file
-
-      - name: Cache ports
-        uses: actions/cache@v4
+      - name: Download precompiled gem
+        uses: actions/download-artifact@v4
         with:
-          path: ports
-          key: native-v3-${{ hashFiles('**/.ports_versions') }}
-          fail-on-cache-miss: true
+          name: gem-x86_64-linux-gnu
 
-      - name: Build gem
-        run: |
-          bundle exec rake build
+      - name: Install native gem and restore cross-compiled code from it
+        shell: pwsh
+        run: "& ./test/bin/restore-from-native-gem.ps1"
+        env:
+          RUBY_ARCHITECTURE: "x86_64-linux-gnu"
 
       - name: Setup MSSQL
         uses: rails-sqlserver/setup-mssql@v1
@@ -412,6 +401,7 @@ jobs:
           components: sqlcmd,sqlengine
           version: ${{ matrix.mssql-version }}
           sa-password: "c0MplicatedP@ssword"
+          force-encryption: ${{ matrix.force-encryption }}
 
       - name: Setup MSSQL database
         run: |

@@ -15,6 +15,7 @@ jobs:
           - "x64-mingw-ucrt"
           - "x86_64-linux-gnu"
           - "x86_64-linux-musl"
+          - "aarch64-linux-gnu"
 
     name: cross-compile
     runs-on: ubuntu-22.04
@@ -324,6 +325,7 @@ jobs:
         platform:
           - "x86_64-linux-gnu"
           - "x86_64-linux-musl"
+          - "aarch64-linux-gnu"
 
         ruby-version:
           - "2.7"
@@ -338,6 +340,9 @@ jobs:
             docker_tag: "-alpine"
             bootstrap: "apk add -U build-base &&" # required to compile bigdecimal on Ruby 2.7
 
+          - platform: aarch64-linux-gnu
+            docker_platform: "--platform=linux/arm64"
+
     name: install-linux
     runs-on: ubuntu-22.04
     steps:
@@ -348,6 +353,10 @@ jobs:
         with:
           name: gem-${{ matrix.platform }}
           path: precompiled/gems
+
+      - name: Setup QEMU for docker
+        uses: docker/setup-qemu-action@v3
+        if: ${{ matrix.docker_platform }} != ''
 
       - run: |
           docker run --rm -v $PWD/precompiled:/precompiled -w /precompiled \

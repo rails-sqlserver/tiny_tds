@@ -115,6 +115,7 @@ if gem_platform=with_config("cross-build")
 
     recipe.configure_options << "--with-openssl=#{openssl_recipe.path}"
     recipe.configure_options << "--with-libiconv-prefix=#{libiconv_recipe.path}"
+    recipe.configure_options << "--sysconfdir=#{MiniPortile.windows? ? "C:/Sites" : "/usr/local/etc"}"
 
     recipe.gem_platform = gem_platform
     recipe.cook_and_activate

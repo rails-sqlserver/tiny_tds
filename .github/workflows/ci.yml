@@ -39,10 +39,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ports
-          key: cross-compiled-v9-${{ matrix.platform }}-${{ hashFiles('**/.ports_versions') }}
+          key: cross-compiled-v1-${{ matrix.platform }}-${{ hashFiles('**/.ports_versions') }}
           restore-keys: |
-            cross-compiled-v9-${{ matrix.platform }}-${{ hashFiles('**/.ports_versions') }}
-            cross-compiled-v9-${{ matrix.platform }}-
+            cross-compiled-v1-${{ matrix.platform }}-${{ hashFiles('**/.ports_versions') }}
+            cross-compiled-v1-${{ matrix.platform }}-
 
       - name: Build gem
         shell: bash

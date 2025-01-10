@@ -28,13 +28,12 @@ module TinyTds
         ENV['PATH'] = old_path
       end
     else
-      # libpq is found by a relative rpath in the cross compiled extension dll
+      # libsybdb is found by a relative rpath in the cross compiled extension dll
       # or by the system library loader
       block.call
     end
   end
 
-  # Add a load path to the one retrieved from pg_config
   add_dll_path.call(FREETDS_LIB_PATH) do
     begin
       # Try the <major>.<minor> subdirectory for fat binary gems

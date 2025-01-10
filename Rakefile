@@ -8,14 +8,14 @@ SPEC = Gem::Specification.load(File.expand_path('../tiny_tds.gemspec', __FILE__)
 
 CrossLibrary = Struct.new :platform, :openssl_config
 CrossLibraries = [
-	['x64-mingw-ucrt', 'mingw64'],
-	['x64-mingw32', 'mingw64'],
+  ['x64-mingw-ucrt', 'mingw64'],
+  ['x64-mingw32', 'mingw64'],
   ['x86_64-linux-gnu', 'linux-x86_64'],
   ['x86_64-linux-musl', 'linux-x86_64'],
   ['aarch64-linux-gnu', 'linux-aarch64'],
   ['aarch64-linux-musl', 'linux-aarch64'],
 ].map do |platform, openssl_config|
-	CrossLibrary.new platform, openssl_config
+  CrossLibrary.new platform, openssl_config
 end
 
 # Add our project specific files to clean for a rebuild
@@ -55,13 +55,13 @@ Rake::ExtensionTask.new('tiny_tds', SPEC) do |ext|
   end
 
   ext.cross_config_options += CrossLibraries.map do |xlib|
-		{
-			xlib.platform => [
-				"--with-cross-build=#{xlib.platform}",
-				"--with-openssl-platform=#{xlib.openssl_config}"
-			]
-		}
-	end
+    {
+      xlib.platform => [
+        "--with-cross-build=#{xlib.platform}",
+        "--with-openssl-platform=#{xlib.openssl_config}"
+      ]
+    }
+  end
 end
 
 task build: [:clean, :compile]

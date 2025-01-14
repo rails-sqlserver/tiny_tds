@@ -392,19 +392,6 @@ Please read our [thread_test.rb](https://github.com/rails-sqlserver/tiny_tds/blo
 
 This is possible. Since FreeTDS v1.0, utf-16 is enabled by default and supported by tiny_tds. You can toggle it by using `use_utf16` when establishing the connection.
 
-## Compiling Gems for Windows and Linux
-
-For the convenience of Windows and Linux users, TinyTDS ships pre-compiled gems for supported versions of Ruby on Windows. In order to generate these gems, [rake-compiler-dock](https://github.com/rake-compiler/rake-compiler-dock) is used. This project provides several [Docker images](https://registry.hub.docker.com/u/larskanis/) with rvm, cross-compilers and a number of different target versions of Ruby.
-
-Run the following rake task to compile the gems for Windows. This will check the availability of [Docker](https://www.docker.com/) and will give some advice for download and installation. When docker is running, it will download the docker image (once-only) and start the build:
-
-```
-$ rake gem:native
-```
-
-The compiled gems will exist in `./pkg` directory.
-
-
 ## Development & Testing
 
 First, clone the repo using the command line or your Git GUI of choice.
@@ -450,6 +437,26 @@ $ rake TINYTDS_UNIT_DATASERVER=mydbserver
 $ rake TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2017
 $ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_SCHEMA=sqlserver_azure
 ```
+
+### Compiling Gems for Windows and Linux
+
+For the convenience, TinyTDS ships pre-compiled gems for supported versions of Ruby on Windows and Linux. In order to generate these gems, [rake-compiler-dock](https://github.com/rake-compiler/rake-compiler-dock) is used.
+
+Run the following rake task to compile the gems. This will check the availability of [Docker](https://www.docker.com/) and will give some advice for download and installation. When docker is running, it will download the docker image (once-only) and start the build:
+
+```shell
+bundle exec rake gem:native
+```
+
+The compiled gems will exist in `./pkg` directory.
+
+If you only need a specific gem for one platform and architecture, run this command:
+
+```shell
+bundle exec rake gem:native:x64-mingw-ucrt
+```
+
+All the supported architectures and platforms are listed in the `Rakefile` in the `CrossLibraries` constant.
 
 ## Help & Support
 

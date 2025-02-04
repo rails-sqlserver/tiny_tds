@@ -3,16 +3,16 @@ require_relative "extconsts"
 
 if ENV["MAINTAINER_MODE"]
   warn "Maintainer mode enabled."
-  $CFLAGS <<
+  $CFLAGS << # standard:disable Style/GlobalVars
     " -Wall" \
     " -ggdb" \
     " -DDEBUG" \
     " -pedantic"
-  $LDFLAGS <<
+  $LDFLAGS << # standard:disable Style/GlobalVars
     " -ggdb"
 end
 
-if gem_platform = with_config("cross-build")
+if (gem_platform = with_config("cross-build"))
   require "mini_portile2"
 
   openssl_platform = with_config("openssl-platform")
@@ -122,7 +122,7 @@ if gem_platform = with_config("cross-build")
   end
 
   # enable relative path to later load the FreeTDS shared library
-  $LDFLAGS << " '-Wl,-rpath=$$ORIGIN/../../../ports/#{gem_platform}/lib'"
+  $LDFLAGS << " '-Wl,-rpath=$$ORIGIN/../../../ports/#{gem_platform}/lib'" # standard:disable Style/GlobalVars
 
   dir_config("freetds", "#{freetds_recipe.path}/include", "#{freetds_recipe.path}/lib")
 else

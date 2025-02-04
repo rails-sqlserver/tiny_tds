@@ -1,19 +1,19 @@
-require 'mkmf'
-require_relative 'extconsts'
+require "mkmf"
+require_relative "extconsts"
 
-if ENV['MAINTAINER_MODE']
-	$stderr.puts "Maintainer mode enabled."
-	$CFLAGS <<
-		' -Wall' <<
-		' -ggdb' <<
-		' -DDEBUG' <<
-		' -pedantic'
-	$LDFLAGS <<
-		' -ggdb'
+if ENV["MAINTAINER_MODE"]
+  warn "Maintainer mode enabled."
+  $CFLAGS << # standard:disable Style/GlobalVars
+    " -Wall" \
+    " -ggdb" \
+    " -DDEBUG" \
+    " -pedantic"
+  $LDFLAGS << # standard:disable Style/GlobalVars
+    " -ggdb"
 end
 
-if gem_platform=with_config("cross-build")
-  require 'mini_portile2'
+if (gem_platform = with_config("cross-build"))
+  require "mini_portile2"
 
   openssl_platform = with_config("openssl-platform")
 
@@ -23,7 +23,7 @@ if gem_platform=with_config("cross-build")
     def initialize(name, version, files)
       super(name, version)
       self.files = files
-      rootdir = File.expand_path('../../..', __FILE__)
+      rootdir = File.expand_path("../../..", __FILE__)
       self.target = File.join(rootdir, "ports")
       self.patch_files = Dir[File.join("patches", self.name, self.version, "*.patch")].sort
     end
@@ -34,35 +34,35 @@ if gem_platform=with_config("cross-build")
     end
 
     def cook_and_activate
-      checkpoint = File.join(self.target, "#{self.name}-#{self.version}-#{gem_platform}.installed")
-			
+      checkpoint = File.join(target, "#{name}-#{version}-#{gem_platform}.installed")
+
       unless File.exist?(checkpoint)
-				self.cook
-				FileUtils.touch checkpoint
-			end
-			
-      self.activate
+        cook
+        FileUtils.touch checkpoint
+      end
+
+      activate
       self
     end
   end
 
   openssl_recipe = BuildRecipe.new("openssl", OPENSSL_VERSION, [OPENSSL_SOURCE_URI]).tap do |recipe|
-    class << recipe  
+    class << recipe
       attr_accessor :openssl_platform
-      
+
       def configure
         envs = []
         envs << "CFLAGS=-DDSO_WIN32 -DOPENSSL_THREADS" if MiniPortile.windows?
         envs << "CFLAGS=-fPIC -DOPENSSL_THREADS" if MiniPortile.linux?
-        execute('configure', ['env', *envs, "./Configure", openssl_platform, "threads", "-static", "CROSS_COMPILE=#{host}-", configure_prefix, "--libdir=lib"], altlog: "config.log")
+        execute("configure", ["env", *envs, "./Configure", openssl_platform, "threads", "-static", "CROSS_COMPILE=#{host}-", configure_prefix, "--libdir=lib"], altlog: "config.log")
       end
-      
+
       def compile
-        execute('compile', "#{make_cmd} build_libs")
+        execute("compile", "#{make_cmd} build_libs")
       end
-      
+
       def install
-        execute('install', "#{make_cmd} install_dev")
+        execute("install", "#{make_cmd} install_dev")
       end
     end
 
@@ -122,30 +122,30 @@ if gem_platform=with_config("cross-build")
   end
 
   # enable relative path to later load the FreeTDS shared library
-  $LDFLAGS << " '-Wl,-rpath=$$ORIGIN/../../../ports/#{gem_platform}/lib'"
+  $LDFLAGS << " '-Wl,-rpath=$$ORIGIN/../../../ports/#{gem_platform}/lib'" # standard:disable Style/GlobalVars
 
-  dir_config('freetds', "#{freetds_recipe.path}/include", "#{freetds_recipe.path}/lib")
+  dir_config("freetds", "#{freetds_recipe.path}/include", "#{freetds_recipe.path}/lib")
 else
   # Make sure to check the ports path for the configured host
-  architecture = RbConfig::CONFIG['arch']
+  architecture = RbConfig::CONFIG["arch"]
 
   project_dir = File.expand_path("../../..", __FILE__)
-  freetds_ports_dir = File.join(project_dir, 'ports', architecture, 'freetds', FREETDS_VERSION)
+  freetds_ports_dir = File.join(project_dir, "ports", architecture, "freetds", FREETDS_VERSION)
   freetds_ports_dir = File.expand_path(freetds_ports_dir)
-  
+
   # Add all the special path searching from the original tiny_tds build
   # order is important here! First in, first searched.
-  DIRS = %w(
+  DIRS = %w[
     /opt/local
     /usr/local
-  )
+  ]
 
-  if RbConfig::CONFIG['host_os'] =~ /darwin/i
+  if /darwin/i.match?(RbConfig::CONFIG["host_os"])
     # Ruby below 2.7 seems to label the host CPU on Apple Silicon as aarch64
     # 2.7 and above print is as ARM64
-    target_host_cpu = Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.7') ? 'aarch64' : 'arm64'
+    target_host_cpu = (Gem::Version.new(RUBY_VERSION) < Gem::Version.new("2.7")) ? "aarch64" : "arm64"
 
-    if RbConfig::CONFIG['host_cpu'] == target_host_cpu
+    if RbConfig::CONFIG["host_cpu"] == target_host_cpu
       # Homebrew on Apple Silicon installs into /opt/hombrew
       # https://docs.brew.sh/Installation
       # On Intel Macs, it is /usr/local, so no changes necessary to DIRS
@@ -162,7 +162,7 @@ else
 
   # Grab freetds environment variable for use by people on services like
   # Heroku who they can't easily use bundler config to set directories
-  DIRS.unshift(ENV['FREETDS_DIR']) if ENV.has_key?('FREETDS_DIR')
+  DIRS.unshift(ENV["FREETDS_DIR"]) if ENV.has_key?("FREETDS_DIR")
 
   # Add the search paths for freetds configured above
   ldirs = DIRS.flat_map do |path|
@@ -175,15 +175,15 @@ else
     [idir, "#{idir}/freetds"]
   end
 
-  puts "looking for freetds headers in the following directories:\n#{idirs.map{|a| " - #{a}\n"}.join}"
-  puts "looking for freetds library in the following directories:\n#{ldirs.map{|a| " - #{a}\n"}.join}"
-  dir_config('freetds', idirs, ldirs)
+  puts "looking for freetds headers in the following directories:\n#{idirs.map { |a| " - #{a}\n" }.join}"
+  puts "looking for freetds library in the following directories:\n#{ldirs.map { |a| " - #{a}\n" }.join}"
+  dir_config("freetds", idirs, ldirs)
 end
 
-find_header('sybfront.h') or abort "Can't find the 'sybfront.h' header"
-find_header('sybdb.h') or abort "Can't find the 'sybdb.h' header"
+find_header("sybfront.h") or abort "Can't find the 'sybfront.h' header"
+find_header("sybdb.h") or abort "Can't find the 'sybdb.h' header"
 
-unless have_library('sybdb', 'dbanydatecrack')
+unless have_library("sybdb", "dbanydatecrack")
   abort "Failed! Do you have FreeTDS 1.0.0 or higher installed?"
 end
 

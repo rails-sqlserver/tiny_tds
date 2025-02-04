@@ -3,6 +3,7 @@
 * Reduce number of files shipped with precompiled Windows gem
 * Provide precompiled gem for Linux (GNU + MUSL / 64-bit x86 + ARM)
 * Fix wrappers for `tsql` and `defncopy` utility.
+* Use libiconv v1.18 and freetds v1.4.26 for Windows and Linux builds
 
 ## 3.1.0
 

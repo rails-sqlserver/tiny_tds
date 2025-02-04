@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "mini_portile2", "~> 2.8.0"
   s.add_development_dependency "rake", "~> 13.0.0"
   s.add_development_dependency "rake-compiler", "~> 1.2"
-  s.add_development_dependency "rake-compiler-dock", "~> 1.7.0"
+  s.add_development_dependency "rake-compiler-dock", "~> 1.9.1"
   s.add_development_dependency "minitest", "~> 5.25"
   s.add_development_dependency "minitest-reporters", "~> 1.6.1"
   s.add_development_dependency "connection_pool", "~> 2.2.0"

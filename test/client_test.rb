@@ -47,7 +47,7 @@ class ClientTest < TinyTds::TestCase
         assert_equal encoding, client.charset
         assert_equal Encoding.find(encoding), client.encoding
       ensure
-        client.close if client
+        client&.close
       end
     end
 
@@ -58,7 +58,7 @@ class ClientTest < TinyTds::TestCase
         begin
           client = new_connection dataserver: nil, host: host, port: port
         ensure
-          client.close if client
+          client&.close
         end
       end
     end

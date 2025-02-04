@@ -4,9 +4,9 @@ require_relative "extconsts"
 if ENV["MAINTAINER_MODE"]
   warn "Maintainer mode enabled."
   $CFLAGS <<
-    " -Wall" <<
-    " -ggdb" <<
-    " -DDEBUG" <<
+    " -Wall" \
+    " -ggdb" \
+    " -DDEBUG" \
     " -pedantic"
   $LDFLAGS <<
     " -ggdb"

@@ -9,53 +9,39 @@ require 'tiny_tds/client'
 require 'tiny_tds/result'
 require 'tiny_tds/gem'
 
-# Support multiple ruby versions, fat binaries under Windows.
-if RUBY_PLATFORM =~ /mingw|mswin/ && RUBY_VERSION =~ /(\d+.\d+)/
-  ver = Regexp.last_match(1)
+module TinyTds
+
+  # Is this file part of a fat binary gem with bundled freetds?
+  # This path must be enabled by add_dll_directory on Windows.
+  gplat = ::Gem::Platform.local
+  FREETDS_LIB_PATH = Dir[File.expand_path("../ports/#{gplat.cpu}-#{gplat.os}*/lib", __dir__)].first
 
   add_dll_path = proc do |path, &block|
-    begin
-      require 'ruby_installer/runtime'
-      RubyInstaller::Runtime.add_dll_directory(path, &block)
-    rescue LoadError
-      old_path = ENV['PATH']
-      ENV['PATH'] = "#{path};#{old_path}"
+    if RUBY_PLATFORM =~/(mswin|mingw)/i && path
       begin
+        require 'ruby_installer/runtime'
+        RubyInstaller::Runtime.add_dll_directory(path, &block)
+      rescue LoadError
+        old_path = ENV['PATH']
+        ENV['PATH'] = "#{path};#{old_path}"
         block.call
-      ensure
         ENV['PATH'] = old_path
       end
-    end
-  end
-
-  add_dll_paths = proc do |paths, &block|
-    if path=paths.shift
-      add_dll_path.call(path) do
-        add_dll_paths.call(paths, &block)
-      end
     else
+      # libsybdb is found by a relative rpath in the cross compiled extension dll
+      # or by the system library loader
       block.call
     end
   end
 
-  # Temporary add bin directories for DLL search, so that freetds DLLs can be found.
-  add_dll_paths.call( TinyTds::Gem.ports_bin_paths ) do
+  add_dll_path.call(FREETDS_LIB_PATH) do
     begin
-      require "tiny_tds/#{ver}/tiny_tds"
+      # Try the <major>.<minor> subdirectory for fat binary gems
+      major_minor = RUBY_VERSION[ /^(\d+\.\d+)/ ] or
+        raise "Oops, can't extract the major/minor version from #{RUBY_VERSION.dump}"
+      require "tiny_tds/#{major_minor}/tiny_tds"
     rescue LoadError
       require 'tiny_tds/tiny_tds'
     end
   end
-else
-  # Load dependent shared libraries into the process, so that they are already present,
-  # when tiny_tds.so is loaded. This ensures, that shared libraries are loaded even when
-  # the path is different between build and run time (e.g. Heroku).
-  ports_libs = File.join(TinyTds::Gem.ports_root_path,
-                         "#{RbConfig::CONFIG['host']}/lib/*.so")
-  Dir[ports_libs].each do |lib|
-    require 'fiddle'
-    Fiddle.dlopen(lib)
-  end
-
-  require 'tiny_tds/tiny_tds'
 end

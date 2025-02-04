@@ -1,3 +1,9 @@
+## 3.2.0
+
+* Reduce number of files shipped with precompiled Windows gem
+* Provide precompiled gem for Linux (GNU + MUSL / 64-bit x86 + ARM)
+* Fix wrappers for `tsql` and `defncopy` utility.
+
 ## 3.1.0
 
 * Add Ruby 3.4 to the cross compile list
@@ -13,6 +19,7 @@
 * Add `bigdecimal` to dependencies
 
 ## 2.1.7
+
 * Add Ruby 3.3 to the cross compile list
 
 ## 2.1.6

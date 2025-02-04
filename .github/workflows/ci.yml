@@ -13,17 +13,22 @@ jobs:
         platform:
           - "x64-mingw32"
           - "x64-mingw-ucrt"
-    name: cross-compile-windows
+          - "x86_64-linux-gnu"
+          - "x86_64-linux-musl"
+          - "aarch64-linux-gnu"
+          - "aarch64-linux-musl"
+
+    name: cross-compile
     runs-on: ubuntu-22.04
-    container:
-      image: "ghcr.io/rake-compiler/rake-compiler-dock-image:1.7.0-mri-${{ matrix.platform }}"
     steps:
       - uses: actions/checkout@v4
 
-      - run: git config --global --add safe.directory /__w/tiny_tds/tiny_tds # shrug
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "2.7"
 
-      - name: Install gems
-        shell: bash
+      - name: "Install dependencies"
         run: bundle install
 
       - name: Write used versions into file
@@ -34,14 +39,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ports
-          key: cross-compiled-v3-${{ matrix.platform }}-${{ hashFiles('**/.ports_versions') }}
+          key: cross-compiled-v1-${{ matrix.platform }}-${{ hashFiles('**/.ports_versions') }}
           restore-keys: |
-            cross-compiled-v3-${{ matrix.platform }}-${{ hashFiles('**/.ports_versions') }}
-            cross-compiled-v3-${{ matrix.platform }}-
+            cross-compiled-v1-${{ matrix.platform }}-${{ hashFiles('**/.ports_versions') }}
+            cross-compiled-v1-${{ matrix.platform }}-
 
       - name: Build gem
         shell: bash
-        run: bundle exec rake gem:for_platform[${{ matrix.platform }}]
+        run: bundle exec rake gem:native:${{ matrix.platform }}
 
       - uses: actions/upload-artifact@v4
         with:
@@ -89,6 +94,18 @@ jobs:
           ruby -e "require 'tiny_tds'; puts TinyTds::Gem.root_path"
           exit $LASTEXITCODE
 
+      - name: Test if tsql wrapper works
+        shell: pwsh
+        run: |
+          tsql-ttds -C
+          exit $LASTEXITCODE
+
+      - name: Test if defncopy wrapper works
+        shell: pwsh
+        run: |
+          defncopy-ttds -v
+          exit $LASTEXITCODE
+
   test-windows-mingw:
     needs:
       - cross-compile
@@ -123,21 +140,9 @@ jobs:
 
       - name: Install native gem and restore cross-compiled code from it
         shell: pwsh
-        run: |
-          $rubyArchitecture = (ruby -e "puts RbConfig::CONFIG['arch']").Trim()
-          $gemVersion = (Get-Content VERSION).Trim()
-          $gemToUnpack = "./tiny_tds-$gemVersion-$rubyArchitecture.gem"
-
-          Write-Host "Looking to unpack $gemToUnpack"
-          gem unpack --target ./tmp "$gemToUnpack"
-
-          # Restore precompiled code
-          $source = (Resolve-Path ".\tmp\tiny_tds-$gemVersion-$rubyArchitecture\lib\tiny_tds").Path
-          $destination = (Resolve-Path ".\lib\tiny_tds").Path
-          Get-ChildItem $source -Recurse -Exclude "*.rb" | Copy-Item -Destination {Join-Path $destination $_.FullName.Substring($source.length)}
-
-          # Restore ports
-          Copy-Item -Path ".\tmp\tiny_tds-$gemVersion-$rubyArchitecture\ports" -Destination "." -Recurse
+        run: "& ./test/bin/restore-from-native-gem.ps1"
+        env:
+          RUBY_ARCHITECTURE: "x64-mingw32"
 
       - name: Setup MSSQL
         uses: rails-sqlserver/setup-mssql@v1
@@ -214,6 +219,18 @@ jobs:
           ruby -e "require 'tiny_tds'; puts TinyTds::Gem.root_path"
           exit $LASTEXITCODE
 
+      - name: Test if tsql wrapper works
+        shell: pwsh
+        run: |
+          tsql-ttds -C
+          exit $LASTEXITCODE
+
+      - name: Test if defncopy wrapper works
+        shell: pwsh
+        run: |
+          defncopy-ttds -v
+          exit $LASTEXITCODE
+
   test-windows-ucrt:
     needs:
       - cross-compile
@@ -250,21 +267,9 @@ jobs:
 
       - name: Install native gem and restore cross-compiled code from it
         shell: pwsh
-        run: |
-          $rubyArchitecture = (ruby -e "puts RbConfig::CONFIG['arch']").Trim()
-          $gemVersion = (Get-Content VERSION).Trim()
-          $gemToUnpack = "./tiny_tds-$gemVersion-$rubyArchitecture.gem"
-
-          Write-Host "Looking to unpack $gemToUnpack"
-          gem unpack --target ./tmp "$gemToUnpack"
-
-          # Restore precompiled code
-          $source = (Resolve-Path ".\tmp\tiny_tds-$gemVersion-$rubyArchitecture\lib\tiny_tds").Path
-          $destination = (Resolve-Path ".\lib\tiny_tds").Path
-          Get-ChildItem $source -Recurse -Exclude "*.rb" | Copy-Item -Destination {Join-Path $destination $_.FullName.Substring($source.length)}
-
-          # Restore ports
-          Copy-Item -Path ".\tmp\tiny_tds-$gemVersion-$rubyArchitecture\ports" -Destination "." -Recurse
+        run: "& ./test/bin/restore-from-native-gem.ps1"
+        env:
+          RUBY_ARCHITECTURE: "x64-mingw-ucrt"
 
       - name: Setup MSSQL
         uses: rails-sqlserver/setup-mssql@v1
@@ -336,44 +341,94 @@ jobs:
           ruby -e "require 'tiny_tds'; puts TinyTds::Gem.root_path"
           exit $LASTEXITCODE
 
-  compile-native-ports:
+      - name: Test if tsql wrapper works
+        shell: pwsh
+        run: |
+          tsql-ttds -C
+          exit $LASTEXITCODE
+
+      - name: Test if defncopy wrapper works
+        shell: pwsh
+        run: |
+          defncopy-ttds -v
+          exit $LASTEXITCODE
+
+  install-linux:
+    needs:
+      - cross-compile
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - "x86_64-linux-gnu"
+          - "x86_64-linux-musl"
+          - "aarch64-linux-gnu"
+          - "aarch64-linux-musl"
+
+        ruby-version:
+          - "2.7"
+          - "3.0"
+          - "3.1"
+          - "3.2"
+          - "3.3"
+          - "3.4"
+
+        include:
+          - platform: x86_64-linux-musl
+            docker_tag: "-alpine"
+            bootstrap: "apk add -U build-base &&" # required to compile bigdecimal on Ruby 2.7
+
+          - platform: aarch64-linux-gnu
+            docker_platform: "--platform=linux/arm64"
+
+          - platform: aarch64-linux-musl
+            docker_platform: "--platform=linux/arm64"
+            docker_tag: "-alpine"
+            bootstrap: "apk add -U build-base &&"
+
+    name: install-linux
     runs-on: ubuntu-22.04
-    name: cross-compile-linux
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ruby/setup-ruby@v1
+      - name: Download precompiled gem
+        uses: actions/download-artifact@v4
         with:
-          ruby-version: 3.4
-          bundler-cache: true
+          name: gem-${{ matrix.platform }}
+          path: precompiled/gems
 
-      - name: Write used versions into file
-        run: bundle exec rake ports:version_file
+      - name: Setup QEMU for docker
+        uses: docker/setup-qemu-action@v3
+        if: ${{ matrix.docker_platform }} != ''
 
-      - name: Cache ports
-        uses: actions/cache@v4
-        with:
-          path: ports
-          key: native-v3-${{ hashFiles('**/.ports_versions') }}
-          restore-keys: |
-            native-v3-${{ hashFiles('* */.ports_versions') }}
-            native-v3-
-
-      - name: Build required libraries
-        run: |
-          bundle exec rake ports
+      - run: |
+          docker run --rm -v $PWD/precompiled:/precompiled -w /precompiled \
+            ${{ matrix.docker_platform }} ruby:${{ matrix.ruby-version }}${{ matrix.docker_tag }} \
+            sh -c "
+              gem update --system 3.3.22 &&
+              ${{ matrix.bootstrap }}
+              gem install --no-document ./gems/tiny_tds-$(cat VERSION)-${{ matrix.platform }}.gem &&
+              ruby -e \"require 'tiny_tds'; puts TinyTds::Gem.root_path\" &&
+              tsql-ttds -C &&
+              defncopy-ttds -v
+            "
 
   test-linux:
     needs:
-      - compile-native-ports
+      - cross-compile
     name: test-linux
     strategy:
       fail-fast: false
       matrix:
+        force-encryption:
+          - false
+          - true
+
         mssql-version:
           - 2017
           - 2019
           - 2022
+
         ruby-version:
           - "2.7"
           - "3.0"
@@ -391,20 +446,16 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true
 
-      - name: Write used versions into file
-        run: |
-          bundle exec rake ports:version_file
-
-      - name: Cache ports
-        uses: actions/cache@v4
+      - name: Download precompiled gem
+        uses: actions/download-artifact@v4
         with:
-          path: ports
-          key: native-v3-${{ hashFiles('**/.ports_versions') }}
-          fail-on-cache-miss: true
+          name: gem-x86_64-linux-gnu
 
-      - name: Build gem
-        run: |
-          bundle exec rake build
+      - name: Install native gem and restore cross-compiled code from it
+        shell: pwsh
+        run: "& ./test/bin/restore-from-native-gem.ps1"
+        env:
+          RUBY_ARCHITECTURE: "x86_64-linux-gnu"
 
       - name: Setup MSSQL
         uses: rails-sqlserver/setup-mssql@v1
@@ -412,6 +463,7 @@ jobs:
           components: sqlcmd,sqlengine
           version: ${{ matrix.mssql-version }}
           sa-password: "c0MplicatedP@ssword"
+          force-encryption: ${{ matrix.force-encryption }}
 
       - name: Setup MSSQL database
         run: |
@@ -434,6 +486,52 @@ jobs:
         with:
           paths: "test/reports/TEST-*.xml"
         if: always()
+
+  install-linux-native:
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version:
+          - "2.7"
+          - "3.0"
+          - "3.1"
+          - "3.2"
+          - "3.3"
+          - "3.4"
+
+    name: install-linux-native
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true
+
+      - name: Install FreeTDS
+        shell: bash
+        run: ./test/bin/install-freetds.sh
+
+      - name: Build gem
+        shell: bash
+        run: gem build tiny_tds.gemspec
+
+      - name: Install gem
+        shell: bash
+        run: gem install "tiny_tds-$(cat VERSION).gem"
+
+      - name: Test if TinyTDS loads
+        shell: bash
+        run: ruby -e "require 'tiny_tds'; puts TinyTds::Gem.root_path"
+
+      - name: Test if tsql wrapper works
+        shell: bash
+        run: tsql-ttds -C
+
+      - name: Test if defncopy wrapper works
+        shell: bash
+        run: defncopy-ttds -v
 
   install_macos:
     strategy:

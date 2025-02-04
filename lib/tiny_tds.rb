@@ -1,31 +1,28 @@
-# encoding: UTF-8
-require 'date'
-require 'bigdecimal'
-require 'rational'
+require "date"
+require "bigdecimal"
 
-require 'tiny_tds/version'
-require 'tiny_tds/error'
-require 'tiny_tds/client'
-require 'tiny_tds/result'
-require 'tiny_tds/gem'
+require "tiny_tds/version"
+require "tiny_tds/error"
+require "tiny_tds/client"
+require "tiny_tds/result"
+require "tiny_tds/gem"
 
 module TinyTds
-
   # Is this file part of a fat binary gem with bundled freetds?
   # This path must be enabled by add_dll_directory on Windows.
   gplat = ::Gem::Platform.local
   FREETDS_LIB_PATH = Dir[File.expand_path("../ports/#{gplat.cpu}-#{gplat.os}*/lib", __dir__)].first
 
   add_dll_path = proc do |path, &block|
-    if RUBY_PLATFORM =~/(mswin|mingw)/i && path
+    if RUBY_PLATFORM =~ /(mswin|mingw)/i && path
       begin
-        require 'ruby_installer/runtime'
+        require "ruby_installer/runtime"
         RubyInstaller::Runtime.add_dll_directory(path, &block)
       rescue LoadError
-        old_path = ENV['PATH']
-        ENV['PATH'] = "#{path};#{old_path}"
+        old_path = ENV["PATH"]
+        ENV["PATH"] = "#{path};#{old_path}"
         block.call
-        ENV['PATH'] = old_path
+        ENV["PATH"] = old_path
       end
     else
       # libsybdb is found by a relative rpath in the cross compiled extension dll
@@ -35,13 +32,11 @@ module TinyTds
   end
 
   add_dll_path.call(FREETDS_LIB_PATH) do
-    begin
-      # Try the <major>.<minor> subdirectory for fat binary gems
-      major_minor = RUBY_VERSION[ /^(\d+\.\d+)/ ] or
-        raise "Oops, can't extract the major/minor version from #{RUBY_VERSION.dump}"
-      require "tiny_tds/#{major_minor}/tiny_tds"
-    rescue LoadError
-      require 'tiny_tds/tiny_tds'
-    end
+    # Try the <major>.<minor> subdirectory for fat binary gems
+    major_minor = RUBY_VERSION[/^(\d+\.\d+)/] or
+      raise "Oops, can't extract the major/minor version from #{RUBY_VERSION.dump}"
+    require "tiny_tds/#{major_minor}/tiny_tds"
+  rescue LoadError
+    require "tiny_tds/tiny_tds"
   end
 end

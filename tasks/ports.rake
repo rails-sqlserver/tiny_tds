@@ -1,4 +1,4 @@
-require_relative '../ext/tiny_tds/extconsts'
+require_relative "../ext/tiny_tds/extconsts"
 
 namespace :ports do
   libraries_to_compile = {
@@ -19,8 +19,6 @@ namespace :ports do
 
     ports_version[:platform] = args.gem_platform
 
-    File.open(".ports_versions", "w") do |f|
-      f.write ports_version
-    end
+    File.write(".ports_versions", ports_version)
   end
 end

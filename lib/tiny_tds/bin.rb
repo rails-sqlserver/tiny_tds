@@ -1,23 +1,22 @@
-require_relative './version'
-require_relative './gem'
-require 'shellwords'
+require_relative "version"
+require_relative "gem"
+require "shellwords"
 
 module TinyTds
   class Bin
-
     attr_reader :name
 
     class << self
       def exe(name, *args)
         bin = new(name)
-        puts bin.info unless args.any? { |x| x == '-q' }
+        puts bin.info unless args.any? { |x| x == "-q" }
         bin.run(*args)
       end
     end
 
     def initialize(name)
       @root = Gem.root_path
-      @exts = (ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']) | ['.exe']
+      @exts = (ENV["PATHEXT"] ? ENV["PATHEXT"].split(";") : [""]) | [".exe"]
 
       @name = name
       @binstub = find_bin
@@ -33,7 +32,7 @@ module TinyTds
     end
 
     def path
-      @path ||= @exefile && File.exist?(@exefile) ? @exefile : which
+      @path ||= (@exefile && File.exist?(@exefile)) ? @exefile : which
     end
 
     def info
@@ -43,26 +42,26 @@ module TinyTds
     private
 
     def search_paths
-      ENV['PATH'].split File::PATH_SEPARATOR
+      ENV["PATH"].split File::PATH_SEPARATOR
     end
 
     def with_ports_paths
-      old_path = ENV['PATH']
+      old_path = ENV["PATH"]
 
       begin
-        ENV['PATH'] = [
+        ENV["PATH"] = [
           Gem.ports_bin_paths,
           old_path
         ].flatten.join File::PATH_SEPARATOR
 
         yield if block_given?
       ensure
-        ENV['PATH'] = old_path
+        ENV["PATH"] = old_path
       end
     end
 
     def find_bin
-      File.join @root, 'bin', name
+      File.join @root, "bin", name
     end
 
     def find_exe

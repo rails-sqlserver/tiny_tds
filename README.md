@@ -22,7 +22,7 @@ tiny_tds is tested with Ruby v2.7 and upwards.
 
 ### Windows and Linux (64-bit)
 
-We precompile tiny_tds with static versions of FreeTDS and supporting libraries. Just run:
+We precompile tiny_tds with FreeTDS and supporting libraries, which are dynamically linked at runtime. Therefore, you can run:
 
 ```shell
 gem install tiny_tds
@@ -30,7 +30,7 @@ gem install tiny_tds
 
 It should find the platform-specific gem.
 
-You can also avoid getting the platform-specific gem if you want to compile FreeTDS yourself:
+You can also avoid getting the platform-specific gem if you want to compile FreeTDS and supporting libraries yourself:
 
 ```shell
 gem install tiny_tds --platform ruby
@@ -41,6 +41,7 @@ gem install tiny_tds --platform ruby
 Install FreeTDS via Homebrew:
 
 ```shell
+brew install openssl@3 libiconv
 brew install freetds
 ```
 
@@ -52,7 +53,7 @@ gem install tiny_tds
 
 ### Everybody else
 
-`tiny_tds` will find FreeTDS based on your compiler paths. Below you can see an example on how to install FreeTDS on a Debian system.
+`tiny_tds` will find FreeTDS and other libraries based on your compiler paths. Below you can see an example on how to install FreeTDS on a Debian system.
 
 ```shell
 $ apt-get install wget
@@ -439,6 +440,9 @@ $ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_SCHEMA=sqlserver_azure
 ```
 
 ### Compiling Gems for Windows and Linux
+
+> [!WARNING]
+> Compiling the Gems on native Windows currently does not work.
 
 For the convenience, TinyTDS ships pre-compiled gems for supported versions of Ruby on Windows and Linux. In order to generate these gems, [rake-compiler-dock](https://github.com/rake-compiler/rake-compiler-dock) is used.
 

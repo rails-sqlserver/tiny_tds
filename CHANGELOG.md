@@ -1,3 +1,7 @@
+## 3.2.1
+
+* Ensure the native Gem loads on Windows. Fixes #581.
+
 ## 3.2.0
 
 * Reduce number of files shipped with precompiled Windows gem

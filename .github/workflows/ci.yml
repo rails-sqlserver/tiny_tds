@@ -66,8 +66,6 @@ jobs:
     name: install-windows-mingw
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby-version }}
@@ -80,13 +78,7 @@ jobs:
 
       - name: Install native gem
         shell: pwsh
-        run: |
-          $rubyArchitecture = (ruby -e "puts RbConfig::CONFIG['arch']").Trim()
-          $gemVersion = (Get-Content VERSION).Trim()
-          $gemToInstall = "./tiny_tds-$gemVersion-$rubyArchitecture.gem"
-
-          Write-Host "Looking to install $gemToInstall"
-          gem install "$gemToInstall"
+        run: gem install "tiny_tds-*.gem"
 
       - name: Test if TinyTDS loads
         shell: pwsh
@@ -191,8 +183,6 @@ jobs:
     name: install-windows-ucrt
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby-version }}
@@ -205,13 +195,7 @@ jobs:
 
       - name: Install native gem
         shell: pwsh
-        run: |
-          $rubyArchitecture = (ruby -e "puts RbConfig::CONFIG['arch']").Trim()
-          $gemVersion = (Get-Content VERSION).Trim()
-          $gemToInstall = "./tiny_tds-$gemVersion-$rubyArchitecture.gem"
-
-          Write-Host "Looking to install $gemToInstall"
-          gem install "$gemToInstall"
+        run: gem install "tiny_tds-*.gem"
 
       - name: Test if TinyTDS loads
         shell: pwsh

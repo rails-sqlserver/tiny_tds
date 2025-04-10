@@ -1,6 +1,7 @@
 ## 3.2.1
 
 * Ensure the native Gem loads on Windows. Fixes #581.
+* Use OpenSSL v3.4.1 for Windows and Linux builds.
 
 ## 3.2.0
 

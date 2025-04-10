@@ -66,8 +66,6 @@ jobs:
     name: install-windows-mingw
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby-version }}
@@ -80,13 +78,7 @@ jobs:
 
       - name: Install native gem
         shell: pwsh
-        run: |
-          $rubyArchitecture = (ruby -e "puts RbConfig::CONFIG['arch']").Trim()
-          $gemVersion = (Get-Content VERSION).Trim()
-          $gemToInstall = "./tiny_tds-$gemVersion-$rubyArchitecture.gem"
-
-          Write-Host "Looking to install $gemToInstall"
-          gem install "$gemToInstall"
+        run: gem install "tiny_tds-*.gem"
 
       - name: Test if TinyTDS loads
         shell: pwsh
@@ -191,8 +183,6 @@ jobs:
     name: install-windows-ucrt
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby-version }}
@@ -205,13 +195,7 @@ jobs:
 
       - name: Install native gem
         shell: pwsh
-        run: |
-          $rubyArchitecture = (ruby -e "puts RbConfig::CONFIG['arch']").Trim()
-          $gemVersion = (Get-Content VERSION).Trim()
-          $gemToInstall = "./tiny_tds-$gemVersion-$rubyArchitecture.gem"
-
-          Write-Host "Looking to install $gemToInstall"
-          gem install "$gemToInstall"
+        run: gem install "tiny_tds-*.gem"
 
       - name: Test if TinyTDS loads
         shell: pwsh
@@ -389,8 +373,6 @@ jobs:
     name: install-linux
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
-
       - name: Download precompiled gem
         uses: actions/download-artifact@v4
         with:
@@ -407,7 +389,7 @@ jobs:
             sh -c "
               gem update --system 3.3.22 &&
               ${{ matrix.bootstrap }}
-              gem install --no-document ./gems/tiny_tds-$(cat VERSION)-${{ matrix.platform }}.gem &&
+              gem install --no-document ./gems/tiny_tds-*.gem &&
               ruby -e \"require 'tiny_tds'; puts TinyTds::Gem.root_path\" &&
               tsql-ttds -C &&
               defncopy-ttds -v
@@ -425,7 +407,6 @@ jobs:
           - true
 
         mssql-version:
-          - 2017
           - 2019
           - 2022
 

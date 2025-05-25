@@ -65,7 +65,7 @@ class ThreadTest < TinyTds::TestCase
           result = client.execute "waitfor delay '00:00:#{delay}'; select db_name()"
           result.each { |r| puts r }
         rescue TinyTds::Error => e
-          if e.message == "Adaptive Server connection timed out"
+          if e.message.include?("connection timed out")
             exception = true
           end
         end

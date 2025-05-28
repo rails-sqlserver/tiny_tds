@@ -1,3 +1,7 @@
+## (unreleased)
+
+* Use freetds v1.5.1 and OpenSSL v3.5.0 for Windows and Linux builds.
+
 ## 3.2.1
 
 * Ensure the native Gem loads on Windows. Fixes #581.

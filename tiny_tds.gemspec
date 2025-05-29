@@ -1,9 +1,9 @@
 $LOAD_PATH.push File.expand_path("../lib", __FILE__)
-require "tiny_tds/version"
+version = File.read(File.expand_path("VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
   s.name = "tiny_tds"
-  s.version = TinyTds::VERSION
+  s.version = version
   s.platform = Gem::Platform::RUBY
   s.authors = ["Ken Collins", "Erik Bryn", "Will Bond"]
   s.email = ["ken@metaskills.net", "will@wbond.net"]

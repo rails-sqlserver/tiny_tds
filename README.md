@@ -401,42 +401,26 @@ First, clone the repo using the command line or your Git GUI of choice.
 $ git clone git@github.com:rails-sqlserver/tiny_tds.git
 ```
 
-After that, the quickest way to get setup for development is to use [Docker](https://www.docker.com/). Assuming you have [downloaded docker](https://www.docker.com/products/docker) for your platform, you can use [docker-compose](https://docs.docker.com/compose/install/) to run the necessary containers for testing.
+After that, the quickest way to get setup for development is to use the provided devcontainers setup.
 
 ```shell
-$ docker-compose up -d
+npm install -g @devcontainers/cli
+devcontainer up --workspace-folder .
+devcontainer exec --workspace-folder . bash
 ```
 
-This will download the official SQL Server for Linux Docker image from [Microsoft](https://hub.docker.com/r/microsoft/mssql-server-linux/). This will also download a [toxiproxy](https://github.com/shopify/toxiproxy) Docker image which we can use to simulate network failures for tests. Basically, it does the following:
+From within the container, you can run the tests using the following command:
 
 ```shell
-$ docker network create main-network
-$ docker pull mcr.microsoft.com/mssql/server:2017-latest
-$ docker run -p 1433:1433 -d --name sqlserver --network main-network mcr.microsoft.com/mssql/server:2017-latest
-$ docker pull shopify/toxiproxy
-$ docker run -p 8474:8474 -p 1234:1234 -d --name toxiproxy --network main-network shopify/toxiproxy
+bundle install
+bundle exec rake test
 ```
 
-Make sure to run these SQL scripts as SA to get the test database and user installed. If needed, install [sqlcmd as described by Microsoft for your platform](https://learn.microsoft.com/en-us/sql/tools/sqlcmd/sqlcmd-utility?view=sql-server-ver16&tabs=go%2Clinux&pivots=cs1-bash).
+You can customize the environment variables to run the tests against a different environment
 
-```shell
-/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P super01S3cUr3 -i ./test/sql/db-create.sql
-/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P super01S3cUr3 -i ./test/sql/db-login.sql
-```
-
-From here you can build and run tests against an installed version of FreeTDS.
-
-```shell
-$ bundle install
-$ bundle exec rake
-```
-
-Examples us using enviornment variables to customize the test task.
-
-```
-$ rake TINYTDS_UNIT_DATASERVER=mydbserver
-$ rake TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2017
-$ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_SCHEMA=sqlserver_azure
+```shell 
+rake test TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2017
+rake test TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_SCHEMA=sqlserver_azure
 ```
 
 ### Code formatting
@@ -450,7 +434,7 @@ We are using `standardrb` to format the Ruby code and Artistic Style for the C c
 
 For the convenience, TinyTDS ships pre-compiled gems for supported versions of Ruby on Windows and Linux. In order to generate these gems, [rake-compiler-dock](https://github.com/rake-compiler/rake-compiler-dock) is used.
 
-Run the following rake task to compile the gems. This will check the availability of [Docker](https://www.docker.com/) and will give some advice for download and installation. When docker is running, it will download the docker image (once-only) and start the build:
+Run the following rake task to compile the gems. You can run these commands from inside the devcontainers setup, or outside if neeed. The command will check the availability of [Docker](https://www.docker.com/) and will give some advice for download and installation. When docker is running, it will download the docker image (once-only) and start the build:
 
 ```shell
 bundle exec rake gem:native

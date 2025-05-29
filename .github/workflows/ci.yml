@@ -555,8 +555,8 @@ jobs:
         run: |
           ruby -e "require 'tiny_tds'; puts TinyTds::Gem.root_path"
 
-  standardrb:
-    name: standardrb
+  formatting:
+    name: Code formatting
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -569,3 +569,12 @@ jobs:
       - name: Check standardrb
         shell: bash
         run: bundle exec standardrb
+
+      - name: Check artistic style
+        uses: per1234/artistic-style-action@v1
+        with:
+          options-file-path: "astyle.conf"
+          target-paths: "./ext/"
+          name-patterns: |
+            - '*.c'
+            - '*.h'

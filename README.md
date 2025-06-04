@@ -441,7 +441,7 @@ $ rake TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_SCHEMA=sqlserver_azure
 
 ### Code formatting
 
-We are using `standardrb` to format our code. Just run `bundle exec standardrb --fix` to format all Ruby files.
+We are using `standardrb` to format the Ruby code and Artistic Style for the C code. Run `bundle exec rake format` to format both types in one operation. Artistic Style needs to be manually installed through your package manager (e.g. `apt install -y astyle`).
 
 ### Compiling Gems for Windows and Linux
 

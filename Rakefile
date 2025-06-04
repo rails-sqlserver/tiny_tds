@@ -65,3 +65,8 @@ end
 
 task build: [:clean, :compile]
 task default: [:build, :test]
+
+task :format do
+  system("bundle exec standardrb --fix")
+  system('astyle --options=astyle.conf "./ext/*.c" "./ext/*.h"')
+end

@@ -156,7 +156,7 @@ result = client.execute("SELECT * FROM [datatypes]")
 
 ## TinyTds::Result Usage
 
-A result object is returned by the client's execute command. It is important that you either return the data from the query, most likely with the #each method, or that you cancel the results before asking the client to execute another SQL batch. Failing to do so will yield an error.
+A result object is returned by the client's execute command. It is important that you either return the data from the query, most likely with the #each method. You can manually cancel the results early using `#cancel`, otherwise tiny_tds will also automatically do so when running a new query with `#execute`.
 
 Calling #each on the result will lazily load each row from the database.
 
@@ -177,7 +177,6 @@ result.do
 
 result = client.execute("SELECT [id] FROM [datatypes]")
 result.fields # => ["id"]
-result.cancel
 result = client.execute("SELECT [id] FROM [datatypes]")
 result.each(:symbolize_keys => true)
 result.fields # => [:id]

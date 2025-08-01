@@ -8,12 +8,54 @@ static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, in
 static ID intern_new, intern_dup, intern_transpose_iconv_encoding, intern_local_offset, intern_gsub, intern_call;
 VALUE opt_escape_regex, opt_escape_dblquote;
 
+static void rb_tinytds_client_mark(void *ptr)
+{
+  tinytds_client_wrapper *cwrap = (tinytds_client_wrapper *)ptr;
+
+  if (cwrap) {
+    rb_gc_mark(cwrap->charset);
+  }
+}
+
+static void rb_tinytds_client_free(void *ptr)
+{
+  tinytds_client_wrapper *cwrap = (tinytds_client_wrapper *)ptr;
+
+  if (cwrap->login) {
+    dbloginfree(cwrap->login);
+  }
+
+  if (cwrap->client && !cwrap->closed) {
+    dbclose(cwrap->client);
+    cwrap->client = NULL;
+    cwrap->closed = 1;
+    cwrap->userdata->closed = 1;
+  }
+
+  xfree(cwrap->userdata);
+  xfree(ptr);
+}
+
+static size_t tinytds_client_wrapper_size(const void* data)
+{
+  return sizeof(tinytds_client_wrapper);
+}
+
+static const rb_data_type_t tinytds_client_wrapper_type = {
+  .wrap_struct_name = "tinytds_client_wrapper",
+  .function = {
+    .dmark = rb_tinytds_client_mark,
+    .dfree = rb_tinytds_client_free,
+    .dsize = tinytds_client_wrapper_size,
+  },
+  .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
 
 // Lib Macros
 
 #define GET_CLIENT_WRAPPER(self) \
   tinytds_client_wrapper *cwrap; \
-  Data_Get_Struct(self, tinytds_client_wrapper, cwrap)
+  TypedData_Get_Struct(self, tinytds_client_wrapper, &tinytds_client_wrapper_type, cwrap)
 
 #define REQUIRE_OPEN_CLIENT(cwrap) \
   if (cwrap->closed || cwrap->userdata->closed) { \
@@ -244,39 +286,11 @@ static void rb_tinytds_client_reset_userdata(tinytds_client_userdata *userdata)
   userdata->nonblocking_errors_size = 0;
 }
 
-static void rb_tinytds_client_mark(void *ptr)
-{
-  tinytds_client_wrapper *cwrap = (tinytds_client_wrapper *)ptr;
-
-  if (cwrap) {
-    rb_gc_mark(cwrap->charset);
-  }
-}
-
-static void rb_tinytds_client_free(void *ptr)
-{
-  tinytds_client_wrapper *cwrap = (tinytds_client_wrapper *)ptr;
-
-  if (cwrap->login) {
-    dbloginfree(cwrap->login);
-  }
-
-  if (cwrap->client && !cwrap->closed) {
-    dbclose(cwrap->client);
-    cwrap->client = NULL;
-    cwrap->closed = 1;
-    cwrap->userdata->closed = 1;
-  }
-
-  xfree(cwrap->userdata);
-  xfree(ptr);
-}
-
 static VALUE allocate(VALUE klass)
 {
   VALUE obj;
   tinytds_client_wrapper *cwrap;
-  obj = Data_Make_Struct(klass, tinytds_client_wrapper, rb_tinytds_client_mark, rb_tinytds_client_free, cwrap);
+  obj = TypedData_Make_Struct(klass, tinytds_client_wrapper, &tinytds_client_wrapper_type, cwrap);
   cwrap->closed = 1;
   cwrap->charset = Qnil;
   cwrap->userdata = malloc(sizeof(tinytds_client_userdata));

@@ -413,6 +413,7 @@ From within the container, you can run the tests using the following command:
 
 ```shell
 bundle install
+bundle exec rake compile
 bundle exec rake test
 ```
 

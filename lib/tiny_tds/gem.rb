@@ -1,5 +1,3 @@
-require "rbconfig"
-
 module TinyTds
   module Gem
     class << self
@@ -11,12 +9,14 @@ module TinyTds
         File.join(root_path, "ports")
       end
 
-      def ports_bin_paths
-        Dir.glob(File.join(ports_root_path, "**", "bin"))
+      def ports_bin_and_lib_paths
+        Dir.glob(File.join(ports_root_path, "#{gem_platform.cpu}-#{gem_platform.os}*", "{bin,lib}"))
       end
 
-      def ports_lib_paths
-        Dir.glob(File.join(ports_root_path, "**", "lib"))
+      private
+
+      def gem_platform
+        ::Gem::Platform.local
       end
     end
   end

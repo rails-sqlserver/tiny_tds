@@ -10,8 +10,7 @@ require "tiny_tds/gem"
 module TinyTds
   # Is this file part of a fat binary gem with bundled freetds?
   # This path must be enabled by add_dll_directory on Windows.
-  gplat = ::Gem::Platform.local
-  FREETDS_LIB_PATH = Dir[File.expand_path("../ports/#{gplat.cpu}-#{gplat.os}*/{bin,lib}", __dir__)].first
+  FREETDS_LIB_PATH = TinyTds::Gem.ports_bin_and_lib_paths.first
 
   add_dll_path = proc do |path, &block|
     if RUBY_PLATFORM =~ /(mswin|mingw)/i && path

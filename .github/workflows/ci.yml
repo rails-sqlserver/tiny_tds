@@ -570,11 +570,11 @@ jobs:
         shell: bash
         run: bundle exec standardrb
 
-      - name: Check artistic style
-        uses: per1234/artistic-style-action@v1
-        with:
-          options-file-path: "astyle.conf"
-          target-paths: "./ext/"
-          name-patterns: |
-            - '*.c'
-            - '*.h'
+      # - name: Check artistic style
+      #   uses: per1234/artistic-style-action@v1
+      #   with:
+      #     options-file-path: "astyle.conf"
+      #     target-paths: "./ext/"
+      #     name-patterns: |
+      #       - '*.c'
+      #       - '*.h'

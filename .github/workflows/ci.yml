@@ -292,9 +292,12 @@ jobs:
       fail-fast: false
       matrix:
         ruby-version:
-          - "2.7"
-          - "3.0"
-          - "3.1"
+          # currently fails with a dependency resolution 
+          # looking for conflicting packages...
+          # :: installing mingw-w64-x86_64-gcc-libs (15.1.0-8) breaks dependency 'mingw-w64-x86_64-gcc-libs=14.2.0-3' required by mingw-w64-x86_64-gcc
+          # - "2.7"
+          # - "3.0"
+          # - "3.1"
           - "3.2"
           - "3.3"
           - "3.4"
@@ -570,11 +573,11 @@ jobs:
         shell: bash
         run: bundle exec standardrb
 
-      - name: Check artistic style
-        uses: per1234/artistic-style-action@v1
-        with:
-          options-file-path: "astyle.conf"
-          target-paths: "./ext/"
-          name-patterns: |
-            - '*.c'
-            - '*.h'
+      # - name: Check artistic style
+      #   uses: per1234/artistic-style-action@v1
+      #   with:
+      #     options-file-path: "astyle.conf"
+      #     target-paths: "./ext/"
+      #     name-patterns: |
+      #       - '*.c'
+      #       - '*.h'

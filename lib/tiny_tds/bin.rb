@@ -50,7 +50,7 @@ module TinyTds
 
       begin
         ENV["PATH"] = [
-          Gem.ports_bin_paths,
+          Gem.ports_bin_and_lib_paths,
           old_path
         ].flatten.join File::PATH_SEPARATOR
 
@@ -65,7 +65,7 @@ module TinyTds
     end
 
     def find_exe
-      Gem.ports_bin_paths.each do |bin|
+      Gem.ports_bin_and_lib_paths.each do |bin|
         @exts.each do |ext|
           f = File.join bin, "#{name}#{ext}"
           return f if File.exist?(f)

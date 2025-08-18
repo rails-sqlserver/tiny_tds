@@ -7,11 +7,9 @@ class GemTest < Minitest::Spec
   describe TinyTds::Gem do
     # We're going to muck with some system globals so lets make sure
     # they get set back later
-    original_platform = RbConfig::CONFIG["arch"]
     original_pwd = Dir.pwd
 
     after do
-      RbConfig::CONFIG["arch"] = original_platform
       Dir.chdir original_pwd
     end
 
@@ -43,56 +41,53 @@ class GemTest < Minitest::Spec
       end
     end
 
-    describe "#ports_bin_paths" do
-      let(:ports_bin_paths) { TinyTds::Gem.ports_bin_paths }
+    describe "#ports_bin_and_lib_paths" do
+      let(:ports_bin_and_lib_paths) { TinyTds::Gem.ports_bin_and_lib_paths }
 
       describe "when the ports directories exist" do
-        let(:fake_bin_paths) do
-          ports_host_root = File.join(gem_root, "ports", "fake-host-with-dirs")
-          [
-            File.join("a", "bin"),
-            File.join("a", "inner", "bin"),
-            File.join("b", "bin")
-          ].map do |p|
+        let(:fake_bin_and_lib_path) do
+          ports_host_root = File.join(gem_root, "ports", "x86_64-unknown")
+          ["bin", "lib"].map do |p|
             File.join(ports_host_root, p)
           end
         end
 
         before do
-          RbConfig::CONFIG["arch"] = "fake-host-with-dirs"
-          fake_bin_paths.each do |path|
+          fake_bin_and_lib_path.each do |path|
             FileUtils.mkdir_p(path)
           end
         end
 
         after do
           FileUtils.remove_entry_secure(
-            File.join(gem_root, "ports", "fake-host-with-dirs"), true
+            File.join(gem_root, "ports", "x86_64-unknown"), true
           )
         end
 
         it "should return all the bin directories" do
-          _(ports_bin_paths.sort).must_equal fake_bin_paths.sort
-        end
+          fake_platform = Gem::Platform.new("x86_64-unknown")
 
-        it "should return all the bin directories regardless of cwd" do
-          Dir.chdir "/"
-          _(ports_bin_paths.sort).must_equal fake_bin_paths.sort
+          Gem::Platform.stub(:local, fake_platform) do
+            _(ports_bin_and_lib_paths.sort).must_equal fake_bin_and_lib_path.sort
+
+            # should return the same regardless of path
+            Dir.chdir "/"
+            _(ports_bin_and_lib_paths.sort).must_equal fake_bin_and_lib_path.sort
+          end
         end
       end
 
       describe "when the ports directories are missing" do
-        before do
-          RbConfig::CONFIG["arch"] = "fake-host-without-dirs"
-        end
-
         it "should return no directories" do
-          _(ports_bin_paths).must_be_empty
-        end
+          fake_platform = Gem::Platform.new("x86_64-unknown")
 
-        it "should return no directories regardless of cwd" do
-          Dir.chdir "/"
-          _(ports_bin_paths).must_be_empty
+          Gem::Platform.stub(:local, fake_platform) do
+            _(ports_bin_and_lib_paths).must_be_empty
+
+            # should be empty regardless of path
+            Dir.chdir "/"
+            _(ports_bin_and_lib_paths).must_be_empty
+          end
         end
       end
     end

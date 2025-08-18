@@ -35,7 +35,6 @@ rb_encoding *binaryEncoding;
 
 
 // Lib Backend (Memory Management)
-
 static void rb_tinytds_result_mark(void *ptr)
 {
   tinytds_result_wrapper *rwrap = (tinytds_result_wrapper *)ptr;
@@ -54,11 +53,26 @@ static void rb_tinytds_result_free(void *ptr)
   xfree(ptr);
 }
 
+static size_t tinytds_result_wrapper_size(const void* data)
+{
+  return sizeof(tinytds_result_wrapper);
+}
+
+const rb_data_type_t tinytds_result_wrapper_type = {
+  .wrap_struct_name = "tinytds_result_wrapper",
+  .function = {
+    .dmark = rb_tinytds_result_mark,
+    .dfree = rb_tinytds_result_free,
+    .dsize = tinytds_result_wrapper_size,
+  },
+  .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
 VALUE rb_tinytds_new_result_obj(tinytds_client_wrapper *cwrap)
 {
   VALUE obj;
   tinytds_result_wrapper *rwrap;
-  obj = Data_Make_Struct(cTinyTdsResult, tinytds_result_wrapper, rb_tinytds_result_mark, rb_tinytds_result_free, rwrap);
+  obj = TypedData_Make_Struct(cTinyTdsResult, tinytds_result_wrapper, &tinytds_result_wrapper_type, rwrap);
   rwrap->cwrap = cwrap;
   rwrap->client = cwrap->client;
   rwrap->local_offset = Qnil;

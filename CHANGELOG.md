@@ -1,5 +1,7 @@
 ## (unreleased)
 
+## 3.3.0
+
 * Use freetds v1.5.4 and OpenSSL v3.5.2 for Windows and Linux builds.
 * Use `TypedData` in C-Land.
 

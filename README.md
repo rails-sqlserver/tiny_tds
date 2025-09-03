@@ -80,7 +80,7 @@ Optionally, Microsoft has done a great job writing [an article](https://learn.mi
 
 ## Data Types
 
-Our goal is to support every SQL Server data type and covert it to a logical Ruby object. When dates or times are returned, they are instantiated to either `:utc` or `:local` time depending on the query options. Only [datetimeoffset] types are excluded. All strings are associated the to the connection's encoding and all binary data types are associated to Ruby's `ASCII-8BIT/BINARY` encoding.
+Our goal is to support every SQL Server data type and convert it to a logical Ruby object. When dates or times are returned, they are instantiated to either `:utc` or `:local` time depending on the query options. Only [datetimeoffset] types are excluded. All strings are associated to the connection's encoding and all binary data types are associated to Ruby's `ASCII-8BIT/BINARY` encoding.
 
 Below is a list of the data types we support when using the 7.4 TDS protocol version. Using a lower protocol version will result in these types being returned as strings.
 
@@ -98,11 +98,11 @@ Connect to a database.
 client = TinyTds::Client.new username: 'sa', password: 'secret', host: 'mydb.host.net'
 ```
 
-Creating a new client takes a hash of options. For valid iconv encoding options, see the output of `iconv -l`. Only a few have been tested and highly recommended to leave blank for the UTF-8 default.
+Creating a new client takes a hash of options. For valid iconv encoding options, see the output of `iconv -l`. Only a few have been tested, and are highly recommended to leave blank for the UTF-8 default.
 
 * :username - The database server user.
 * :password - The user password.
-* :dataserver - Can be the name for your data server as defined in freetds.conf. Raw hostname or hostname:port will work here too. FreeTDS says that named instance like 'localhost\SQLEXPRESS' work too, but I highly suggest that you use the :host and :port options below. [Google how to find your host port if you are using named instances](http://bit.ly/xAf2jm) or [go here](http://msdn.microsoft.com/en-us/library/ms181087.aspx).
+* :dataserver - Can be the name for your data server as defined in freetds.conf. Raw hostname or hostname:port will work here too. FreeTDS says that a named instance like 'localhost\SQLEXPRESS' will work too, but I highly suggest that you use the :host and :port options below. [Google how to find your host port if you are using named instances](http://bit.ly/xAf2jm) or [go here](http://msdn.microsoft.com/en-us/library/ms181087.aspx).
 * :host - Used if :dataserver blank. Can be an host name or IP.
 * :port - Defaults to 1433. Only used if :host is used.
 * :database - The default database to use.

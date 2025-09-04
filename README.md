@@ -82,7 +82,7 @@ Optionally, Microsoft has done a great job writing [an article](https://learn.mi
 
 Our goal is to support every SQL Server data type and convert it to a logical Ruby object. When dates or times are returned, they are instantiated to either `:utc` or `:local` time depending on the query options. Only [datetimeoffset] types are excluded. All strings are associated to the connection's encoding and all binary data types are associated to Ruby's `ASCII-8BIT/BINARY` encoding.
 
-Below is a list of the data types we support when using the 7.4 TDS protocol version. Using a lower protocol version will result in these types being returned as strings.
+Below is a list of the data types we support when using the 7.3 TDS protocol version. Using a lower protocol version will result in these types being returned as strings.
 
 * [date]
 * [datetime2]

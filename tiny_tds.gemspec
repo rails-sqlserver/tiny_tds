@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--charset=UTF-8"]
   s.extensions = ["ext/tiny_tds/extconf.rb"]
   s.license = "MIT"
-  s.required_ruby_version = ">= 2.7.0"
+  s.required_ruby_version = ">= 3.2.0"
   s.metadata["msys2_mingw_dependencies"] = "freetds"
   s.add_dependency "bigdecimal", "~> 3"
   s.add_development_dependency "mini_portile2", "~> 2.8.0"

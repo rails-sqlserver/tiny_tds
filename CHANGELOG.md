@@ -1,6 +1,7 @@
 ## (unreleased)
 
 * Drop support for Ruby < 3.2
+* Drop support for SQL Server < 2019
 
 ## 3.4.0
 

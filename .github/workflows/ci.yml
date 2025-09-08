@@ -109,7 +109,6 @@ jobs:
           - false
           - true
         mssql-version:
-          - 2017
           - 2019
           - 2022
         ruby-version:
@@ -140,7 +139,7 @@ jobs:
           RUBY_ARCHITECTURE: "x64-mingw-ucrt"
 
       - name: Setup MSSQL
-        uses: rails-sqlserver/setup-mssql@v1
+        uses: rails-sqlserver/setup-mssql@v2
         with:
           components: sqlcmd,sqlengine
           version: ${{ matrix.mssql-version }}
@@ -315,7 +314,7 @@ jobs:
           RUBY_ARCHITECTURE: "x86_64-linux-gnu"
 
       - name: Setup MSSQL
-        uses: rails-sqlserver/setup-mssql@v1
+        uses: rails-sqlserver/setup-mssql@v2
         with:
           components: sqlcmd,sqlengine
           version: ${{ matrix.mssql-version }}

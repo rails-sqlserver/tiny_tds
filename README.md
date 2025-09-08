@@ -18,7 +18,7 @@ The API is simple and consists of these classes:
 
 ## Install
 
-tiny_tds is tested with Ruby v2.7 and upwards.
+tiny_tds is tested with Ruby v3.2 and upwards.
 
 ### Windows and Linux (64-bit)
 

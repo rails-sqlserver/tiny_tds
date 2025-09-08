@@ -206,32 +206,6 @@ static RETCODE rb_tinytds_result_ok_helper(DBPROCESS *client)
   return userdata->dbsqlok_retcode;
 }
 
-static void rb_tinytds_result_exec_helper(DBPROCESS *client)
-{
-  RETCODE dbsqlok_rc = rb_tinytds_result_ok_helper(client);
-  GET_CLIENT_USERDATA(client);
-
-  if (dbsqlok_rc == SUCCEED) {
-    /*
-    This is to just process each result set. Commands such as backup and
-    restore are not done when the first result set is returned, so we need to
-    exhaust the result sets before it is complete.
-    */
-    while (nogvl_dbresults(client) == SUCCEED) {
-      /*
-      If we don't loop through each row for calls to TinyTds::Result.do that
-      actually do return result sets, we will trigger error 20019 about trying
-      to execute a new command with pending results. Oh well.
-      */
-      while (dbnextrow(client) != NO_MORE_ROWS);
-    }
-  }
-
-  dbcancel(client);
-  userdata->dbcancel_sent = 1;
-  userdata->dbsql_sent = 0;
-}
-
 static VALUE rb_tinytds_result_fetch_row(VALUE self, ID timezone, int symbolize_keys, int as_array)
 {
   VALUE row;
@@ -621,18 +595,6 @@ static VALUE rb_tinytds_result_cancel(VALUE self)
   return Qtrue;
 }
 
-static VALUE rb_tinytds_result_do(VALUE self)
-{
-  GET_RESULT_WRAPPER(self);
-
-  if (rwrap->client) {
-    rb_tinytds_result_exec_helper(rwrap->client);
-    return LONG2NUM((long)dbcount(rwrap->client));
-  } else {
-    return Qnil;
-  }
-}
-
 static VALUE rb_tinytds_result_affected_rows(VALUE self)
 {
   GET_RESULT_WRAPPER(self);
@@ -670,7 +632,6 @@ void init_tinytds_result()
   rb_define_method(cTinyTdsResult, "fields", rb_tinytds_result_fields, 0);
   rb_define_method(cTinyTdsResult, "each", rb_tinytds_result_each, -1);
   rb_define_method(cTinyTdsResult, "cancel", rb_tinytds_result_cancel, 0);
-  rb_define_method(cTinyTdsResult, "do", rb_tinytds_result_do, 0);
   rb_define_method(cTinyTdsResult, "affected_rows", rb_tinytds_result_affected_rows, 0);
   rb_define_method(cTinyTdsResult, "return_code", rb_tinytds_result_return_code, 0);
   /* Intern String Helpers */

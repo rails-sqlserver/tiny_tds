@@ -113,27 +113,6 @@ static void rb_tinytds_client_reset_userdata(tinytds_client_userdata *userdata)
   userdata->nonblocking_errors_size = 0;
 }
 
-static VALUE rb_tinytds_send_sql_to_server(tinytds_client_wrapper *cwrap, VALUE sql)
-{
-  rb_tinytds_client_reset_userdata(cwrap->userdata);
-
-  if (cwrap->closed || cwrap->userdata->closed) {
-    \
-    rb_raise(cTinyTdsError, "closed connection");
-    \
-    return Qnil;
-    \
-  }
-
-  dbcmd(cwrap->client, StringValueCStr(sql));
-
-  if (dbsqlsend(cwrap->client) == FAIL) {
-    rb_raise(cTinyTdsError, "failed dbsqlsend() function");
-  }
-
-  cwrap->userdata->dbsql_sent = 1;
-}
-
 // code part used to invoke FreeTDS functions with releasing the Ruby GVL
 // basically, while FreeTDS is interacting with the SQL server, other Ruby code can be executed
 #define NOGVL_DBCALL(_dbfunction, _client) ( \
@@ -231,7 +210,29 @@ static RETCODE nogvl_dbsqlok(DBPROCESS *client)
   return retcode;
 }
 
-static RETCODE rb_tinytds_result_ok_helper(DBPROCESS *client)
+// some additional helpers interacting with the SQL server
+static VALUE rb_tinytds_send_sql_to_server(tinytds_client_wrapper *cwrap, VALUE sql)
+{
+  rb_tinytds_client_reset_userdata(cwrap->userdata);
+
+  if (cwrap->closed || cwrap->userdata->closed) {
+    \
+    rb_raise(cTinyTdsError, "closed connection");
+    \
+    return Qnil;
+    \
+  }
+
+  dbcmd(cwrap->client, StringValueCStr(sql));
+
+  if (dbsqlsend(cwrap->client) == FAIL) {
+    rb_raise(cTinyTdsError, "failed dbsqlsend() function");
+  }
+
+  cwrap->userdata->dbsql_sent = 1;
+}
+
+static RETCODE rb_tiny_tds_client_ok_helper(DBPROCESS *client)
 {
   GET_CLIENT_USERDATA(client);
 
@@ -240,6 +241,32 @@ static RETCODE rb_tinytds_result_ok_helper(DBPROCESS *client)
   }
 
   return userdata->dbsqlok_retcode;
+}
+
+static void rb_tinytds_result_exec_helper(DBPROCESS *client)
+{
+  RETCODE dbsqlok_rc = rb_tiny_tds_client_ok_helper(client);
+  GET_CLIENT_USERDATA(client);
+
+  if (dbsqlok_rc == SUCCEED) {
+    /*
+    This is to just process each result set. Commands such as backup and
+    restore are not done when the first result set is returned, so we need to
+    exhaust the result sets before it is complete.
+    */
+    while (nogvl_dbresults(client) == SUCCEED) {
+      /*
+      If we don't loop through each row for calls to TinyTds::Client.do that
+      actually do return result sets, we will trigger error 20019 about trying
+      to execute a new command with pending results. Oh well.
+      */
+      while (dbnextrow(client) != NO_MORE_ROWS);
+    }
+  }
+
+  dbcancel(client);
+  userdata->dbcancel_sent = 1;
+  userdata->dbsql_sent = 0;
 }
 
 // Lib Backend (Memory Management & Handlers)
@@ -489,24 +516,7 @@ static VALUE rb_tiny_tds_insert(VALUE self, VALUE sql)
   VALUE identity = Qnil;
   GET_CLIENT_WRAPPER(self);
   rb_tinytds_send_sql_to_server(cwrap, sql);
-
-  RETCODE dbsqlok_rc = rb_tinytds_result_ok_helper(cwrap->client);
-
-  if (dbsqlok_rc == SUCCEED) {
-    /*
-    This is to just process each result set. Commands such as backup and
-    restore are not done when the first result set is returned, so we need to
-    exhaust the result sets before it is complete.
-    */
-    while (nogvl_dbresults(cwrap->client) == SUCCEED) {
-      /*
-      If we don't loop through each row for calls to TinyTds::Result.do that
-      actually do return result sets, we will trigger error 20019 about trying
-      to execute a new command with pending results. Oh well.
-      */
-      while (nogvl_dbnextrow(cwrap->client) != NO_MORE_ROWS);
-    }
-  }
+  rb_tinytds_result_exec_helper(cwrap->client);
 
   dbcancel(cwrap->client);
   cwrap->userdata->dbcancel_sent = 1;
@@ -533,6 +543,15 @@ static VALUE rb_tiny_tds_insert(VALUE self, VALUE sql)
   }
 
   return identity;
+}
+
+static VALUE rb_tiny_tds_do(VALUE self, VALUE sql)
+{
+  GET_CLIENT_WRAPPER(self);
+  rb_tinytds_send_sql_to_server(cwrap, sql);
+  rb_tinytds_result_exec_helper(cwrap->client);
+
+  return LONG2NUM((long)dbcount(cwrap->client));
 }
 
 static VALUE rb_tinytds_charset(VALUE self)
@@ -716,6 +735,7 @@ void init_tinytds_client()
   rb_define_method(cTinyTdsClient, "sqlsent?", rb_tinytds_sqlsent, 0);
   rb_define_method(cTinyTdsClient, "execute", rb_tinytds_execute, 1);
   rb_define_method(cTinyTdsClient, "insert", rb_tiny_tds_insert, 1);
+  rb_define_method(cTinyTdsClient, "do", rb_tiny_tds_do, 1);
   rb_define_method(cTinyTdsClient, "charset", rb_tinytds_charset, 0);
   rb_define_method(cTinyTdsClient, "encoding", rb_tinytds_encoding, 0);
   rb_define_method(cTinyTdsClient, "escape", rb_tinytds_escape, 1);

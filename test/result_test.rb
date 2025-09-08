@@ -74,8 +74,8 @@ class ResultTest < TinyTds::TestCase
 
     it "allows sql concat + to work" do
       rollback_transaction(@client) do
-        @client.execute("DELETE FROM [datatypes]").do
-        @client.execute("INSERT INTO [datatypes] ([char_10], [varchar_50]) VALUES ('1', '2')").do
+        @client.do("DELETE FROM [datatypes]")
+        @client.do("INSERT INTO [datatypes] ([char_10], [varchar_50]) VALUES ('1', '2')")
         result = @client.execute("SELECT TOP (1) [char_10] + 'test' + [varchar_50] AS [test] FROM [datatypes]").each.first["test"]
         _(result).must_equal "1         test2"
       end
@@ -109,8 +109,8 @@ class ResultTest < TinyTds::TestCase
     it "must delete, insert and find data" do
       rollback_transaction(@client) do
         text = "test insert and delete"
-        @client.execute("DELETE FROM [datatypes] WHERE [varchar_50] IS NOT NULL").do
-        @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
+        @client.do("DELETE FROM [datatypes] WHERE [varchar_50] IS NOT NULL")
+        @client.do("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')")
         row = @client.execute("SELECT [varchar_50] FROM [datatypes] WHERE [varchar_50] IS NOT NULL").each.first
         assert row
         assert_equal text, row["varchar_50"]
@@ -120,8 +120,8 @@ class ResultTest < TinyTds::TestCase
     it "must insert and find unicode data" do
       rollback_transaction(@client) do
         text = "😍"
-        @client.execute("DELETE FROM [datatypes] WHERE [nvarchar_50] IS NOT NULL").do
-        @client.execute("INSERT INTO [datatypes] ([nvarchar_50]) VALUES (N'#{text}')").do
+        @client.do("DELETE FROM [datatypes] WHERE [nvarchar_50] IS NOT NULL")
+        @client.do("INSERT INTO [datatypes] ([nvarchar_50]) VALUES (N'#{text}')")
         row = @client.execute("SELECT [nvarchar_50] FROM [datatypes] WHERE [nvarchar_50] IS NOT NULL").each.first
         assert_equal text, row["nvarchar_50"]
       end
@@ -130,13 +130,13 @@ class ResultTest < TinyTds::TestCase
     it "must delete and update with affected rows support and insert with identity support in native sql" do
       rollback_transaction(@client) do
         text = "test affected rows sql"
-        @client.execute("DELETE FROM [datatypes]").do
+        @client.do("DELETE FROM [datatypes]")
         afrows = @client.execute("SELECT @@ROWCOUNT AS AffectedRows").each.first["AffectedRows"]
         _(["Fixnum", "Integer"]).must_include afrows.class.name
-        @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
+        @client.do("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')")
         pk1 = @client.execute(@client.identity_sql).each.first["Ident"]
         _(["Fixnum", "Integer"]).must_include pk1.class.name, "we it be able to CAST to bigint"
-        @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
+        @client.do("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'")
         afrows = @client.execute("SELECT @@ROWCOUNT AS AffectedRows").each.first["AffectedRows"]
         assert_equal 1, afrows
       end
@@ -146,11 +146,11 @@ class ResultTest < TinyTds::TestCase
       rollback_transaction(@client) do
         text = "test affected rows native"
         count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").each.first["count"]
-        deleted_rows = @client.execute("DELETE FROM [datatypes]").do
+        deleted_rows = @client.do("DELETE FROM [datatypes]")
         assert_equal count, deleted_rows, "should have deleted rows equal to count"
-        inserted_rows = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
+        inserted_rows = @client.do("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')")
         assert_equal 1, inserted_rows, "should have inserted row for one above"
-        updated_rows = @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
+        updated_rows = @client.do("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'")
         assert_equal 1, updated_rows, "should have updated row for one above"
       end
     end
@@ -158,20 +158,20 @@ class ResultTest < TinyTds::TestCase
     it "allows native affected rows using #do to work under transaction" do
       rollback_transaction(@client) do
         text = "test affected rows native in transaction"
-        @client.execute("BEGIN TRANSACTION").do
-        @client.execute("DELETE FROM [datatypes]").do
-        inserted_rows = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
+        @client.do("BEGIN TRANSACTION")
+        @client.do("DELETE FROM [datatypes]")
+        inserted_rows = @client.do("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')")
         assert_equal 1, inserted_rows, "should have inserted row for one above"
-        updated_rows = @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
+        updated_rows = @client.do("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'")
         assert_equal 1, updated_rows, "should have updated row for one above"
       end
     end
 
     it "must be able to begin/commit transactions with raw sql" do
       rollback_transaction(@client) do
-        @client.execute("BEGIN TRANSACTION").do
-        @client.execute("DELETE FROM [datatypes]").do
-        @client.execute("COMMIT TRANSACTION").do
+        @client.do("BEGIN TRANSACTION")
+        @client.do("DELETE FROM [datatypes]")
+        @client.do("COMMIT TRANSACTION")
         count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").each.first["count"]
         assert_equal 0, count
       end
@@ -179,9 +179,9 @@ class ResultTest < TinyTds::TestCase
 
     it "must be able to begin/rollback transactions with raw sql" do
       load_current_schema
-      @client.execute("BEGIN TRANSACTION").do
-      @client.execute("DELETE FROM [datatypes]").do
-      @client.execute("ROLLBACK TRANSACTION").do
+      @client.do("BEGIN TRANSACTION")
+      @client.do("DELETE FROM [datatypes]")
+      @client.do("ROLLBACK TRANSACTION")
       count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").each.first["count"]
       _(count).wont_equal 0
     end
@@ -195,8 +195,6 @@ class ResultTest < TinyTds::TestCase
 
     it "always returns an array for fields for all sql" do
       result = @client.execute("USE [tinytdstest]")
-      _(result.fields).must_equal []
-      result.do
       _(result.fields).must_equal []
     end
 
@@ -258,7 +256,7 @@ class ResultTest < TinyTds::TestCase
       _(@client.sqlsent?).must_equal false
       _(@client.canceled?).must_equal true
       # With do method.
-      @client.execute(@query1).do
+      @client.do(@query1)
       _(@client.sqlsent?).must_equal false
       _(@client.canceled?).must_equal true
       # With first
@@ -275,12 +273,12 @@ class ResultTest < TinyTds::TestCase
     it "has properly encoded column names with symbol keys" do
       col_name = "öäüß"
       begin
-        @client.execute("DROP TABLE [test_encoding]").do
+        @client.do("DROP TABLE [test_encoding]")
       rescue
         nil
       end
-      @client.execute("CREATE TABLE [dbo].[test_encoding] ( [id] int NOT NULL IDENTITY(1,1) PRIMARY KEY, [#{col_name}] [nvarchar](10) NOT NULL )").do
-      @client.execute("INSERT INTO [test_encoding] ([#{col_name}]) VALUES (N'#{col_name}')").do
+      @client.do("CREATE TABLE [dbo].[test_encoding] ( [id] int NOT NULL IDENTITY(1,1) PRIMARY KEY, [#{col_name}] [nvarchar](10) NOT NULL )")
+      @client.do("INSERT INTO [test_encoding] ([#{col_name}]) VALUES (N'#{col_name}')")
       result = @client.execute("SELECT [#{col_name}] FROM [test_encoding]")
       row = result.each(as: :hash, symbolize_keys: true).first
       assert_instance_of Symbol, result.fields.first
@@ -516,7 +514,7 @@ class ResultTest < TinyTds::TestCase
         after { File.delete(backup_file) if File.exist?(backup_file) }
 
         it "must not cancel the query until complete" do
-          @client.execute("BACKUP DATABASE tinytdstest TO DISK = '#{backup_file}'").do
+          @client.do("BACKUP DATABASE tinytdstest TO DISK = '#{backup_file}'")
         end
       end
     end
@@ -538,7 +536,7 @@ class ResultTest < TinyTds::TestCase
         before do
           @big_text = "x" * 2_000_000
           @old_textsize = @client.execute("SELECT @@TEXTSIZE AS [textsize]").each.first["textsize"].inspect
-          @client.execute("SET TEXTSIZE #{(@big_text.length * 2) + 1}").do
+          @client.do("SET TEXTSIZE #{(@big_text.length * 2) + 1}")
         end
 
         it "must insert and select large varchar_max" do
@@ -578,7 +576,7 @@ class ResultTest < TinyTds::TestCase
             messages.clear
             msg = "Test #{severity} severity"
             state = rand(1..255)
-            @client.execute("RAISERROR(N'#{msg}', #{severity}, #{state})").do
+            @client.do("RAISERROR(N'#{msg}', #{severity}, #{state})")
             m = messages.first
             assert_equal 1, messages.length, "there should be one message after one raiserror"
             assert_equal msg, m.message, "message text"
@@ -590,7 +588,7 @@ class ResultTest < TinyTds::TestCase
         it "calls the provided message handler for `print` messages" do
           messages.clear
           msg = "hello"
-          @client.execute("PRINT '#{msg}'").do
+          @client.do("PRINT '#{msg}'")
           m = messages.first
           assert_equal 1, messages.length, "there should be one message after one print statement"
           assert_equal msg, m.message, "message text"
@@ -598,7 +596,7 @@ class ResultTest < TinyTds::TestCase
 
         it "must raise an error preceded by a `print` message" do
           messages.clear
-          action = lambda { @client.execute("EXEC tinytds_TestPrintWithError").do }
+          action = lambda { @client.do("EXEC tinytds_TestPrintWithError") }
           assert_raise_tinytds_error(action) do |e|
             assert_equal "hello", messages.first.message, "message text"
 
@@ -610,13 +608,13 @@ class ResultTest < TinyTds::TestCase
 
         it "calls the provided message handler for each of a series of `print` messages" do
           messages.clear
-          @client.execute("EXEC tinytds_TestSeveralPrints").do
+          @client.do("EXEC tinytds_TestSeveralPrints")
           assert_equal ["hello 1", "hello 2", "hello 3"], messages.map { |e| e.message }, "message list"
         end
 
         it "should flush info messages before raising error in cases of timeout" do
           @client = new_connection timeout: 1, message_handler: proc { |m| messages << m }
-          action = lambda { @client.execute("print 'hello'; waitfor delay '00:00:02'").do }
+          action = lambda { @client.do("print 'hello'; waitfor delay '00:00:02'") }
           messages.clear
           assert_raise_tinytds_error(action) do |e|
             assert_match %r{timed out}i, e.message, "ignore if non-english test run"
@@ -628,7 +626,7 @@ class ResultTest < TinyTds::TestCase
 
         it "should print info messages before raising error in cases of timeout" do
           @client = new_connection timeout: 1, message_handler: proc { |m| messages << m }
-          action = lambda { @client.execute("raiserror('hello', 1, 1) with nowait; waitfor delay '00:00:02'").do }
+          action = lambda { @client.do("raiserror('hello', 1, 1) with nowait; waitfor delay '00:00:02'") }
           messages.clear
           assert_raise_tinytds_error(action) do |e|
             assert_match %r{timed out}i, e.message, "ignore if non-english test run"
@@ -641,12 +639,12 @@ class ResultTest < TinyTds::TestCase
 
       it "must not raise an error when severity is 10 or less" do
         (1..10).to_a.each do |severity|
-          @client.execute("RAISERROR(N'Test #{severity} severity', #{severity}, 1)").do
+          @client.do("RAISERROR(N'Test #{severity} severity', #{severity}, 1)")
         end
       end
 
       it "raises an error when severity is greater than 10" do
-        action = lambda { @client.execute("RAISERROR(N'Test 11 severity', 11, 1)").do }
+        action = lambda { @client.do("RAISERROR(N'Test 11 severity', 11, 1)") }
         assert_raise_tinytds_error(action) do |e|
           assert_equal "Test 11 severity", e.message
           assert_equal 11, e.severity
@@ -665,7 +663,7 @@ class ResultTest < TinyTds::TestCase
 
   def insert_and_select_datatype(datatype)
     rollback_transaction(@client) do
-      @client.execute("DELETE FROM [datatypes] WHERE [#{datatype}] IS NOT NULL").do
+      @client.do("DELETE FROM [datatypes] WHERE [#{datatype}] IS NOT NULL")
       id = @client.insert("INSERT INTO [datatypes] ([#{datatype}]) VALUES (N'#{@big_text}')")
       found_text = find_value id, datatype
       flunk "Large #{datatype} data with a length of #{@big_text.length} did not match found text with length of #{found_text.length}" unless @big_text == found_text

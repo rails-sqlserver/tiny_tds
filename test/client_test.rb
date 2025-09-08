@@ -97,7 +97,7 @@ class ClientTest < TinyTds::TestCase
 
     it "raises TinyTds exception with long query past :timeout option" do
       client = new_connection timeout: 1
-      action = lambda { client.execute("WaitFor Delay '00:00:02'").do }
+      action = lambda { client.do("WaitFor Delay '00:00:02'") }
       assert_raise_tinytds_error(action) do |e|
         assert_equal 20003, e.db_error_number
         assert_equal 6, e.severity
@@ -110,21 +110,21 @@ class ClientTest < TinyTds::TestCase
 
     it "must not timeout per sql batch when not under transaction" do
       client = new_connection timeout: 2
-      client.execute("WaitFor Delay '00:00:01'").do
-      client.execute("WaitFor Delay '00:00:01'").do
-      client.execute("WaitFor Delay '00:00:01'").do
+      client.do("WaitFor Delay '00:00:01'")
+      client.do("WaitFor Delay '00:00:01'")
+      client.do("WaitFor Delay '00:00:01'")
       close_client(client)
     end
 
     it "must not timeout per sql batch when under transaction" do
       client = new_connection timeout: 2
       begin
-        client.execute("BEGIN TRANSACTION").do
-        client.execute("WaitFor Delay '00:00:01'").do
-        client.execute("WaitFor Delay '00:00:01'").do
-        client.execute("WaitFor Delay '00:00:01'").do
+        client.do("BEGIN TRANSACTION")
+        client.do("WaitFor Delay '00:00:01'")
+        client.do("WaitFor Delay '00:00:01'")
+        client.do("WaitFor Delay '00:00:01'")
       ensure
-        client.execute("COMMIT TRANSACTION").do
+        client.do("COMMIT TRANSACTION")
         close_client(client)
       end
     end
@@ -132,7 +132,7 @@ class ClientTest < TinyTds::TestCase
     it "raises TinyTds exception with tcp socket network failure" do
       client = new_connection timeout: 2, port: 1234, host: ENV["TOXIPROXY_HOST"]
       assert_client_works(client)
-      action = lambda { client.execute("waitfor delay '00:00:05'").do }
+      action = lambda { client.do("waitfor delay '00:00:05'") }
 
       # Use toxiproxy to close the TCP socket after 1 second.
       # We want TinyTds to execute the statement, hit the timeout configured above, and then not be able to use the network to cancel
@@ -154,7 +154,7 @@ class ClientTest < TinyTds::TestCase
       begin
         client = new_connection timeout: 2, port: 1234, host: ENV["TOXIPROXY_HOST"]
         assert_client_works(client)
-        action = lambda { client.execute("waitfor delay '00:00:05'").do }
+        action = lambda { client.do("waitfor delay '00:00:05'") }
 
         # Use toxiproxy to close the network connection after 1 second.
         # We want TinyTds to execute the statement, hit the timeout configured above, and then not be able to use the network to cancel
@@ -272,8 +272,8 @@ class ClientTest < TinyTds::TestCase
     it "has an #insert method that cancels result rows and returns IDENTITY natively" do
       rollback_transaction(@client) do
         text = "test scope identity rows native"
-        @client.execute("DELETE FROM [datatypes] WHERE [varchar_50] = '#{text}'").do
-        @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
+        @client.do("DELETE FROM [datatypes] WHERE [varchar_50] = '#{text}'")
+        @client.do("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')")
         sql_identity = @client.execute(@client.identity_sql).each.first["Ident"]
         native_identity = @client.insert("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')")
 
@@ -289,12 +289,12 @@ class ClientTest < TinyTds::TestCase
 
       rollback_transaction(@client) do
         seed = 9223372036854775805
-        @client.execute("DELETE FROM [datatypes]").do
+        @client.do("DELETE FROM [datatypes]")
         id_constraint_name = @client.execute("EXEC sp_helpindex [datatypes]").detect { |row| row["index_keys"] == "id" }["index_name"]
-        @client.execute("ALTER TABLE [datatypes] DROP CONSTRAINT [#{id_constraint_name}]").do
-        @client.execute("ALTER TABLE [datatypes] DROP COLUMN [id]").do
-        @client.execute("ALTER TABLE [datatypes] ADD [id] [bigint] NOT NULL IDENTITY(1,1) PRIMARY KEY").do
-        @client.execute("DBCC CHECKIDENT ('datatypes', RESEED, #{seed})").do
+        @client.do("ALTER TABLE [datatypes] DROP CONSTRAINT [#{id_constraint_name}]")
+        @client.do("ALTER TABLE [datatypes] DROP COLUMN [id]")
+        @client.do("ALTER TABLE [datatypes] ADD [id] [bigint] NOT NULL IDENTITY(1,1) PRIMARY KEY")
+        @client.do("DBCC CHECKIDENT ('datatypes', RESEED, #{seed})")
         identity = @client.insert("INSERT INTO [datatypes] ([varchar_50]) VALUES ('something')")
 
         assert_equal(seed, identity)

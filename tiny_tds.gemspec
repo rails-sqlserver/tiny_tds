@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--charset=UTF-8"]
   s.extensions = ["ext/tiny_tds/extconf.rb"]
   s.license = "MIT"
-  s.required_ruby_version = ">= 2.7.0"
+  s.required_ruby_version = ">= 3.2.0"
   s.metadata["msys2_mingw_dependencies"] = "freetds"
   s.add_dependency "bigdecimal", ">= 2.0.0"
   s.add_development_dependency "mini_portile2", "~> 2.8.0"
@@ -24,10 +24,10 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rake-compiler", "~> 1.2"
   s.add_development_dependency "rake-compiler-dock", "~> 1.11.0"
   s.add_development_dependency "minitest", "~> 5.25"
-  s.add_development_dependency "minitest-reporters", "~> 1.6.1"
-  s.add_development_dependency "connection_pool", "~> 2.2.0"
+  s.add_development_dependency "minitest-reporters", "~> 1.7.1"
+  s.add_development_dependency "connection_pool", "~> 2.5.0"
   s.add_development_dependency "toxiproxy", "~> 2.0.0"
-  s.add_development_dependency "standard", "~> 1.31.0"
+  s.add_development_dependency "standard", "~> 1.50.0"
   # ostruct can be dropped when updating to Rubocop 1.65+
   s.add_development_dependency "ostruct"
   s.add_development_dependency "benchmark"

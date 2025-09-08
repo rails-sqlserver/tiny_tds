@@ -18,7 +18,7 @@ The API is simple and consists of these classes:
 
 ## Install
 
-tiny_tds is tested with Ruby v2.7 and upwards.
+tiny_tds is tested with Ruby v3.2 and upwards.
 
 ### Windows and Linux (64-bit)
 
@@ -413,13 +413,14 @@ From within the container, you can run the tests using the following command:
 
 ```shell
 bundle install
+bundle exec rake compile
 bundle exec rake test
 ```
 
 You can customize the environment variables to run the tests against a different environment
 
 ```shell 
-rake test TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2017
+rake test TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2019
 rake test TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_SCHEMA=sqlserver_azure
 ```
 

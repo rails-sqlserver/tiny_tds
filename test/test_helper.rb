@@ -82,7 +82,7 @@ module TinyTds
     end
 
     def assert_client_works(client)
-      _(client.execute("SELECT 'client_works' as [client_works]").each).must_equal [{"client_works" => "client_works"}]
+      _(client.execute("SELECT 'client_works' as [client_works]").rows).must_equal [{"client_works" => "client_works"}]
     end
 
     def assert_new_connections_work
@@ -191,9 +191,8 @@ module TinyTds
     end
 
     def find_value(id, column, query_options = {})
-      query_options[:timezone] ||= :utc
       sql = "SELECT [#{column}] FROM [datatypes] WHERE [id] = #{id}"
-      @client.execute(sql).each(query_options).first[column.to_s]
+      @client.execute(sql, timezone: query_options[:timezone] || :utc).first[column.to_s]
     end
 
     def local_offset

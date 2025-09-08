@@ -122,8 +122,8 @@ opts[:message_handler] = Proc.new { |m| puts m.message }
 client = TinyTds::Client.new opts
 # => Changed database context to 'master'.
 # => Changed language setting to us_english.
-client.execute("print 'hello world!'").do
-# => hello world!
+client.do("print 'hello world!'")
+# => -1 (no affected rows)
 ```
 
 Use the `#active?` method to determine if a connection is good. The implementation of this method may change but it should always guarantee that a connection is good. Current it checks for either a closed or dead connection.
@@ -153,168 +153,98 @@ Send a SQL string to the database and return a TinyTds::Result object.
 result = client.execute("SELECT * FROM [datatypes]")
 ```
 
+## Sending queries and receiving results
 
-## TinyTds::Result Usage
+The client implements three different methods to send queries to a SQL server.
 
-A result object is returned by the client's execute command. It is important that you either return the data from the query, most likely with the #each method, or that you cancel the results before asking the client to execute another SQL batch. Failing to do so will yield an error.
-
-Calling #each on the result will lazily load each row from the database.
+`client.insert` will execute the query and return the last identifier.
 
 ```ruby
-result.each do |row|
-  # By default each row is a hash.
-  # The keys are the fields, as you'd expect.
-  # The values are pre-built Ruby primitives mapped from their corresponding types.
-end
+client.insert("INSERT INTO [datatypes] ([varchar_50]) VALUES ('text')")
+# => 363
 ```
 
-A result object has a `#fields` accessor. It can be called before the result rows are iterated over. Even if no rows are returned, #fields will still return the column names you expected. Any SQL that does not return columned data will always return an empty array for `#fields`. It is important to remember that if you access the `#fields` before iterating over the results, the columns will always follow the default query option's `:symbolize_keys` setting at the client's level and will ignore the query options passed to each.
+`client.do` will execute the query and tell you how many rows were affected.
+
+```ruby
+client.do("DELETE FROM [datatypes] WHERE [varchar_50] = 'text'")
+# 1
+```
+
+Both `do` and `insert` will not serialize any results sent by the SQL server, making them extremely fast and memory-efficient for large operations.
+
+`client.execute` will execute the query and return you a `TinyTds::Result` object.
+
+```ruby
+client.execute("SELECT [id] FROM [datatypes]")
+# => 
+# #<TinyTds::Result:0x000057d6275ce3b0
+# @fields=["id"],
+# @return_code=nil,
+# @rows=
+#  [{"id"=>11},
+#   {"id"=>12},
+#   {"id"=>21},
+#   {"id"=>31},
+```
+
+A result object has a `fields` accessor. Even if no rows are returned, `fields` will still return the column names you expected. Any SQL that does not return columned data will always return an empty array for `fields`.
 
 ```ruby
 result = client.execute("USE [tinytdstest]")
 result.fields # => []
-result.do
 
 result = client.execute("SELECT [id] FROM [datatypes]")
 result.fields # => ["id"]
-result.cancel
-result = client.execute("SELECT [id] FROM [datatypes]")
-result.each(:symbolize_keys => true)
-result.fields # => [:id]
 ```
 
-You can cancel a result object's data from being loading by the server.
+You can retrieve the results by accessing the `rows` property on the result.
 
 ```ruby
-result = client.execute("SELECT * FROM [super_big_table]")
-result.cancel
+result.rows
+# => 
+# [{"id"=>11},
+# {"id"=>12},
+# {"id"=>21},
+# ...
 ```
 
-You can use results cancelation in conjunction with results lazy loading, no problem.
-
-```ruby
-result = client.execute("SELECT * FROM [super_big_table]")
-result.each_with_index do |row, i|
-  break if row > 10
-end
-result.cancel
-```
-
-If the SQL executed by the client returns affected rows, you can easily find out how many.
-
-```ruby
-result.each
-result.affected_rows # => 24
-```
-
-This pattern is so common for UPDATE and DELETE statements that the #do method cancels any need for loading the result data and returns the `#affected_rows`.
+The result object also has `affected_rows`, which usually also corresponds to the length of items in `rows`. But if you execute a `DELETE` statement with `execute, `rows` is likely empty but `affected_rows` will still list a couple of items.
 
 ```ruby
 result = client.execute("DELETE FROM [datatypes]")
-result.do # => 72
+# #<TinyTds::Result:0x00005efc024d9f10 @affected_rows=75, @fields=[], @return_code=nil, @rows=[]>
+result.count
+# 0
+result.affected_rows
+# 75
 ```
 
-Likewise for `INSERT` statements, the #insert method cancels any need for loading the result data and executes a `SCOPE_IDENTITY()` for the primary key.
+But as mentioned earlier, best use `do` when you are only interested in the `affected_rows`.
 
-```ruby
-result = client.execute("INSERT INTO [datatypes] ([xml]) VALUES ('<html><br/></html>')")
-result.insert # => 420
-```
-
-The result object can handle multiple result sets form batched SQL or stored procedures. It is critical to remember that when calling each with a block for the first time will return each "row" of each result set. Calling each a second time with a block will yield each "set".
+The result object can handle multiple result sets form batched SQL or stored procedures.
 
 ```ruby
 sql = ["SELECT TOP (1) [id] FROM [datatypes]",
        "SELECT TOP (2) [bigint] FROM [datatypes] WHERE [bigint] IS NOT NULL"].join(' ')
 
-set1, set2 = client.execute(sql).each
+set1, set2 = client.execute(sql).rows
 set1 # => [{"id"=>11}]
 set2 # => [{"bigint"=>-9223372036854775807}, {"bigint"=>9223372036854775806}]
-
-result = client.execute(sql)
-
-result.each do |rowset|
-  # First time data loading, yields each row from each set.
-  # 1st: {"id"=>11}
-  # 2nd: {"bigint"=>-9223372036854775807}
-  # 3rd: {"bigint"=>9223372036854775806}
-end
-
-result.each do |rowset|
-  # Second time over (if columns cached), yields each set.
-  # 1st: [{"id"=>11}]
-  # 2nd: [{"bigint"=>-9223372036854775807}, {"bigint"=>9223372036854775806}]
-end
 ```
-
-Use the `#sqlsent?` and `#canceled?` query methods on the client to determine if an active SQL batch still needs to be processed and or if data results were canceled from the last result object. These values reset to true and false respectively for the client at the start of each `#execute` and new result object. Or if all rows are processed normally, `#sqlsent?` will return false. To demonstrate, lets assume we have 100 rows in the result object.
-
-```ruby
-client.sqlsent?   # = false
-client.canceled?  # = false
-
-result = client.execute("SELECT * FROM [super_big_table]")
-
-client.sqlsent?   # = true
-client.canceled?  # = false
-
-result.each do |row|
-  # Assume we break after 20 rows with 80 still pending.
-  break if row["id"] > 20
-end
-
-client.sqlsent?   # = true
-client.canceled?  # = false
-
-result.cancel
-
-client.sqlsent?   # = false
-client.canceled?  # = true
-```
-
-It is possible to get the return code after executing a stored procedure from either the result or client object.
-
-```ruby
-client.return_code  # => nil
-
-result = client.execute("EXEC tinytds_TestReturnCodes")
-result.do
-result.return_code  # => 420
-client.return_code  # => 420
-```
-
 
 ## Query Options
 
-Every `TinyTds::Result` object can pass query options to the #each method. The defaults are defined and configurable by setting options in the `TinyTds::Client.default_query_options` hash. The default values are:
+You can pass query options to `execute`. The defaults are defined and configurable by setting options in the `TinyTds::Client.default_query_options` hash. The default values are:
 
-* :as => :hash - Object for each row yielded. Can be set to :array.
-* :symbolize_keys => false - Row hash keys. Defaults to shared/frozen string keys.
-* :cache_rows => true - Successive calls to #each returns the cached rows.
-* :timezone => :local - Local to the Ruby client or :utc for UTC.
-* :empty_sets => true - Include empty results set in queries that return multiple result sets.
-
-Each result gets a copy of the default options you specify at the client level and can be overridden by passing an options hash to the #each method. For example
+* `as: :hash` - Object for each row yielded. Can be set to :array.
+* `empty_sets: true` - Include empty results set in queries that return multiple result sets.
+* `timezone: :local` - Local to the Ruby client or :utc for UTC.
 
 ```ruby
-result.each(:as => :array, :cache_rows => false) do |row|
-  # Each row is now an array of values ordered by #fields.
-  # Rows are yielded and forgotten about, freeing memory.
-end
+result = client.execute("SELECT [datetime2_2] FROM [datatypes] WHERE [id] = 74", as: :array, timezone: :utc, empty_sets: true)
+# => #<TinyTds::Result:0x000061e841910600 @affected_rows=1, @fields=["datetime2_2"], @return_code=nil, @rows=[[9999-12-31 23:59:59.12 UTC]]>
 ```
-
-Besides the standard query options, the result object can take one additional option. Using `:first => true` will only load the first row of data and cancel all remaining results.
-
-```ruby
-result = client.execute("SELECT * FROM [super_big_table]")
-result.each(:first => true) # => [{'id' => 24}]
-```
-
-
-## Row Caching
-
-By default row caching is turned on because the SQL Server adapter for ActiveRecord would not work without it. I hope to find some time to create some performance patches for ActiveRecord that would allow it to take advantages of lazily created yielded rows from result objects. Currently only TinyTDS and the Mysql2 gem allow such a performance gain.
-
 
 ## Encoding Error Handling
 

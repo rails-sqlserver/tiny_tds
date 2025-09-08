@@ -274,7 +274,7 @@ class ClientTest < TinyTds::TestCase
         text = "test scope identity rows native"
         @client.do("DELETE FROM [datatypes] WHERE [varchar_50] = '#{text}'")
         @client.do("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')")
-        sql_identity = @client.execute(@client.identity_sql).each.first["Ident"]
+        sql_identity = @client.execute(@client.identity_sql).first["Ident"]
         native_identity = @client.insert("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')")
 
         assert_equal(sql_identity + 1, native_identity)

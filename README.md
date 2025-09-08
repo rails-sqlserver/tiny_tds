@@ -420,7 +420,7 @@ bundle exec rake test
 You can customize the environment variables to run the tests against a different environment
 
 ```shell 
-rake test TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2017
+rake test TINYTDS_UNIT_DATASERVER=mydbserver TINYTDS_SCHEMA=sqlserver_2019
 rake test TINYTDS_UNIT_HOST=mydb.host.net TINYTDS_SCHEMA=sqlserver_azure
 ```
 

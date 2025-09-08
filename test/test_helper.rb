@@ -7,13 +7,13 @@ require "toxiproxy"
 require "minitest/reporters"
 Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new, Minitest::Reporters::JUnitReporter.new]
 
-TINYTDS_SCHEMAS = ["sqlserver_2017", "sqlserver_azure"].freeze
+TINYTDS_SCHEMAS = ["sqlserver_2019", "sqlserver_azure"].freeze
 
 module TinyTds
   class TestCase < Minitest::Spec
     class << self
       def current_schema
-        ENV["TINYTDS_SCHEMA"] || "sqlserver_2017"
+        ENV["TINYTDS_SCHEMA"] || "sqlserver_2019"
       end
 
       TINYTDS_SCHEMAS.each do |schema|

@@ -1,5 +1,6 @@
 #include <tiny_tds_ext.h>
 #include <errno.h>
+#include <inttypes.h>
 
 VALUE cTinyTdsClient;
 extern VALUE mTinyTds, cTinyTdsError;
@@ -63,12 +64,6 @@ static const rb_data_type_t tinytds_client_wrapper_type = {
 #define GET_CLIENT_WRAPPER(self) \
   tinytds_client_wrapper *cwrap; \
   TypedData_Get_Struct(self, tinytds_client_wrapper, &tinytds_client_wrapper_type, cwrap)
-
-#ifdef _WIN32
-  #define LONG_LONG_FORMAT "I64d"
-#else
-  #define LONG_LONG_FORMAT "lld"
-#endif
 
 #define ENCODED_STR_NEW(_data, _len) ({ \
   VALUE _val = rb_str_new((char *)_data, (long)_len); \
@@ -578,8 +573,10 @@ static VALUE rb_tinytds_result_fetch_value(VALUE self, ID timezone, unsigned int
       case SYBMONEY: {
         DBMONEY *money = (DBMONEY *)data;
         char converted_money[25];
-        long long money_value = ((long long)money->mnyhigh << 32) | money->mnylow;
-        sprintf(converted_money, "%" LONG_LONG_FORMAT, money_value);
+        int64_t money_value = ((int64_t)money->mnyhigh << 32) | money->mnylow;
+
+        sprintf(converted_money, "%" PRId64, money_value);
+
         val = rb_funcall(cKernel, intern_bigd, 2, rb_str_new2(converted_money), opt_four);
         val = rb_funcall(val, intern_divide, 1, opt_tenk);
         break;

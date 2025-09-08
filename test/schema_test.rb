@@ -120,8 +120,8 @@ class SchemaTest < TinyTds::TestCase
 
     it "casts numeric" do
       assert_instance_of BigDecimal, find_value(191, :numeric_18_0)
-      assert_equal BigDecimal("191"), find_value(191, :numeric_18_0)
-      assert_equal BigDecimal("123456789012345678"), find_value(192, :numeric_18_0)
+      assert_equal BigDecimal(191), find_value(191, :numeric_18_0)
+      assert_equal BigDecimal(123456789012345678), find_value(192, :numeric_18_0)
       assert_equal BigDecimal("12345678901234567890.01"), find_value(193, :numeric_36_2)
       assert_equal BigDecimal("123.46"), find_value(194, :numeric_36_2)
     end

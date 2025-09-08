@@ -1,5 +1,8 @@
 ## (unreleased)
 
+* Drop support for Ruby < 3.2
+* Drop support for SQL Server < 2019
+
 ## 3.3.0
 
 * Use freetds v1.5.4 and OpenSSL v3.5.2 for Windows and Linux builds.

@@ -2,6 +2,11 @@
 
 * Drop support for Ruby < 3.2
 * Drop support for SQL Server < 2019
+* Removed lazy-loading of results for `execute`
+* Moved `#do`, `#insert` and `#execute` methods to the `TinyTds::Client` class
+  * `TinyTds::Result` is now a pure Ruby class
+* `#execute`: Replaced `opts` hash with keyword arguments 
+* Removed `symbolize_keys` and `cache_rows` from `#default_query_options`
 
 ## 3.3.0
 

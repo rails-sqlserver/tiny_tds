@@ -263,4 +263,53 @@ class ClientTest < TinyTds::TestCase
       ).must_equal "user"
     end
   end
+
+  describe "#insert" do
+    before do
+      @client = new_connection
+    end
+
+    it "has an #insert method that cancels result rows and returns IDENTITY natively" do
+      rollback_transaction(@client) do
+        text = "test scope identity rows native"
+        @client.execute("DELETE FROM [datatypes] WHERE [varchar_50] = '#{text}'").do
+        @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
+        sql_identity = @client.execute(@client.identity_sql).each.first["Ident"]
+        native_identity = @client.insert("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')")
+
+        assert_equal(sql_identity + 1, native_identity)
+        assert_client_works(@client)
+      end
+    end
+
+    it "returns bigint for #insert when needed" do
+      return if sqlserver_azure? # We can not alter clustered index like this test does.
+      # 'CREATE TABLE' command is not allowed within a multi-statement transaction
+      # and and sp_helpindex creates a temporary table #spindtab.
+
+      rollback_transaction(@client) do
+        seed = 9223372036854775805
+        @client.execute("DELETE FROM [datatypes]").do
+        id_constraint_name = @client.execute("EXEC sp_helpindex [datatypes]").detect { |row| row["index_keys"] == "id" }["index_name"]
+        @client.execute("ALTER TABLE [datatypes] DROP CONSTRAINT [#{id_constraint_name}]").do
+        @client.execute("ALTER TABLE [datatypes] DROP COLUMN [id]").do
+        @client.execute("ALTER TABLE [datatypes] ADD [id] [bigint] NOT NULL IDENTITY(1,1) PRIMARY KEY").do
+        @client.execute("DBCC CHECKIDENT ('datatypes', RESEED, #{seed})").do
+        identity = @client.insert("INSERT INTO [datatypes] ([varchar_50]) VALUES ('something')")
+
+        assert_equal(seed, identity)
+        assert_client_works(@client)
+      end
+    end
+
+    it "throws an error if client is closed" do
+      @client.close
+      assert @client.closed?
+
+      action = lambda { @client.insert("SELECT 1 as [one]") }
+      assert_raise_tinytds_error(action) do |e|
+        assert_match %r{closed connection}i, e.message
+      end
+    end
+  end
 end

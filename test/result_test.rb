@@ -167,34 +167,6 @@ class ResultTest < TinyTds::TestCase
       end
     end
 
-    it "has an #insert method that cancels result rows and returns IDENTITY natively" do
-      rollback_transaction(@client) do
-        text = "test scope identity rows native"
-        @client.execute("DELETE FROM [datatypes] WHERE [varchar_50] = '#{text}'").do
-        @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
-        sql_identity = @client.execute(@client.identity_sql).each.first["Ident"]
-        native_identity = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").insert
-        assert_equal sql_identity + 1, native_identity
-      end
-    end
-
-    it "returns bigint for #insert when needed" do
-      return if sqlserver_azure? # We can not alter clustered index like this test does.
-      # 'CREATE TABLE' command is not allowed within a multi-statement transaction
-      # and and sp_helpindex creates a temporary table #spindtab.
-      rollback_transaction(@client) do
-        seed = 9223372036854775805
-        @client.execute("DELETE FROM [datatypes]").do
-        id_constraint_name = @client.execute("EXEC sp_helpindex [datatypes]").detect { |row| row["index_keys"] == "id" }["index_name"]
-        @client.execute("ALTER TABLE [datatypes] DROP CONSTRAINT [#{id_constraint_name}]").do
-        @client.execute("ALTER TABLE [datatypes] DROP COLUMN [id]").do
-        @client.execute("ALTER TABLE [datatypes] ADD [id] [bigint] NOT NULL IDENTITY(1,1) PRIMARY KEY").do
-        @client.execute("DBCC CHECKIDENT ('datatypes', RESEED, #{seed})").do
-        identity = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('something')").insert
-        assert_equal seed, identity
-      end
-    end
-
     it "must be able to begin/commit transactions with raw sql" do
       rollback_transaction(@client) do
         @client.execute("BEGIN TRANSACTION").do
@@ -289,12 +261,6 @@ class ResultTest < TinyTds::TestCase
       @client.execute(@query1).do
       _(@client.sqlsent?).must_equal false
       _(@client.canceled?).must_equal true
-      # With insert method.
-      rollback_transaction(@client) do
-        @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('test')").insert
-        _(@client.sqlsent?).must_equal false
-        _(@client.canceled?).must_equal true
-      end
       # With first
       @client.execute("SELECT [id] FROM [datatypes]").each(first: true)
       _(@client.sqlsent?).must_equal false
@@ -700,7 +666,7 @@ class ResultTest < TinyTds::TestCase
   def insert_and_select_datatype(datatype)
     rollback_transaction(@client) do
       @client.execute("DELETE FROM [datatypes] WHERE [#{datatype}] IS NOT NULL").do
-      id = @client.execute("INSERT INTO [datatypes] ([#{datatype}]) VALUES (N'#{@big_text}')").insert
+      id = @client.insert("INSERT INTO [datatypes] ([#{datatype}]) VALUES (N'#{@big_text}')")
       found_text = find_value id, datatype
       flunk "Large #{datatype} data with a length of #{@big_text.length} did not match found text with length of #{found_text.length}" unless @big_text == found_text
     end

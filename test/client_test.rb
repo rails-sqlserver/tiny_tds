@@ -1,6 +1,10 @@
 require "test_helper"
 
 class ClientTest < TinyTds::TestCase
+  before do
+    @@current_schema_loaded ||= load_current_schema
+  end
+
   describe "with valid credentials" do
     before do
       @client = new_connection

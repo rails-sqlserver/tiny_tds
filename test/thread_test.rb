@@ -20,7 +20,7 @@ class ThreadTest < TinyTds::TestCase
         threads = []
         @numthreads.times do |i|
           threads << Thread.new do
-            @pool.with { |c| c.execute(@query).do }
+            @pool.with { |c| c.do(@query) }
           end
         end
         threads.each { |t| t.join }

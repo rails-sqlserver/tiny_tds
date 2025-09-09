@@ -17,15 +17,6 @@ class ResultTest < TinyTds::TestCase
       assert result.respond_to?(:each)
     end
 
-    it "returns all results for #each with no block" do
-      result = @client.execute(@query1)
-      data = result.each
-      row = data.first
-      assert_instance_of Array, data
-      assert_equal 1, data.size
-      assert_instance_of Hash, row, "hash is the default query option"
-    end
-
     it "returns all results for #each with a block yielding a row at a time" do
       result = @client.execute(@query1)
       data = result.each do |row|
@@ -34,84 +25,28 @@ class ResultTest < TinyTds::TestCase
       assert_instance_of Array, data
     end
 
-    it "allows successive calls to each returning the same data" do
-      result = @client.execute(@query1)
-      data = result.each
-      result.each
-      assert_equal data.object_id, result.each.object_id
-      assert_equal data.first.object_id, result.each.first.object_id
-    end
-
-    it "returns hashes with string keys" do
-      result = @client.execute(@query1)
-      row = result.each(as: :hash, symbolize_keys: false).first
-      assert_instance_of Hash, row
-      assert_equal ["one"], row.keys
-      assert_equal ["one"], result.fields
-    end
-
-    it "returns hashes with symbol keys" do
-      result = @client.execute(@query1)
-      row = result.each(as: :hash, symbolize_keys: true).first
-      assert_instance_of Hash, row
-      assert_equal [:one], row.keys
-      assert_equal [:one], result.fields
-    end
-
-    it "returns arrays with string fields" do
-      result = @client.execute(@query1)
-      row = result.each(as: :array, symbolize_keys: false).first
+    it "returns arrays" do
+      results = @client.execute(@query1, as: :array)
+      row = results.first
       assert_instance_of Array, row
-      assert_equal ["one"], result.fields
-    end
-
-    it "returns arrays with symbol fields" do
-      result = @client.execute(@query1)
-      row = result.each(as: :array, symbolize_keys: true).first
-      assert_instance_of Array, row
-      assert_equal [:one], result.fields
+      assert_equal ["one"], results.fields
     end
 
     it "allows sql concat + to work" do
       rollback_transaction(@client) do
-        @client.execute("DELETE FROM [datatypes]").do
-        @client.execute("INSERT INTO [datatypes] ([char_10], [varchar_50]) VALUES ('1', '2')").do
-        result = @client.execute("SELECT TOP (1) [char_10] + 'test' + [varchar_50] AS [test] FROM [datatypes]").each.first["test"]
+        @client.do("DELETE FROM [datatypes]")
+        @client.do("INSERT INTO [datatypes] ([char_10], [varchar_50]) VALUES ('1', '2')")
+        result = @client.execute("SELECT TOP (1) [char_10] + 'test' + [varchar_50] AS [test] FROM [datatypes]").first["test"]
         _(result).must_equal "1         test2"
       end
-    end
-
-    it "must be able to turn :cache_rows option off" do
-      result = @client.execute(@query1)
-      local = []
-      result.each(cache_rows: false) do |row|
-        local << row
-      end
-      assert local.first, "should have iterated over each row"
-      assert_equal [], result.each, "should not have been cached"
-      assert_equal ["one"], result.fields, "should still cache field names"
-    end
-
-    it "must be able to get the first result row only" do
-      load_current_schema
-      big_query = "SELECT [id] FROM [datatypes]"
-      one = @client.execute(big_query).each(first: true)
-      many = @client.execute(big_query).each
-      assert many.size > 1
-      assert one.size == 1
-    end
-
-    it "copes with no results when using first option" do
-      data = @client.execute("SELECT [id] FROM [datatypes] WHERE [id] = -1").each(first: true)
-      assert_equal [], data
     end
 
     it "must delete, insert and find data" do
       rollback_transaction(@client) do
         text = "test insert and delete"
-        @client.execute("DELETE FROM [datatypes] WHERE [varchar_50] IS NOT NULL").do
-        @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
-        row = @client.execute("SELECT [varchar_50] FROM [datatypes] WHERE [varchar_50] IS NOT NULL").each.first
+        @client.do("DELETE FROM [datatypes] WHERE [varchar_50] IS NOT NULL")
+        @client.do("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')")
+        row = @client.execute("SELECT [varchar_50] FROM [datatypes] WHERE [varchar_50] IS NOT NULL").first
         assert row
         assert_equal text, row["varchar_50"]
       end
@@ -120,9 +55,9 @@ class ResultTest < TinyTds::TestCase
     it "must insert and find unicode data" do
       rollback_transaction(@client) do
         text = "😍"
-        @client.execute("DELETE FROM [datatypes] WHERE [nvarchar_50] IS NOT NULL").do
-        @client.execute("INSERT INTO [datatypes] ([nvarchar_50]) VALUES (N'#{text}')").do
-        row = @client.execute("SELECT [nvarchar_50] FROM [datatypes] WHERE [nvarchar_50] IS NOT NULL").each.first
+        @client.do("DELETE FROM [datatypes] WHERE [nvarchar_50] IS NOT NULL")
+        @client.do("INSERT INTO [datatypes] ([nvarchar_50]) VALUES (N'#{text}')")
+        row = @client.execute("SELECT [nvarchar_50] FROM [datatypes] WHERE [nvarchar_50] IS NOT NULL").first
         assert_equal text, row["nvarchar_50"]
       end
     end
@@ -130,14 +65,14 @@ class ResultTest < TinyTds::TestCase
     it "must delete and update with affected rows support and insert with identity support in native sql" do
       rollback_transaction(@client) do
         text = "test affected rows sql"
-        @client.execute("DELETE FROM [datatypes]").do
-        afrows = @client.execute("SELECT @@ROWCOUNT AS AffectedRows").each.first["AffectedRows"]
+        @client.do("DELETE FROM [datatypes]")
+        afrows = @client.execute("SELECT @@ROWCOUNT AS AffectedRows").first["AffectedRows"]
         _(["Fixnum", "Integer"]).must_include afrows.class.name
-        @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
-        pk1 = @client.execute(@client.identity_sql).each.first["Ident"]
+        @client.do("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')")
+        pk1 = @client.execute(@client.identity_sql).first["Ident"]
         _(["Fixnum", "Integer"]).must_include pk1.class.name, "we it be able to CAST to bigint"
-        @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
-        afrows = @client.execute("SELECT @@ROWCOUNT AS AffectedRows").each.first["AffectedRows"]
+        @client.do("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'")
+        afrows = @client.execute("SELECT @@ROWCOUNT AS AffectedRows").first["AffectedRows"]
         assert_equal 1, afrows
       end
     end
@@ -145,12 +80,12 @@ class ResultTest < TinyTds::TestCase
     it "has a #do method that cancels result rows and returns affected rows natively" do
       rollback_transaction(@client) do
         text = "test affected rows native"
-        count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").each.first["count"]
-        deleted_rows = @client.execute("DELETE FROM [datatypes]").do
+        count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").first["count"]
+        deleted_rows = @client.do("DELETE FROM [datatypes]")
         assert_equal count, deleted_rows, "should have deleted rows equal to count"
-        inserted_rows = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
+        inserted_rows = @client.do("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')")
         assert_equal 1, inserted_rows, "should have inserted row for one above"
-        updated_rows = @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
+        updated_rows = @client.do("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'")
         assert_equal 1, updated_rows, "should have updated row for one above"
       end
     end
@@ -158,59 +93,31 @@ class ResultTest < TinyTds::TestCase
     it "allows native affected rows using #do to work under transaction" do
       rollback_transaction(@client) do
         text = "test affected rows native in transaction"
-        @client.execute("BEGIN TRANSACTION").do
-        @client.execute("DELETE FROM [datatypes]").do
-        inserted_rows = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
+        @client.do("BEGIN TRANSACTION")
+        @client.do("DELETE FROM [datatypes]")
+        inserted_rows = @client.do("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')")
         assert_equal 1, inserted_rows, "should have inserted row for one above"
-        updated_rows = @client.execute("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'").do
+        updated_rows = @client.do("UPDATE [datatypes] SET [varchar_50] = NULL WHERE [varchar_50] = '#{text}'")
         assert_equal 1, updated_rows, "should have updated row for one above"
-      end
-    end
-
-    it "has an #insert method that cancels result rows and returns IDENTITY natively" do
-      rollback_transaction(@client) do
-        text = "test scope identity rows native"
-        @client.execute("DELETE FROM [datatypes] WHERE [varchar_50] = '#{text}'").do
-        @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").do
-        sql_identity = @client.execute(@client.identity_sql).each.first["Ident"]
-        native_identity = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')").insert
-        assert_equal sql_identity + 1, native_identity
-      end
-    end
-
-    it "returns bigint for #insert when needed" do
-      return if sqlserver_azure? # We can not alter clustered index like this test does.
-      # 'CREATE TABLE' command is not allowed within a multi-statement transaction
-      # and and sp_helpindex creates a temporary table #spindtab.
-      rollback_transaction(@client) do
-        seed = 9223372036854775805
-        @client.execute("DELETE FROM [datatypes]").do
-        id_constraint_name = @client.execute("EXEC sp_helpindex [datatypes]").detect { |row| row["index_keys"] == "id" }["index_name"]
-        @client.execute("ALTER TABLE [datatypes] DROP CONSTRAINT [#{id_constraint_name}]").do
-        @client.execute("ALTER TABLE [datatypes] DROP COLUMN [id]").do
-        @client.execute("ALTER TABLE [datatypes] ADD [id] [bigint] NOT NULL IDENTITY(1,1) PRIMARY KEY").do
-        @client.execute("DBCC CHECKIDENT ('datatypes', RESEED, #{seed})").do
-        identity = @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('something')").insert
-        assert_equal seed, identity
       end
     end
 
     it "must be able to begin/commit transactions with raw sql" do
       rollback_transaction(@client) do
-        @client.execute("BEGIN TRANSACTION").do
-        @client.execute("DELETE FROM [datatypes]").do
-        @client.execute("COMMIT TRANSACTION").do
-        count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").each.first["count"]
+        @client.do("BEGIN TRANSACTION")
+        @client.do("DELETE FROM [datatypes]")
+        @client.do("COMMIT TRANSACTION")
+        count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").first["count"]
         assert_equal 0, count
       end
     end
 
     it "must be able to begin/rollback transactions with raw sql" do
       load_current_schema
-      @client.execute("BEGIN TRANSACTION").do
-      @client.execute("DELETE FROM [datatypes]").do
-      @client.execute("ROLLBACK TRANSACTION").do
-      count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").each.first["count"]
+      @client.do("BEGIN TRANSACTION")
+      @client.do("DELETE FROM [datatypes]")
+      @client.do("ROLLBACK TRANSACTION")
+      count = @client.execute("SELECT COUNT(*) AS [count] FROM [datatypes]").first["count"]
       _(count).wont_equal 0
     end
 
@@ -224,8 +131,6 @@ class ResultTest < TinyTds::TestCase
     it "always returns an array for fields for all sql" do
       result = @client.execute("USE [tinytdstest]")
       _(result.fields).must_equal []
-      result.do
-      _(result.fields).must_equal []
     end
 
     it "returns fields even when no results are found" do
@@ -233,18 +138,6 @@ class ResultTest < TinyTds::TestCase
       # Fields before each.
       result = @client.execute(no_results_query)
       _(result.fields).must_equal ["id", "varchar_50"]
-      result.each
-      _(result.fields).must_equal ["id", "varchar_50"]
-      # Each then fields
-      result = @client.execute(no_results_query)
-      result.each
-      _(result.fields).must_equal ["id", "varchar_50"]
-    end
-
-    it "allows the result to be canceled before reading" do
-      result = @client.execute(@query1)
-      result.cancel
-      @client.execute(@query1).each
     end
 
     it "works in tandem with the client when needing to find out if client has sql sent and result is canceled or not" do
@@ -253,26 +146,24 @@ class ResultTest < TinyTds::TestCase
       _(@client.sqlsent?).must_equal false
       _(@client.canceled?).must_equal false
       # With active result before and after cancel.
-      result = @client.execute(@query1)
-      _(@client.sqlsent?).must_equal true
-      _(@client.canceled?).must_equal false
-      result.cancel
+      @client.execute(@query1)
       _(@client.sqlsent?).must_equal false
       _(@client.canceled?).must_equal true
-      assert result.cancel, "must be safe to call again"
       # With each and no block.
       @client.execute(@query1).each
       _(@client.sqlsent?).must_equal false
-      _(@client.canceled?).must_equal false
+      _(@client.canceled?).must_equal true
       # With each and block.
       @client.execute(@query1).each do |row|
-        _(@client.sqlsent?).must_equal true, "when iterating over each row in a block"
-        _(@client.canceled?).must_equal false
+        _(@client.sqlsent?).must_equal false
+        _(@client.canceled?).must_equal true
       end
+
       _(@client.sqlsent?).must_equal false
-      _(@client.canceled?).must_equal false
+      _(@client.canceled?).must_equal true
+
       # With each and block canceled half way thru.
-      count = @client.execute("SELECT COUNT([id]) AS [count] FROM [datatypes]").each[0]["count"]
+      count = @client.execute("SELECT COUNT([id]) AS [count] FROM [datatypes]").first["count"]
       assert count > 10, "since we want to cancel early for test"
       result = @client.execute("SELECT [id] FROM [datatypes]")
       index = 0
@@ -280,57 +171,22 @@ class ResultTest < TinyTds::TestCase
         break if index > 10
         index += 1
       end
-      _(@client.sqlsent?).must_equal true
-      _(@client.canceled?).must_equal false
-      result.cancel
       _(@client.sqlsent?).must_equal false
       _(@client.canceled?).must_equal true
       # With do method.
-      @client.execute(@query1).do
+      @client.do(@query1)
       _(@client.sqlsent?).must_equal false
       _(@client.canceled?).must_equal true
-      # With insert method.
-      rollback_transaction(@client) do
-        @client.execute("INSERT INTO [datatypes] ([varchar_50]) VALUES ('test')").insert
-        _(@client.sqlsent?).must_equal false
-        _(@client.canceled?).must_equal true
-      end
-      # With first
-      @client.execute("SELECT [id] FROM [datatypes]").each(first: true)
-      _(@client.sqlsent?).must_equal false
-      _(@client.canceled?).must_equal true
-    end
-
-    it "use same string object for hash keys" do
-      data = @client.execute("SELECT [id], [bigint] FROM [datatypes]").each
-      assert_equal data.first.keys.map { |r| r.object_id }, data.last.keys.map { |r| r.object_id }
-    end
-
-    it "has properly encoded column names with symbol keys" do
-      col_name = "öäüß"
-      begin
-        @client.execute("DROP TABLE [test_encoding]").do
-      rescue
-        nil
-      end
-      @client.execute("CREATE TABLE [dbo].[test_encoding] ( [id] int NOT NULL IDENTITY(1,1) PRIMARY KEY, [#{col_name}] [nvarchar](10) NOT NULL )").do
-      @client.execute("INSERT INTO [test_encoding] ([#{col_name}]) VALUES (N'#{col_name}')").do
-      result = @client.execute("SELECT [#{col_name}] FROM [test_encoding]")
-      row = result.each(as: :hash, symbolize_keys: true).first
-      assert_instance_of Symbol, result.fields.first
-      assert_equal col_name.to_sym, result.fields.first
-      assert_instance_of Symbol, row.keys.first
-      assert_equal col_name.to_sym, row.keys.first
     end
 
     it "allows #return_code to work with stored procedures and reset per sql batch" do
       assert_nil @client.return_code
       result = @client.execute("EXEC tinytds_TestReturnCodes")
-      assert_equal [{"one" => 1}], result.each
+      assert_equal [{"one" => 1}], result.rows
       assert_equal 420, @client.return_code
       assert_equal 420, result.return_code
+
       result = @client.execute("SELECT 1 as [one]")
-      result.each
       assert_nil @client.return_code
       assert_nil result.return_code
     end
@@ -358,31 +214,31 @@ class ResultTest < TinyTds::TestCase
 
       it "handles a command buffer with double selects" do
         result = @client.execute(@double_select)
-        result_sets = result.each
-        assert_equal 2, result_sets.size
-        assert_equal [{"rs1" => 1}], result_sets.first
-        assert_equal [{"rs2" => 2}], result_sets.last
+        assert_equal 2, result.count
+        assert_equal [{"rs1" => 1}], result.rows.first
+        assert_equal [{"rs2" => 2}], result.rows.last
         assert_equal [["rs1"], ["rs2"]], result.fields
-        assert_equal result.each.object_id, result.each.object_id, "same cached rows"
+
         # As array
-        result = @client.execute(@double_select)
-        result_sets = result.each(as: :array)
-        assert_equal 2, result_sets.size
-        assert_equal [[1]], result_sets.first
-        assert_equal [[2]], result_sets.last
+        result = @client.execute(@double_select, as: :array)
+        assert_equal 2, result.count
+        assert_equal [[1]], result.rows.first
+        assert_equal [[2]], result.rows.last
         assert_equal [["rs1"], ["rs2"]], result.fields
-        assert_equal result.each.object_id, result.each.object_id, "same cached rows"
       end
 
       it "yields each row for each result set" do
         data = []
-        result_sets = @client.execute(@double_select).each { |row| data << row }
-        assert_equal data.first, result_sets.first[0]
-        assert_equal data.last, result_sets.last[0]
+
+        result = @client.execute(@double_select)
+        result.each { |row| data << row }
+
+        assert_equal data.first, result.rows.first
+        assert_equal data.last, result.rows.last
       end
 
       it "works from a stored procedure" do
-        results1, results2 = @client.execute("EXEC sp_helpconstraint '[datatypes]'").each
+        results1, results2 = @client.execute("EXEC sp_helpconstraint '[datatypes]'").rows
         assert_equal [{"Object Name" => "[datatypes]"}], results1
         constraint_info = results2.first
         assert constraint_info.key?("constraint_keys")
@@ -404,68 +260,59 @@ class ResultTest < TinyTds::TestCase
 
         it "handles a basic empty result set" do
           result = @client.execute(@empty_select)
-          assert_equal [], result.each
+          assert_equal [], result.to_a
           assert_equal ["rs1"], result.fields
         end
 
         it "includes empty result sets by default - using 1st empty buffer" do
           result = @client.execute(@triple_select_1st_empty)
-          result_sets = result.each
-          assert_equal 3, result_sets.size
-          assert_equal [], result_sets[0]
-          assert_equal [{"rs2" => 2}], result_sets[1]
-          assert_equal [{"rs3" => 3}], result_sets[2]
+          assert_equal 3, result.count
+          assert_equal [], result.rows[0]
+          assert_equal [{"rs2" => 2}], result.rows[1]
+          assert_equal [{"rs3" => 3}], result.rows[2]
           assert_equal [["rs1"], ["rs2"], ["rs3"]], result.fields
-          assert_equal result.each.object_id, result.each.object_id, "same cached rows"
+
           # As array
-          result = @client.execute(@triple_select_1st_empty)
-          result_sets = result.each(as: :array)
-          assert_equal 3, result_sets.size
-          assert_equal [], result_sets[0]
-          assert_equal [[2]], result_sets[1]
-          assert_equal [[3]], result_sets[2]
+          result = @client.execute(@triple_select_1st_empty, as: :array)
+          assert_equal 3, result.count
+          assert_equal [], result.rows[0]
+          assert_equal [[2]], result.rows[1]
+          assert_equal [[3]], result.rows[2]
           assert_equal [["rs1"], ["rs2"], ["rs3"]], result.fields
-          assert_equal result.each.object_id, result.each.object_id, "same cached rows"
         end
 
         it "includes empty result sets by default - using 2nd empty buffer" do
           result = @client.execute(@triple_select_2nd_empty)
-          result_sets = result.each
-          assert_equal 3, result_sets.size
-          assert_equal [{"rs1" => 1}], result_sets[0]
-          assert_equal [], result_sets[1]
-          assert_equal [{"rs3" => 3}], result_sets[2]
+          assert_equal 3, result.count
+          assert_equal [{"rs1" => 1}], result.rows[0]
+          assert_equal [], result.rows[1]
+          assert_equal [{"rs3" => 3}], result.rows[2]
           assert_equal [["rs1"], ["rs2"], ["rs3"]], result.fields
-          assert_equal result.each.object_id, result.each.object_id, "same cached rows"
+
           # As array
-          result = @client.execute(@triple_select_2nd_empty)
-          result_sets = result.each(as: :array)
-          assert_equal 3, result_sets.size
-          assert_equal [[1]], result_sets[0]
-          assert_equal [], result_sets[1]
-          assert_equal [[3]], result_sets[2]
+          result = @client.execute(@triple_select_2nd_empty, as: :array)
+          assert_equal 3, result.count
+          assert_equal [[1]], result.rows[0]
+          assert_equal [], result.rows[1]
+          assert_equal [[3]], result.rows[2]
           assert_equal [["rs1"], ["rs2"], ["rs3"]], result.fields
-          assert_equal result.each.object_id, result.each.object_id, "same cached rows"
         end
 
         it "includes empty result sets by default - using 3rd empty buffer" do
           result = @client.execute(@triple_select_3rd_empty)
-          result_sets = result.each
-          assert_equal 3, result_sets.size
-          assert_equal [{"rs1" => 1}], result_sets[0]
-          assert_equal [{"rs2" => 2}], result_sets[1]
-          assert_equal [], result_sets[2]
+          assert_equal 3, result.count
+          assert_equal [{"rs1" => 1}], result.rows[0]
+          assert_equal [{"rs2" => 2}], result.rows[1]
+          assert_equal [], result.rows[2]
           assert_equal [["rs1"], ["rs2"], ["rs3"]], result.fields
-          assert_equal result.each.object_id, result.each.object_id, "same cached rows"
+
           # As array
-          result = @client.execute(@triple_select_3rd_empty)
-          result_sets = result.each(as: :array)
-          assert_equal 3, result_sets.size
-          assert_equal [[1]], result_sets[0]
-          assert_equal [[2]], result_sets[1]
-          assert_equal [], result_sets[2]
+          result = @client.execute(@triple_select_3rd_empty, as: :array)
+          assert_equal 3, result.count
+          assert_equal [[1]], result.rows[0]
+          assert_equal [[2]], result.rows[1]
+          assert_equal [], result.rows[2]
           assert_equal [["rs1"], ["rs2"], ["rs3"]], result.fields
-          assert_equal result.each.object_id, result.each.object_id, "same cached rows"
         end
       end
 
@@ -483,62 +330,53 @@ class ResultTest < TinyTds::TestCase
 
         it "handles a basic empty result set" do
           result = @client.execute(@empty_select)
-          assert_equal [], result.each
+          assert_equal [], result.rows
           assert_equal ["rs1"], result.fields
         end
 
         it "must not include empty result sets by default - using 1st empty buffer" do
           result = @client.execute(@triple_select_1st_empty)
-          result_sets = result.each
-          assert_equal 2, result_sets.size
-          assert_equal [{"rs2" => 2}], result_sets[0]
-          assert_equal [{"rs3" => 3}], result_sets[1]
+          assert_equal 2, result.count
+          assert_equal [{"rs2" => 2}], result.rows[0]
+          assert_equal [{"rs3" => 3}], result.rows[1]
           assert_equal [["rs2"], ["rs3"]], result.fields
-          assert_equal result.each.object_id, result.each.object_id, "same cached rows"
+
           # As array
-          result = @client.execute(@triple_select_1st_empty)
-          result_sets = result.each(as: :array)
-          assert_equal 2, result_sets.size
-          assert_equal [[2]], result_sets[0]
-          assert_equal [[3]], result_sets[1]
+          result = @client.execute(@triple_select_1st_empty, as: :array)
+          assert_equal 2, result.count
+          assert_equal [[2]], result.rows[0]
+          assert_equal [[3]], result.rows[1]
           assert_equal [["rs2"], ["rs3"]], result.fields
-          assert_equal result.each.object_id, result.each.object_id, "same cached rows"
         end
 
         it "must not include empty result sets by default - using 2nd empty buffer" do
           result = @client.execute(@triple_select_2nd_empty)
-          result_sets = result.each
-          assert_equal 2, result_sets.size
-          assert_equal [{"rs1" => 1}], result_sets[0]
-          assert_equal [{"rs3" => 3}], result_sets[1]
+          assert_equal 2, result.count
+          assert_equal [{"rs1" => 1}], result.rows[0]
+          assert_equal [{"rs3" => 3}], result.rows[1]
           assert_equal [["rs1"], ["rs3"]], result.fields
-          assert_equal result.each.object_id, result.each.object_id, "same cached rows"
+
           # As array
-          result = @client.execute(@triple_select_2nd_empty)
-          result_sets = result.each(as: :array)
-          assert_equal 2, result_sets.size
-          assert_equal [[1]], result_sets[0]
-          assert_equal [[3]], result_sets[1]
+          result = @client.execute(@triple_select_2nd_empty, as: :array)
+          assert_equal 2, result.count
+          assert_equal [[1]], result.rows[0]
+          assert_equal [[3]], result.rows[1]
           assert_equal [["rs1"], ["rs3"]], result.fields
-          assert_equal result.each.object_id, result.each.object_id, "same cached rows"
         end
 
         it "must not include empty result sets by default - using 3rd empty buffer" do
           result = @client.execute(@triple_select_3rd_empty)
-          result_sets = result.each
-          assert_equal 2, result_sets.size
-          assert_equal [{"rs1" => 1}], result_sets[0]
-          assert_equal [{"rs2" => 2}], result_sets[1]
+          assert_equal 2, result.count
+          assert_equal [{"rs1" => 1}], result.rows[0]
+          assert_equal [{"rs2" => 2}], result.rows[1]
           assert_equal [["rs1"], ["rs2"]], result.fields
-          assert_equal result.each.object_id, result.each.object_id, "same cached rows"
+
           # As array
-          result = @client.execute(@triple_select_3rd_empty)
-          result_sets = result.each(as: :array)
-          assert_equal 2, result_sets.size
-          assert_equal [[1]], result_sets[0]
-          assert_equal [[2]], result_sets[1]
+          result = @client.execute(@triple_select_3rd_empty, as: :array)
+          assert_equal 2, result.count
+          assert_equal [[1]], result.rows[0]
+          assert_equal [[2]], result.rows[1]
           assert_equal [["rs1"], ["rs2"]], result.fields
-          assert_equal result.each.object_id, result.each.object_id, "same cached rows"
         end
       end
     end
@@ -550,19 +388,19 @@ class ResultTest < TinyTds::TestCase
         after { File.delete(backup_file) if File.exist?(backup_file) }
 
         it "must not cancel the query until complete" do
-          @client.execute("BACKUP DATABASE tinytdstest TO DISK = '#{backup_file}'").do
+          @client.do("BACKUP DATABASE tinytdstest TO DISK = '#{backup_file}'")
         end
       end
     end
 
     describe "when casting to native ruby values" do
       it "returns fixnum for 1" do
-        value = @client.execute("SELECT 1 AS [fixnum]").each.first["fixnum"]
+        value = @client.execute("SELECT 1 AS [fixnum]").first["fixnum"]
         assert_equal 1, value
       end
 
       it "returns nil for NULL" do
-        value = @client.execute("SELECT NULL AS [null]").each.first["null"]
+        value = @client.execute("SELECT NULL AS [null]").first["null"]
         assert_nil value
       end
     end
@@ -571,8 +409,8 @@ class ResultTest < TinyTds::TestCase
       describe "char max" do
         before do
           @big_text = "x" * 2_000_000
-          @old_textsize = @client.execute("SELECT @@TEXTSIZE AS [textsize]").each.first["textsize"].inspect
-          @client.execute("SET TEXTSIZE #{(@big_text.length * 2) + 1}").do
+          @old_textsize = @client.execute("SELECT @@TEXTSIZE AS [textsize]").first["textsize"].inspect
+          @client.do("SET TEXTSIZE #{(@big_text.length * 2) + 1}")
         end
 
         it "must insert and select large varchar_max" do
@@ -588,7 +426,7 @@ class ResultTest < TinyTds::TestCase
     describe "when shit happens" do
       it "copes with nil or empty buffer" do
         assert_raises(TypeError) { @client.execute(nil) }
-        assert_equal [], @client.execute("").each
+        assert_equal [], @client.execute("").rows
       end
 
       describe "using :message_handler option" do
@@ -612,7 +450,7 @@ class ResultTest < TinyTds::TestCase
             messages.clear
             msg = "Test #{severity} severity"
             state = rand(1..255)
-            @client.execute("RAISERROR(N'#{msg}', #{severity}, #{state})").do
+            @client.do("RAISERROR(N'#{msg}', #{severity}, #{state})")
             m = messages.first
             assert_equal 1, messages.length, "there should be one message after one raiserror"
             assert_equal msg, m.message, "message text"
@@ -624,7 +462,7 @@ class ResultTest < TinyTds::TestCase
         it "calls the provided message handler for `print` messages" do
           messages.clear
           msg = "hello"
-          @client.execute("PRINT '#{msg}'").do
+          @client.do("PRINT '#{msg}'")
           m = messages.first
           assert_equal 1, messages.length, "there should be one message after one print statement"
           assert_equal msg, m.message, "message text"
@@ -632,7 +470,7 @@ class ResultTest < TinyTds::TestCase
 
         it "must raise an error preceded by a `print` message" do
           messages.clear
-          action = lambda { @client.execute("EXEC tinytds_TestPrintWithError").do }
+          action = lambda { @client.do("EXEC tinytds_TestPrintWithError") }
           assert_raise_tinytds_error(action) do |e|
             assert_equal "hello", messages.first.message, "message text"
 
@@ -644,13 +482,13 @@ class ResultTest < TinyTds::TestCase
 
         it "calls the provided message handler for each of a series of `print` messages" do
           messages.clear
-          @client.execute("EXEC tinytds_TestSeveralPrints").do
+          @client.do("EXEC tinytds_TestSeveralPrints")
           assert_equal ["hello 1", "hello 2", "hello 3"], messages.map { |e| e.message }, "message list"
         end
 
         it "should flush info messages before raising error in cases of timeout" do
           @client = new_connection timeout: 1, message_handler: proc { |m| messages << m }
-          action = lambda { @client.execute("print 'hello'; waitfor delay '00:00:02'").do }
+          action = lambda { @client.do("print 'hello'; waitfor delay '00:00:02'") }
           messages.clear
           assert_raise_tinytds_error(action) do |e|
             assert_match %r{timed out}i, e.message, "ignore if non-english test run"
@@ -662,7 +500,7 @@ class ResultTest < TinyTds::TestCase
 
         it "should print info messages before raising error in cases of timeout" do
           @client = new_connection timeout: 1, message_handler: proc { |m| messages << m }
-          action = lambda { @client.execute("raiserror('hello', 1, 1) with nowait; waitfor delay '00:00:02'").do }
+          action = lambda { @client.do("raiserror('hello', 1, 1) with nowait; waitfor delay '00:00:02'") }
           messages.clear
           assert_raise_tinytds_error(action) do |e|
             assert_match %r{timed out}i, e.message, "ignore if non-english test run"
@@ -675,12 +513,12 @@ class ResultTest < TinyTds::TestCase
 
       it "must not raise an error when severity is 10 or less" do
         (1..10).to_a.each do |severity|
-          @client.execute("RAISERROR(N'Test #{severity} severity', #{severity}, 1)").do
+          @client.do("RAISERROR(N'Test #{severity} severity', #{severity}, 1)")
         end
       end
 
       it "raises an error when severity is greater than 10" do
-        action = lambda { @client.execute("RAISERROR(N'Test 11 severity', 11, 1)").do }
+        action = lambda { @client.do("RAISERROR(N'Test 11 severity', 11, 1)") }
         assert_raise_tinytds_error(action) do |e|
           assert_equal "Test 11 severity", e.message
           assert_equal 11, e.severity
@@ -694,13 +532,13 @@ class ResultTest < TinyTds::TestCase
 
   def assert_followup_query
     result = @client.execute(@query1)
-    assert_equal 1, result.each.first["one"]
+    assert_equal 1, result.first["one"]
   end
 
   def insert_and_select_datatype(datatype)
     rollback_transaction(@client) do
-      @client.execute("DELETE FROM [datatypes] WHERE [#{datatype}] IS NOT NULL").do
-      id = @client.execute("INSERT INTO [datatypes] ([#{datatype}]) VALUES (N'#{@big_text}')").insert
+      @client.do("DELETE FROM [datatypes] WHERE [#{datatype}] IS NOT NULL")
+      id = @client.insert("INSERT INTO [datatypes] ([#{datatype}]) VALUES (N'#{@big_text}')")
       found_text = find_value id, datatype
       flunk "Large #{datatype} data with a length of #{@big_text.length} did not match found text with length of #{found_text.length}" unless @big_text == found_text
     end

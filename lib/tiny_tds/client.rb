@@ -1,6 +1,6 @@
 module TinyTds
   class Client
-    attr_reader :app_name, :contained, :database, :dataserver, :encoding, :message_handler, :login_timeout, :password, :port, :tds_version, :timeout, :username, :use_utf16
+    attr_reader :app_name, :charset, :contained, :database, :dataserver, :message_handler, :login_timeout, :password, :port, :tds_version, :timeout, :username, :use_utf16
 
     @default_query_options = {
       as: :hash,
@@ -13,14 +13,6 @@ module TinyTds
     class << self
       attr_reader :default_query_options
 
-      # Most, if not all, iconv encoding names can be found by ruby. Just in case, you can
-      # overide this method to return a string name that Encoding.find would work with. Default
-      # is to return the passed encoding.
-      #
-      def transpose_iconv_encoding(encoding)
-        encoding
-      end
-
       def local_offset
         ::Time.local(2010).utc_offset.to_r / 86_400
       end
@@ -30,7 +22,7 @@ module TinyTds
     # rubocop:disable Metrics/MethodLength
     # rubocop:disable Metrics/CyclomaticComplexity
     # rubocop:disable Metrics/PerceivedComplexity
-    def initialize(app_name: "TinyTds", azure: false, contained: false, database: nil, dataserver: nil, encoding: "UTF-8", message_handler: nil, host: nil, login_timeout: 60, password: nil, port: 1433, tds_version: nil, timeout: 5, username: nil, use_utf16: true)
+    def initialize(app_name: "TinyTds", azure: false, charset: "UTF-8", contained: false, database: nil, dataserver: nil, message_handler: nil, host: nil, login_timeout: 60, password: nil, port: 1433, tds_version: nil, timeout: 5, username: nil, use_utf16: true)
       if dataserver.to_s.empty? && host.to_s.empty?
         raise ArgumentError, "missing :host option if no :dataserver given"
       end
@@ -42,9 +34,9 @@ module TinyTds
       end
 
       @app_name = app_name
+      @charset = (charset.nil? || charset.casecmp("utf8").zero?) ? "UTF-8" : charset.upcase
       @database = database
       @dataserver = dataserver || "#{host}:#{port}"
-      @encoding = (encoding.nil? || encoding.casecmp("utf8").zero?) ? "UTF-8" : encoding.upcase
       @login_timeout = login_timeout.to_i
       @password = password if password && password.to_s.strip != ""
       @port = port.to_i

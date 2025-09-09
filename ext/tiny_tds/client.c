@@ -5,7 +5,7 @@
 VALUE cTinyTdsClient;
 extern VALUE mTinyTds, cTinyTdsError;
 static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, intern_os_error_number_eql;
-static ID intern_new, intern_dup, intern_transpose_iconv_encoding, intern_local_offset, intern_gsub, intern_call, intern_active, intern_connect;
+static ID intern_new, intern_dup, intern_local_offset, intern_gsub, intern_call, intern_active, intern_connect;
 VALUE opt_escape_regex, opt_escape_dblquote;
 
 static ID id_ivar_fields, id_ivar_rows, id_ivar_return_code, id_ivar_affected_rows, id_ivar_default_query_options, intern_bigd, intern_divide;
@@ -14,15 +14,6 @@ static VALUE cTinyTdsResult, cKernel, cDate;
 
 rb_encoding *binaryEncoding;
 VALUE opt_onek, opt_onebil, opt_float_zero, opt_four, opt_tenk;
-
-static void rb_tinytds_client_mark(void *ptr)
-{
-  tinytds_client_wrapper *cwrap = (tinytds_client_wrapper *)ptr;
-
-  if (cwrap) {
-    rb_gc_mark(cwrap->charset);
-  }
-}
 
 static void rb_tinytds_client_free(void *ptr)
 {
@@ -51,7 +42,7 @@ static size_t tinytds_client_wrapper_size(const void* data)
 static const rb_data_type_t tinytds_client_wrapper_type = {
   .wrap_struct_name = "tinytds_client_wrapper",
   .function = {
-    .dmark = rb_tinytds_client_mark,
+    .dmark = NULL,
     .dfree = rb_tinytds_client_free,
     .dsize = tinytds_client_wrapper_size,
   },
@@ -459,7 +450,6 @@ static VALUE allocate(VALUE klass)
   tinytds_client_wrapper *cwrap;
   obj = TypedData_Make_Struct(klass, tinytds_client_wrapper, &tinytds_client_wrapper_type, cwrap);
   cwrap->closed = 1;
-  cwrap->charset = Qnil;
   cwrap->userdata = malloc(sizeof(tinytds_client_userdata));
   cwrap->userdata->closed = 1;
   rb_tinytds_client_reset_userdata(cwrap->userdata);
@@ -910,12 +900,6 @@ static VALUE rb_tiny_tds_do(VALUE self, VALUE sql)
   return rb_tinytds_affected_rows(cwrap->client);
 }
 
-static VALUE rb_tinytds_charset(VALUE self)
-{
-  GET_CLIENT_WRAPPER(self);
-  return cwrap->charset;
-}
-
 static VALUE rb_tinytds_encoding(VALUE self)
 {
   GET_CLIENT_WRAPPER(self);
@@ -954,7 +938,7 @@ static VALUE rb_tinytds_connect(VALUE self)
   contained = rb_iv_get(self, "@contained");
   database = rb_iv_get(self, "@database");
   dataserver = rb_iv_get(self, "@dataserver");
-  charset = rb_iv_get(self, "@encoding");
+  charset = rb_iv_get(self, "@charset");
   login_timeout = rb_iv_get(self, "@login_timeout");
   password = rb_iv_get(self, "@password");
   tds_version = rb_iv_get(self, "@tds_version");
@@ -1021,7 +1005,6 @@ static VALUE rb_tinytds_connect(VALUE self)
     VALUE transposed_encoding, timeout_string;
 
     cwrap->closed = 0;
-    cwrap->charset = charset;
 
     if (!NIL_P(tds_version)) {
       dbsetversion(NUM2INT(tds_version));
@@ -1043,8 +1026,7 @@ static VALUE rb_tinytds_connect(VALUE self)
       dbuse(cwrap->client, StringValueCStr(database));
     }
 
-    transposed_encoding = rb_funcall(cTinyTdsClient, intern_transpose_iconv_encoding, 1, charset);
-    cwrap->encoding = rb_enc_find(StringValueCStr(transposed_encoding));
+    cwrap->encoding = rb_enc_find(StringValueCStr(charset));
     cwrap->identity_insert_sql = "SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident";
   }
 
@@ -1068,7 +1050,6 @@ void init_tinytds_client()
   rb_define_method(cTinyTdsClient, "execute", rb_tinytds_execute, -1);
   rb_define_method(cTinyTdsClient, "insert", rb_tiny_tds_insert, 1);
   rb_define_method(cTinyTdsClient, "do", rb_tiny_tds_do, 1);
-  rb_define_method(cTinyTdsClient, "charset", rb_tinytds_charset, 0);
   rb_define_method(cTinyTdsClient, "encoding", rb_tinytds_encoding, 0);
   rb_define_method(cTinyTdsClient, "escape", rb_tinytds_escape, 1);
   rb_define_method(cTinyTdsClient, "return_code", rb_tinytds_return_code, 0);
@@ -1082,7 +1063,6 @@ void init_tinytds_client()
   /* Intern Misc */
   intern_new = rb_intern("new");
   intern_dup = rb_intern("dup");
-  intern_transpose_iconv_encoding = rb_intern("transpose_iconv_encoding");
   intern_local_offset = rb_intern("local_offset");
   intern_gsub = rb_intern("gsub");
   intern_call = rb_intern("call");

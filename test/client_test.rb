@@ -45,11 +45,11 @@ class ClientTest < TinyTds::TestCase
       assert_equal "''hello''", @client.escape("'hello'")
     end
 
-    ["CP850", "CP1252", "ISO-8859-1"].each do |encoding|
-      it "allows valid iconv character set - #{encoding}" do
-        client = new_connection(encoding: encoding)
-        assert_equal encoding, client.charset
-        assert_equal Encoding.find(encoding), client.encoding
+    ["CP850", "CP1252", "ISO-8859-1"].each do |charset|
+      it "allows valid iconv character set - #{charset}" do
+        client = new_connection(charset:)
+        assert_equal charset, client.charset
+        assert_equal Encoding.find(charset), client.encoding
       ensure
         client&.close
       end

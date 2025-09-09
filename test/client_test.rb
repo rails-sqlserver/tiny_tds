@@ -10,9 +10,18 @@ class ClientTest < TinyTds::TestCase
       @client = new_connection
     end
 
-    it "must not be closed" do
-      assert !@client.closed?
-      assert @client.active?
+    it "is considered close without a connection" do
+      client = TinyTds::Client.new(**connection_options)
+
+      assert client.closed?
+      assert !client.active?
+    end
+
+    it "returns nil values for server version without a connection" do
+      client = TinyTds::Client.new(**connection_options)
+
+      assert_nil client.server_version
+      assert_nil client.server_version_info
     end
 
     it "allows client connection to be closed" do
@@ -20,10 +29,6 @@ class ClientTest < TinyTds::TestCase
       assert @client.closed?
       assert !@client.active?
       assert @client.dead?
-      action = lambda { @client.execute("SELECT 1 as [one]").each }
-      assert_raise_tinytds_error(action) do |e|
-        assert_match %r{closed connection}i, e.message, "ignore if non-english test run"
-      end
     end
 
     it "has getters for the server version information (brittle since conf takes precedence)" do
@@ -297,16 +302,6 @@ class ClientTest < TinyTds::TestCase
 
         assert_equal(seed, identity)
         assert_client_works(@client)
-      end
-    end
-
-    it "throws an error if client is closed" do
-      @client.close
-      assert @client.closed?
-
-      action = lambda { @client.insert("SELECT 1 as [one]") }
-      assert_raise_tinytds_error(action) do |e|
-        assert_match %r{closed connection}i, e.message
       end
     end
   end

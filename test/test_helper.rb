@@ -43,6 +43,7 @@ module TinyTds
 
     def new_connection(**options)
       client = TinyTds::Client.new(**connection_options(options))
+
       if sqlserver_azure?
         client.do("SET ANSI_NULLS ON")
         client.do("SET CURSOR_CLOSE_ON_COMMIT OFF")

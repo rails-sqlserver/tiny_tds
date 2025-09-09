@@ -5,7 +5,7 @@
 VALUE cTinyTdsClient;
 extern VALUE mTinyTds, cTinyTdsError;
 static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, intern_os_error_number_eql;
-static ID intern_new, intern_dup, intern_transpose_iconv_encoding, intern_local_offset, intern_gsub, intern_call;
+static ID intern_new, intern_dup, intern_transpose_iconv_encoding, intern_local_offset, intern_gsub, intern_call, intern_active, intern_connect;
 VALUE opt_escape_regex, opt_escape_dblquote;
 
 static ID id_ivar_fields, id_ivar_rows, id_ivar_return_code, id_ivar_affected_rows, id_ivar_default_query_options, intern_bigd, intern_divide;
@@ -468,11 +468,15 @@ static VALUE allocate(VALUE klass)
 
 
 // TinyTds::Client (public)
-
 static VALUE rb_tinytds_server_version(VALUE self)
 {
   GET_CLIENT_WRAPPER(self);
-  return INT2FIX(dbtds(cwrap->client));
+
+  if (rb_funcall(self, intern_active, 0) == Qtrue) {
+    return INT2FIX(dbtds(cwrap->client));
+  } else {
+    return Qnil;
+  }
 }
 
 static VALUE rb_tinytds_close(VALUE self)
@@ -745,6 +749,11 @@ static VALUE rb_tinytds_execute(int argc, VALUE *argv, VALUE self)
   }
 
   GET_CLIENT_WRAPPER(self);
+
+  if (rb_funcall(self, intern_active, 0) == Qfalse) {
+    rb_funcall(self, intern_connect, 0);
+  }
+
   rb_tinytds_send_sql_to_server(cwrap, sql);
 
   VALUE result = rb_obj_alloc(cTinyTdsResult);
@@ -856,6 +865,11 @@ static VALUE rb_tiny_tds_insert(VALUE self, VALUE sql)
 {
   VALUE identity = Qnil;
   GET_CLIENT_WRAPPER(self);
+
+  if (rb_funcall(self, intern_active, 0) == Qfalse) {
+    rb_funcall(self, intern_connect, 0);
+  }
+
   rb_tinytds_send_sql_to_server(cwrap, sql);
   rb_tinytds_result_exec_helper(cwrap->client);
 
@@ -885,6 +899,11 @@ static VALUE rb_tiny_tds_insert(VALUE self, VALUE sql)
 static VALUE rb_tiny_tds_do(VALUE self, VALUE sql)
 {
   GET_CLIENT_WRAPPER(self);
+
+  if (rb_funcall(self, intern_active, 0) == Qfalse) {
+    rb_funcall(self, intern_connect, 0);
+  }
+
   rb_tinytds_send_sql_to_server(cwrap, sql);
   rb_tinytds_result_exec_helper(cwrap->client);
 
@@ -1054,8 +1073,7 @@ void init_tinytds_client()
   rb_define_method(cTinyTdsClient, "escape", rb_tinytds_escape, 1);
   rb_define_method(cTinyTdsClient, "return_code", rb_tinytds_return_code, 0);
   rb_define_method(cTinyTdsClient, "identity_sql", rb_tinytds_identity_sql, 0);
-  /* Define TinyTds::Client Protected Methods */
-  rb_define_protected_method(cTinyTdsClient, "connect", rb_tinytds_connect, 0);
+  rb_define_method(cTinyTdsClient, "connect", rb_tinytds_connect, 0);
   /* Intern TinyTds::Error Accessors */
   intern_source_eql = rb_intern("source=");
   intern_severity_eql = rb_intern("severity=");
@@ -1088,6 +1106,8 @@ void init_tinytds_client()
   intern_timezone = rb_intern("timezone");
   intern_utc = rb_intern("utc");
   intern_local = rb_intern("local");
+  intern_active = rb_intern("active?");
+  intern_connect = rb_intern("connect");
 
   cTinyTdsClient = rb_const_get(mTinyTds, rb_intern("Client"));
   cTinyTdsResult = rb_const_get(mTinyTds, rb_intern("Result"));

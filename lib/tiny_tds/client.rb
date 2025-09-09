@@ -52,8 +52,6 @@ module TinyTds
       @tds_version = tds_versions_setter(tds_version:)
       @username = parse_username(azure:, host:, username:)
       @use_utf16 = use_utf16.nil? || ["true", "1", "yes"].include?(use_utf16.to_s)
-
-      connect
     end
 
     def tds_73?
@@ -71,7 +69,7 @@ module TinyTds
 
     private
 
-    def parse_username(azure: false, host: nil, username:)
+    def parse_username(username:, azure: false, host: nil)
       return username if username.nil? || !azure
       return username if username.include?("@") && !username.include?("database.windows.net")
       user, domain = username.split("@")

@@ -25,7 +25,7 @@ class ThreadTest < TinyTds::TestCase
           start = Time.new
           threads << Thread.new do
             ts = Time.new
-            @pool.with { |c| c.execute(@query).do }
+            @pool.with { |c| c.do(@query) }
             te = Time.new
             @logger.info "Thread #{i} finished in #{te - ts} thread seconds, #{te - start} real seconds"
           end

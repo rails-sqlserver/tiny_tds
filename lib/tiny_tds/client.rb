@@ -1,5 +1,7 @@
 module TinyTds
   class Client
+    attr_reader :app_name, :contained, :database, :dataserver, :encoding, :message_handler, :login_timeout, :password, :port, :tds_version, :timeout, :username, :use_utf16
+
     @default_query_options = {
       as: :hash,
       empty_sets: true,
@@ -7,7 +9,6 @@ module TinyTds
     }
 
     attr_reader :query_options
-    attr_reader :message_handler
 
     class << self
       attr_reader :default_query_options
@@ -29,37 +30,38 @@ module TinyTds
     # rubocop:disable Metrics/MethodLength
     # rubocop:disable Metrics/CyclomaticComplexity
     # rubocop:disable Metrics/PerceivedComplexity
-    def initialize(opts = {})
-      if opts[:dataserver].to_s.empty? && opts[:host].to_s.empty?
+    def initialize(app_name: "TinyTds", azure: false, contained: false, database: nil, dataserver: nil, encoding: "UTF-8", message_handler: nil, host: nil, login_timeout: 60, password: nil, port: 1433, tds_version: nil, timeout: 5, username: nil, use_utf16: true)
+      if dataserver.to_s.empty? && host.to_s.empty?
         raise ArgumentError, "missing :host option if no :dataserver given"
       end
 
-      @message_handler = opts[:message_handler]
-      if @message_handler && !@message_handler.respond_to?(:call)
+      if message_handler && !message_handler.respond_to?(:call)
         raise ArgumentError, ":message_handler must implement `call` (eg, a Proc or a Method)"
+      else
+        @message_handler = message_handler
       end
 
-      opts[:username] = parse_username(opts)
-      opts[:password] = opts[:password].to_s if opts[:password] && opts[:password].to_s.strip != ""
-      opts[:appname] ||= "TinyTds"
-      opts[:tds_version] = tds_versions_setter(opts)
-      opts[:use_utf16] = opts[:use_utf16].nil? || ["true", "1", "yes"].include?(opts[:use_utf16].to_s)
-      opts[:login_timeout] ||= 60
-      opts[:timeout] ||= 5
-      opts[:encoding] = (opts[:encoding].nil? || opts[:encoding].casecmp("utf8").zero?) ? "UTF-8" : opts[:encoding].upcase
-      opts[:port] ||= 1433
-      opts[:dataserver] = "#{opts[:host]}:#{opts[:port]}" if opts[:dataserver].to_s.empty?
-      forced_integer_keys = [:login_timeout, :port, :timeout]
-      forced_integer_keys.each { |k| opts[k] = opts[k].to_i if opts[k] }
-      connect(opts)
+      @app_name = app_name
+      @database = database
+      @dataserver = dataserver || "#{host}:#{port}"
+      @encoding = (encoding.nil? || encoding.casecmp("utf8").zero?) ? "UTF-8" : encoding.upcase
+      @login_timeout = login_timeout.to_i
+      @password = password if password && password.to_s.strip != ""
+      @port = port.to_i
+      @timeout = timeout.to_i
+      @tds_version = tds_versions_setter(tds_version:)
+      @username = parse_username(azure:, host:, username:)
+      @use_utf16 = use_utf16.nil? || ["true", "1", "yes"].include?(use_utf16.to_s)
+
+      connect
     end
 
     def tds_73?
-      tds_version >= 11
+      server_version >= 11
     end
 
-    def tds_version_info
-      info = TDS_VERSIONS_GETTERS[tds_version]
+    def server_version_info
+      info = TDS_VERSIONS_GETTERS[server_version]
       "#{info[:name]} - #{info[:description]}" if info
     end
 
@@ -69,18 +71,16 @@ module TinyTds
 
     private
 
-    def parse_username(opts)
-      host = opts[:host]
-      username = opts[:username]
-      return username if username.nil? || !opts[:azure]
+    def parse_username(azure: false, host: nil, username:)
+      return username if username.nil? || !azure
       return username if username.include?("@") && !username.include?("database.windows.net")
       user, domain = username.split("@")
       domain ||= host
       "#{user}@#{domain.split(".").first}"
     end
 
-    def tds_versions_setter(opts = {})
-      v = opts[:tds_version] || ENV["TDSVER"] || "7.3"
+    def tds_versions_setter(tds_version:)
+      v = tds_version || ENV["TDSVER"] || "7.3"
       TDS_VERSIONS_SETTERS[v.to_s]
     end
 

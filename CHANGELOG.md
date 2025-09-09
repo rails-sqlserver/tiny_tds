@@ -7,6 +7,8 @@
   * `TinyTds::Result` is now a pure Ruby class
 * `#execute`: Replaced `opts` hash with keyword arguments 
 * Removed `symbolize_keys` and `cache_rows` from `#default_query_options`
+* `TinyTds::Client.new` now accepts keyword arguments instead of a hash
+* Renamed `tds_version` and `tds_version_info` to `server_version` and `server_version_info`.
 
 ## 3.3.0
 

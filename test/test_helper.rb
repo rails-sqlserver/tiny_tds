@@ -41,8 +41,8 @@ module TinyTds
       client.close if defined?(client) && client.is_a?(TinyTds::Client)
     end
 
-    def new_connection(options = {})
-      client = TinyTds::Client.new(connection_options(options))
+    def new_connection(**options)
+      client = TinyTds::Client.new(**connection_options(options))
       if sqlserver_azure?
         client.do("SET ANSI_NULLS ON")
         client.do("SET CURSOR_CLOSE_ON_COMMIT OFF")
@@ -71,7 +71,7 @@ module TinyTds
        username: username,
        password: password,
        database: ENV["TINYTDS_UNIT_DATABASE"] || "tinytdstest",
-       appname: "TinyTds Dev",
+       app_name: "TinyTds Dev",
        login_timeout: 5,
        timeout: connection_timeout,
        azure: sqlserver_azure?}.merge(options)

@@ -4,9 +4,8 @@
 
 VALUE cTinyTdsClient;
 extern VALUE mTinyTds, cTinyTdsError;
-static ID sym_username, sym_password, sym_dataserver, sym_database, sym_appname, sym_tds_version, sym_login_timeout, sym_timeout, sym_encoding, sym_azure, sym_contained, sym_use_utf16, sym_message_handler;
 static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, intern_os_error_number_eql;
-static ID intern_new, intern_dup, intern_transpose_iconv_encoding, intern_local_offset, intern_gsub, intern_call;
+static ID intern_new, intern_dup, intern_local_offset, intern_gsub, intern_call, intern_active, intern_connect;
 VALUE opt_escape_regex, opt_escape_dblquote;
 
 static ID id_ivar_fields, id_ivar_rows, id_ivar_return_code, id_ivar_affected_rows, id_ivar_default_query_options, intern_bigd, intern_divide;
@@ -15,15 +14,6 @@ static VALUE cTinyTdsResult, cKernel, cDate;
 
 rb_encoding *binaryEncoding;
 VALUE opt_onek, opt_onebil, opt_float_zero, opt_four, opt_tenk;
-
-static void rb_tinytds_client_mark(void *ptr)
-{
-  tinytds_client_wrapper *cwrap = (tinytds_client_wrapper *)ptr;
-
-  if (cwrap) {
-    rb_gc_mark(cwrap->charset);
-  }
-}
 
 static void rb_tinytds_client_free(void *ptr)
 {
@@ -52,7 +42,7 @@ static size_t tinytds_client_wrapper_size(const void* data)
 static const rb_data_type_t tinytds_client_wrapper_type = {
   .wrap_struct_name = "tinytds_client_wrapper",
   .function = {
-    .dmark = rb_tinytds_client_mark,
+    .dmark = NULL,
     .dfree = rb_tinytds_client_free,
     .dsize = tinytds_client_wrapper_size,
   },
@@ -460,7 +450,6 @@ static VALUE allocate(VALUE klass)
   tinytds_client_wrapper *cwrap;
   obj = TypedData_Make_Struct(klass, tinytds_client_wrapper, &tinytds_client_wrapper_type, cwrap);
   cwrap->closed = 1;
-  cwrap->charset = Qnil;
   cwrap->userdata = malloc(sizeof(tinytds_client_userdata));
   cwrap->userdata->closed = 1;
   rb_tinytds_client_reset_userdata(cwrap->userdata);
@@ -469,11 +458,15 @@ static VALUE allocate(VALUE klass)
 
 
 // TinyTds::Client (public)
-
-static VALUE rb_tinytds_tds_version(VALUE self)
+static VALUE rb_tinytds_server_version(VALUE self)
 {
   GET_CLIENT_WRAPPER(self);
-  return INT2FIX(dbtds(cwrap->client));
+
+  if (rb_funcall(self, intern_active, 0) == Qtrue) {
+    return INT2FIX(dbtds(cwrap->client));
+  } else {
+    return Qnil;
+  }
 }
 
 static VALUE rb_tinytds_close(VALUE self)
@@ -746,6 +739,11 @@ static VALUE rb_tinytds_execute(int argc, VALUE *argv, VALUE self)
   }
 
   GET_CLIENT_WRAPPER(self);
+
+  if (rb_funcall(self, intern_active, 0) == Qfalse) {
+    rb_funcall(self, intern_connect, 0);
+  }
+
   rb_tinytds_send_sql_to_server(cwrap, sql);
 
   VALUE result = rb_obj_alloc(cTinyTdsResult);
@@ -857,6 +855,11 @@ static VALUE rb_tiny_tds_insert(VALUE self, VALUE sql)
 {
   VALUE identity = Qnil;
   GET_CLIENT_WRAPPER(self);
+
+  if (rb_funcall(self, intern_active, 0) == Qfalse) {
+    rb_funcall(self, intern_connect, 0);
+  }
+
   rb_tinytds_send_sql_to_server(cwrap, sql);
   rb_tinytds_result_exec_helper(cwrap->client);
 
@@ -886,16 +889,15 @@ static VALUE rb_tiny_tds_insert(VALUE self, VALUE sql)
 static VALUE rb_tiny_tds_do(VALUE self, VALUE sql)
 {
   GET_CLIENT_WRAPPER(self);
+
+  if (rb_funcall(self, intern_active, 0) == Qfalse) {
+    rb_funcall(self, intern_connect, 0);
+  }
+
   rb_tinytds_send_sql_to_server(cwrap, sql);
   rb_tinytds_result_exec_helper(cwrap->client);
 
   return rb_tinytds_affected_rows(cwrap->client);
-}
-
-static VALUE rb_tinytds_charset(VALUE self)
-{
-  GET_CLIENT_WRAPPER(self);
-  return cwrap->charset;
 }
 
 static VALUE rb_tinytds_encoding(VALUE self)
@@ -925,25 +927,25 @@ static VALUE rb_tinytds_identity_sql(VALUE self)
 
 // TinyTds::Client (protected)
 
-static VALUE rb_tinytds_connect(VALUE self, VALUE opts)
+static VALUE rb_tinytds_connect(VALUE self)
 {
   /* Parsing options hash to local vars. */
-  VALUE user, pass, dataserver, database, app, version, ltimeout, timeout, charset, azure, contained, use_utf16;
+  VALUE username, password, dataserver, database, app_name, tds_version, login_timeout, timeout, charset, azure, contained, use_utf16;
   GET_CLIENT_WRAPPER(self);
 
-  user = rb_hash_aref(opts, sym_username);
-  pass = rb_hash_aref(opts, sym_password);
-  dataserver = rb_hash_aref(opts, sym_dataserver);
-  database = rb_hash_aref(opts, sym_database);
-  app = rb_hash_aref(opts, sym_appname);
-  version = rb_hash_aref(opts, sym_tds_version);
-  ltimeout = rb_hash_aref(opts, sym_login_timeout);
-  timeout = rb_hash_aref(opts, sym_timeout);
-  charset = rb_hash_aref(opts, sym_encoding);
-  azure = rb_hash_aref(opts, sym_azure);
-  contained = rb_hash_aref(opts, sym_contained);
-  use_utf16 = rb_hash_aref(opts, sym_use_utf16);
-  cwrap->userdata->message_handler = rb_hash_aref(opts, sym_message_handler);
+  app_name = rb_iv_get(self, "@app_name");
+  azure = rb_iv_get(self, "@azure");
+  contained = rb_iv_get(self, "@contained");
+  database = rb_iv_get(self, "@database");
+  dataserver = rb_iv_get(self, "@dataserver");
+  charset = rb_iv_get(self, "@charset");
+  login_timeout = rb_iv_get(self, "@login_timeout");
+  password = rb_iv_get(self, "@password");
+  tds_version = rb_iv_get(self, "@tds_version");
+  timeout = rb_iv_get(self, "@timeout");
+  username = rb_iv_get(self, "@username");
+  use_utf16 = rb_iv_get(self, "@use_utf16");
+  cwrap->userdata->message_handler = rb_iv_get(self, "@message_handler");
 
   /* Dealing with options. */
   if (dbinit() == FAIL) {
@@ -955,24 +957,24 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts)
   dbmsghandle(tinytds_msg_handler);
   cwrap->login = dblogin();
 
-  if (!NIL_P(version)) {
-    dbsetlversion(cwrap->login, NUM2INT(version));
+  if (!NIL_P(tds_version)) {
+    dbsetlversion(cwrap->login, NUM2INT(tds_version));
   }
 
-  if (!NIL_P(user)) {
-    dbsetluser(cwrap->login, StringValueCStr(user));
+  if (!NIL_P(username)) {
+    dbsetluser(cwrap->login, StringValueCStr(username));
   }
 
-  if (!NIL_P(pass)) {
-    dbsetlpwd(cwrap->login, StringValueCStr(pass));
+  if (!NIL_P(password)) {
+    dbsetlpwd(cwrap->login, StringValueCStr(password));
   }
 
-  if (!NIL_P(app)) {
-    dbsetlapp(cwrap->login, StringValueCStr(app));
+  if (!NIL_P(app_name)) {
+    dbsetlapp(cwrap->login, StringValueCStr(app_name));
   }
 
-  if (!NIL_P(ltimeout)) {
-    dbsetlogintime(NUM2INT(ltimeout));
+  if (!NIL_P(login_timeout)) {
+    dbsetlogintime(NUM2INT(login_timeout));
   }
 
   if (!NIL_P(charset)) {
@@ -981,19 +983,7 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts)
 
   if (!NIL_P(database)) {
     if (azure == Qtrue || contained == Qtrue) {
-      #ifdef DBSETLDBNAME
       DBSETLDBNAME(cwrap->login, StringValueCStr(database));
-      #else
-
-      if (azure == Qtrue) {
-        rb_warn("TinyTds: :azure option is not supported in this version of FreeTDS.\n");
-      }
-
-      if (contained == Qtrue) {
-        rb_warn("TinyTds: :contained option is not supported in this version of FreeTDS.\n");
-      }
-
-      #endif
     }
   }
 
@@ -1015,10 +1005,9 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts)
     VALUE transposed_encoding, timeout_string;
 
     cwrap->closed = 0;
-    cwrap->charset = charset;
 
-    if (!NIL_P(version)) {
-      dbsetversion(NUM2INT(version));
+    if (!NIL_P(tds_version)) {
+      dbsetversion(NUM2INT(tds_version));
     }
 
     if (!NIL_P(timeout)) {
@@ -1037,8 +1026,7 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts)
       dbuse(cwrap->client, StringValueCStr(database));
     }
 
-    transposed_encoding = rb_funcall(cTinyTdsClient, intern_transpose_iconv_encoding, 1, charset);
-    cwrap->encoding = rb_enc_find(StringValueCStr(transposed_encoding));
+    cwrap->encoding = rb_enc_find(StringValueCStr(charset));
     cwrap->identity_insert_sql = "SELECT CAST(SCOPE_IDENTITY() AS bigint) AS Ident";
   }
 
@@ -1053,7 +1041,7 @@ void init_tinytds_client()
   cTinyTdsClient = rb_define_class_under(mTinyTds, "Client", rb_cObject);
   rb_define_alloc_func(cTinyTdsClient, allocate);
   /* Define TinyTds::Client Public Methods */
-  rb_define_method(cTinyTdsClient, "tds_version", rb_tinytds_tds_version, 0);
+  rb_define_method(cTinyTdsClient, "server_version", rb_tinytds_server_version, 0);
   rb_define_method(cTinyTdsClient, "close", rb_tinytds_close, 0);
   rb_define_method(cTinyTdsClient, "closed?", rb_tinytds_closed, 0);
   rb_define_method(cTinyTdsClient, "canceled?", rb_tinytds_canceled, 0);
@@ -1062,27 +1050,11 @@ void init_tinytds_client()
   rb_define_method(cTinyTdsClient, "execute", rb_tinytds_execute, -1);
   rb_define_method(cTinyTdsClient, "insert", rb_tiny_tds_insert, 1);
   rb_define_method(cTinyTdsClient, "do", rb_tiny_tds_do, 1);
-  rb_define_method(cTinyTdsClient, "charset", rb_tinytds_charset, 0);
   rb_define_method(cTinyTdsClient, "encoding", rb_tinytds_encoding, 0);
   rb_define_method(cTinyTdsClient, "escape", rb_tinytds_escape, 1);
   rb_define_method(cTinyTdsClient, "return_code", rb_tinytds_return_code, 0);
   rb_define_method(cTinyTdsClient, "identity_sql", rb_tinytds_identity_sql, 0);
-  /* Define TinyTds::Client Protected Methods */
-  rb_define_protected_method(cTinyTdsClient, "connect", rb_tinytds_connect, 1);
-  /* Symbols For Connect */
-  sym_username = ID2SYM(rb_intern("username"));
-  sym_password = ID2SYM(rb_intern("password"));
-  sym_dataserver = ID2SYM(rb_intern("dataserver"));
-  sym_database = ID2SYM(rb_intern("database"));
-  sym_appname = ID2SYM(rb_intern("appname"));
-  sym_tds_version = ID2SYM(rb_intern("tds_version"));
-  sym_login_timeout = ID2SYM(rb_intern("login_timeout"));
-  sym_timeout = ID2SYM(rb_intern("timeout"));
-  sym_encoding = ID2SYM(rb_intern("encoding"));
-  sym_azure = ID2SYM(rb_intern("azure"));
-  sym_contained = ID2SYM(rb_intern("contained"));
-  sym_use_utf16 = ID2SYM(rb_intern("use_utf16"));
-  sym_message_handler = ID2SYM(rb_intern("message_handler"));
+  rb_define_method(cTinyTdsClient, "connect", rb_tinytds_connect, 0);
   /* Intern TinyTds::Error Accessors */
   intern_source_eql = rb_intern("source=");
   intern_severity_eql = rb_intern("severity=");
@@ -1091,7 +1063,6 @@ void init_tinytds_client()
   /* Intern Misc */
   intern_new = rb_intern("new");
   intern_dup = rb_intern("dup");
-  intern_transpose_iconv_encoding = rb_intern("transpose_iconv_encoding");
   intern_local_offset = rb_intern("local_offset");
   intern_gsub = rb_intern("gsub");
   intern_call = rb_intern("call");
@@ -1115,6 +1086,8 @@ void init_tinytds_client()
   intern_timezone = rb_intern("timezone");
   intern_utc = rb_intern("utc");
   intern_local = rb_intern("local");
+  intern_active = rb_intern("active?");
+  intern_connect = rb_intern("connect");
 
   cTinyTdsClient = rb_const_get(mTinyTds, rb_intern("Client"));
   cTinyTdsResult = rb_const_get(mTinyTds, rb_intern("Result"));

@@ -10,9 +10,18 @@ class ClientTest < TinyTds::TestCase
       @client = new_connection
     end
 
-    it "must not be closed" do
-      assert !@client.closed?
-      assert @client.active?
+    it "is considered close without a connection" do
+      client = TinyTds::Client.new(**connection_options)
+
+      assert client.closed?
+      assert !client.active?
+    end
+
+    it "returns nil values for server version without a connection" do
+      client = TinyTds::Client.new(**connection_options)
+
+      assert_nil client.server_version
+      assert_nil client.server_version_info
     end
 
     it "allows client connection to be closed" do
@@ -20,20 +29,11 @@ class ClientTest < TinyTds::TestCase
       assert @client.closed?
       assert !@client.active?
       assert @client.dead?
-      action = lambda { @client.execute("SELECT 1 as [one]").each }
-      assert_raise_tinytds_error(action) do |e|
-        assert_match %r{closed connection}i, e.message, "ignore if non-english test run"
-      end
     end
 
-    it "has getters for the tds version information (brittle since conf takes precedence)" do
-      if @client.tds_73?
-        assert_equal 11, @client.tds_version
-        assert_equal "DBTDS_7_3 - Microsoft SQL Server 2008", @client.tds_version_info
-      else
-        assert_equal 9, @client.tds_version
-        assert_equal "DBTDS_7_1/DBTDS_8_0 - Microsoft SQL Server 2000", @client.tds_version_info
-      end
+    it "has getters for the server version information (brittle since conf takes precedence)" do
+      assert_equal 11, @client.server_version
+      assert_equal "DBTDS_7_3 - Microsoft SQL Server 2008", @client.server_version_info
     end
 
     it "uses UTF-8 client charset/encoding by default" do
@@ -45,11 +45,11 @@ class ClientTest < TinyTds::TestCase
       assert_equal "''hello''", @client.escape("'hello'")
     end
 
-    ["CP850", "CP1252", "ISO-8859-1"].each do |encoding|
-      it "allows valid iconv character set - #{encoding}" do
-        client = new_connection(encoding: encoding)
-        assert_equal encoding, client.charset
-        assert_equal Encoding.find(encoding), client.encoding
+    ["CP850", "CP1252", "ISO-8859-1"].each do |charset|
+      it "allows valid iconv character set - #{charset}" do
+        client = new_connection(charset:)
+        assert_equal charset, client.charset
+        assert_equal Encoding.find(charset), client.encoding
       ensure
         client&.close
       end
@@ -82,8 +82,7 @@ class ClientTest < TinyTds::TestCase
     end
 
     it "raises TinyTds exception with undefined :dataserver" do
-      options = connection_options login_timeout: 1, dataserver: "DOESNOTEXIST"
-      action = lambda { new_connection(options) }
+      action = lambda { new_connection(login_timeout: 1, dataserver: "DOESNOTEXIST") }
       assert_raise_tinytds_error(action) do |e|
         # Not sure why tese are different.
         if ruby_darwin?
@@ -193,7 +192,7 @@ class ClientTest < TinyTds::TestCase
     it "raises TinyTds exception with wrong :username" do
       skip if ENV["CI"] && sqlserver_azure? # Some issue with db_error_number.
       options = connection_options username: "willnotwork"
-      action = lambda { new_connection(options) }
+      action = lambda { new_connection(**options) }
       assert_raise_tinytds_error(action) do |e|
         assert_equal 18456, e.db_error_number
         assert_equal 14, e.severity
@@ -303,16 +302,6 @@ class ClientTest < TinyTds::TestCase
 
         assert_equal(seed, identity)
         assert_client_works(@client)
-      end
-    end
-
-    it "throws an error if client is closed" do
-      @client.close
-      assert @client.closed?
-
-      action = lambda { @client.insert("SELECT 1 as [one]") }
-      assert_raise_tinytds_error(action) do |e|
-        assert_match %r{closed connection}i, e.message
       end
     end
   end

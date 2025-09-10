@@ -98,7 +98,7 @@ Connect to a database.
 client = TinyTds::Client.new username: 'sa', password: 'secret', host: 'mydb.host.net'
 ```
 
-Creating a new client takes a hash of options. For valid iconv encoding options, see the output of `iconv -l`. Only a few have been tested, and are highly recommended to leave blank for the UTF-8 default.
+Creating a new client takes keyword arguments. For valid iconv encoding options, see the output of `iconv -l`. Only a few have been tested, and are highly recommended to leave blank for the UTF-8 default.
 
 * :username - The database server user.
 * :password - The user password.
@@ -106,7 +106,7 @@ Creating a new client takes a hash of options. For valid iconv encoding options,
 * :host - Used if :dataserver blank. Can be an host name or IP.
 * :port - Defaults to 1433. Only used if :host is used.
 * :database - The default database to use.
-* :appname - Short string seen in SQL Servers process/activity window.
+* :app_name - Short string seen in SQL Servers process/activity window.
 * :tds_version - TDS version. Defaults to "7.3".
 * :login_timeout - Seconds to wait for login. Default to 60 seconds.
 * :timeout - Seconds to wait for a response to a SQL command. Default 5 seconds. Timeouts caused by network failure will raise a timeout error 1 second after the configured timeout limit is hit (see [#481](https://github.com/rails-sqlserver/tiny_tds/pull/481) for details).

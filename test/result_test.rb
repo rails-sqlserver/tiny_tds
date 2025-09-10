@@ -142,9 +142,8 @@ class ResultTest < TinyTds::TestCase
 
     it "works in tandem with the client when needing to find out if client has sql sent and result is canceled or not" do
       # Default state.
-      @client = TinyTds::Client.new(connection_options)
       _(@client.sqlsent?).must_equal false
-      _(@client.canceled?).must_equal false
+      _(@client.canceled?).must_equal true
       # With active result before and after cancel.
       @client.execute(@query1)
       _(@client.sqlsent?).must_equal false

@@ -923,9 +923,19 @@ static VALUE rb_tinytds_identity_sql(VALUE self)
   return rb_str_new2(cwrap->identity_insert_sql);
 }
 
+// connect function, with some additions to enable handing off the GVL
+struct dbuse_args {
+  DBPROCESS * dbproc;
+  const char * name;
+};
 
+static void *dbuse_without_gvl(void *ptr)
+{
+  struct dbuse_args *args = (struct dbuse_args *)ptr;
+  dbuse(args->dbproc, args->name);
+  return NULL;
+}
 
-// TinyTds::Client (protected)
 
 static VALUE rb_tinytds_connect(VALUE self)
 {
@@ -1023,7 +1033,20 @@ static VALUE rb_tinytds_connect(VALUE self)
     cwrap->userdata->closed = 0;
 
     if (!NIL_P(database) && (azure != Qtrue)) {
-      dbuse(cwrap->client, StringValueCStr(database));
+      struct dbuse_args use_args;
+      use_args.dbproc = cwrap->client;
+      use_args.name = StringValueCStr(database);
+
+      // in case of any errors, the tinytds_err_handler will be called
+      // so we do not have to check the return code here
+      nogvl_setup(cwrap->client);
+      rb_thread_call_without_gvl(
+        dbuse_without_gvl,
+        &use_args,
+        NULL,
+        NULL
+      );
+      nogvl_cleanup(cwrap->client);
     }
 
     cwrap->encoding = rb_enc_find(StringValueCStr(charset));

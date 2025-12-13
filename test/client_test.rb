@@ -200,6 +200,18 @@ class ClientTest < TinyTds::TestCase
       end
       assert_new_connections_work
     end
+
+    it "raises TinyTds exception with invalid database name" do
+      action = lambda { new_connection(database: "DOESNOTEXIST") }
+
+      assert_raise_tinytds_error(action) do |e|
+        assert_equal 911, e.db_error_number
+        assert_equal 16, e.severity
+        assert_equal "Database 'DOESNOTEXIST' does not exist. Make sure that the name is entered correctly.", e.message
+      end
+
+      assert_new_connections_work
+    end
   end
 
   describe "#parse_username" do

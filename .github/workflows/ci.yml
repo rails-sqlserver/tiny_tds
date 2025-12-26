@@ -179,6 +179,7 @@ jobs:
           - "3.2"
           - "3.3"
           - "3.4"
+          - "4.0"
 
     name: install-windows-ucrt
     runs-on: windows-latest
@@ -233,6 +234,7 @@ jobs:
           - "3.2"
           - "3.3"
           - "3.4"
+          - "4.0"
 
     name: test-windows-ucrt
     runs-on: windows-latest
@@ -301,6 +303,7 @@ jobs:
           - "3.2"
           - "3.3"
           - "3.4"
+          - "4.0"
 
     name: install-windows-native
     runs-on: windows-latest
@@ -359,6 +362,7 @@ jobs:
           - "3.2"
           - "3.3"
           - "3.4"
+          - "4.0"
 
         include:
           - platform: x86_64-linux-musl
@@ -420,6 +424,7 @@ jobs:
           - "3.2"
           - "3.3"
           - "3.4"
+          - "4.0"
 
     runs-on: ubuntu-22.04
     steps:
@@ -482,6 +487,7 @@ jobs:
           - "3.2"
           - "3.3"
           - "3.4"
+          - "4.0"
 
     name: install-linux-native
     runs-on: ubuntu-22.04
@@ -528,6 +534,7 @@ jobs:
           - "3.2"
           - "3.3"
           - "3.4"
+          - "4.0"
 
     name: install-macos-m1
     runs-on: macos-14

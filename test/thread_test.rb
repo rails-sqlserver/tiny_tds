@@ -1,12 +1,9 @@
 require "test_helper"
-require "logger"
 require "benchmark"
 
 class ThreadTest < TinyTds::TestCase
   describe "Threaded SELECT queries" do
     before do
-      @logger = Logger.new $stdout
-      @logger.level = Logger::WARN
       @poolsize = 4
       @numthreads = 10
       @query = "waitfor delay '00:00:01'"
@@ -22,19 +19,14 @@ class ThreadTest < TinyTds::TestCase
       x = Benchmark.realtime do
         threads = []
         @numthreads.times do |i|
-          start = Time.new
           threads << Thread.new do
-            ts = Time.new
             @pool.with { |c| c.execute(@query).do }
-            te = Time.new
-            @logger.info "Thread #{i} finished in #{te - ts} thread seconds, #{te - start} real seconds"
           end
         end
         threads.each { |t| t.join }
       end
       assert x < @numthreads, "#{x} is not faster than #{@numthreads} seconds"
       mintime = (1.0 * @numthreads / @poolsize).ceil
-      @logger.info "#{@numthreads} queries on #{@poolsize} threads: #{x} sec. Minimum time: #{mintime} sec."
       assert x > mintime, "#{x} is not slower than #{mintime} seconds"
     end
 

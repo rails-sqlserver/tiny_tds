@@ -5,6 +5,7 @@
 * Add Ruby 4.0 to the cross compile list
 * No longer ship a precompiled Gem for Ruby 2.7
   * This is due to an [upstream change](https://github.com/rake-compiler/rake-compiler-dock/releases/tag/v1.11.0). Users on Windows and Linux on Ruby v2.7 are advised to either upgrade or install FreeTDS manually.
+* Use freetds v1.5.10 and OpenSSL v3.6.0 for Windows and Linux builds.
 
 ## 3.3.0
 

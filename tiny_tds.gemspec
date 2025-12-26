@@ -28,4 +28,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency "connection_pool", "~> 2.2.0"
   s.add_development_dependency "toxiproxy", "~> 2.0.0"
   s.add_development_dependency "standard", "~> 1.31.0"
+  # ostruct can be dropped when updating to Rubocop 1.65+
+  s.add_development_dependency "ostruct"
 end

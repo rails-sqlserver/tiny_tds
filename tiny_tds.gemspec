@@ -30,4 +30,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency "standard", "~> 1.31.0"
   # ostruct can be dropped when updating to Rubocop 1.65+
   s.add_development_dependency "ostruct"
+  s.add_development_dependency "benchmark"
 end

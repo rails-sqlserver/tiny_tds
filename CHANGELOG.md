@@ -2,7 +2,7 @@
 
 ## 3.4.1
 
-* Use libiconv v1.18 for Windows and Linux builds.
+* Use libiconv v1.18 and OpenSSL v3.6.1 for Windows and Linux builds.
 
 ## 3.4.0
 

@@ -36,14 +36,15 @@ module TinyTds
       @app_name = app_name
       @charset = (charset.nil? || charset.casecmp("utf8").zero?) ? "UTF-8" : charset.upcase
       @database = database
-      @dataserver = dataserver || "#{host}:#{port}"
-      @login_timeout = login_timeout.to_i
+      @login_timeout = (login_timeout || 60).to_i
       @password = password if password && password.to_s.strip != ""
-      @port = port.to_i
-      @timeout = timeout.to_i
+      @port = (port || 1433).to_i
+      @timeout = (timeout || 5).to_i
       @tds_version = tds_versions_setter(tds_version:)
       @username = parse_username(azure:, host:, username:)
       @use_utf16 = use_utf16.nil? || ["true", "1", "yes"].include?(use_utf16.to_s)
+
+      @dataserver = dataserver || "#{host}:#{@port}"
     end
 
     def tds_73?

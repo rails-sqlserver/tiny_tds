@@ -1,5 +1,9 @@
 ## (unreleased)
 
+## 3.4.1
+
+* Use libiconv v1.18, OpenSSL v3.6.1 and freetds v1.5.14 for Windows and Linux builds.
+
 ## 3.4.0
 
 * Add Ruby 4.0 to the cross compile list

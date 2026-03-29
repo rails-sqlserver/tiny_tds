@@ -11,6 +11,7 @@
 * Renamed `tds_version` and `tds_version_info` to `server_version` and `server_version_info`
 * Separate `#new` and `#connect`
   * Instead, before running `#do`, `#execute` or `#insert`, `tiny_tds` will check if the connection is active and re-connect if needed.
+* Use freetds v1.5.15, OpenSSL v3.6.1 and libiconv v1.19 for Windows and Linux builds.
 
 ## 3.4.0
 

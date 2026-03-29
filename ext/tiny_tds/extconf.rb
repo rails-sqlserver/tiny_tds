@@ -25,7 +25,7 @@ if (gem_platform = with_config("cross-build"))
       self.files = files
       rootdir = File.expand_path("../../..", __FILE__)
       self.target = File.join(rootdir, "ports")
-      self.patch_files = Dir[File.join("patches", self.name, self.version, "*.patch")].sort
+      self.patch_files = Dir[File.join(rootdir, "patches", self.name, self.version, "*.patch")].sort
     end
 
     # this will yield all ports into the same directory, making our path configuration for the linker easier

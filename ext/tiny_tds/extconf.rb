@@ -25,7 +25,7 @@ if (gem_platform = with_config("cross-build"))
       self.files = files
       rootdir = File.expand_path("../../..", __FILE__)
       self.target = File.join(rootdir, "ports")
-      self.patch_files = Dir[File.join("patches", self.name, self.version, "*.patch")].sort
+      self.patch_files = Dir[File.join(rootdir, "patches", self.name, self.version, "*.patch")].sort
     end
 
     # this will yield all ports into the same directory, making our path configuration for the linker easier
@@ -140,17 +140,11 @@ else
     /usr/local
   ]
 
-  if /darwin/i.match?(RbConfig::CONFIG["host_os"])
-    # Ruby below 2.7 seems to label the host CPU on Apple Silicon as aarch64
-    # 2.7 and above print is as ARM64
-    target_host_cpu = (Gem::Version.new(RUBY_VERSION) < Gem::Version.new("2.7")) ? "aarch64" : "arm64"
-
-    if RbConfig::CONFIG["host_cpu"] == target_host_cpu
-      # Homebrew on Apple Silicon installs into /opt/hombrew
-      # https://docs.brew.sh/Installation
-      # On Intel Macs, it is /usr/local, so no changes necessary to DIRS
-      DIRS.unshift("/opt/homebrew")
-    end
+  # Homebrew on Apple Silicon installs into /opt/hombrew
+  # https://docs.brew.sh/Installation
+  # On Intel Macs, it is /usr/local, so no changes necessary to DIRS
+  if /darwin/i.match?(RbConfig::CONFIG["host_os"]) && RbConfig::CONFIG["host_cpu"] == "arm64"
+    DIRS.unshift("/opt/homebrew")
   end
 
   if ENV["RI_DEVKIT"] && ENV["MINGW_PREFIX"] # RubyInstaller Support

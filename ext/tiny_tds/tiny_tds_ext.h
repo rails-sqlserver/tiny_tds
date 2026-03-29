@@ -12,6 +12,5 @@
 #include <sybdb.h>
 
 #include <client.h>
-#include <result.h>
 
 #endif

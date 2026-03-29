@@ -1,5 +1,18 @@
 ## (unreleased)
 
+* Drop support for Ruby < 3.2
+* Drop support for SQL Server < 2019
+* Removed lazy-loading of results for `execute`
+* Moved `#do`, `#insert` and `#execute` methods to the `TinyTds::Client` class
+  * `TinyTds::Result` is now a pure Ruby class
+* `#execute`: Replaced `opts` hash with keyword arguments 
+* Removed `symbolize_keys` and `cache_rows` from `#default_query_options`
+* `TinyTds::Client.new` now accepts keyword arguments instead of a hash
+* Renamed `tds_version` and `tds_version_info` to `server_version` and `server_version_info`
+* Separate `#new` and `#connect`
+  * Instead, before running `#do`, `#execute` or `#insert`, `tiny_tds` will check if the connection is active and re-connect if needed.
+* Use freetds v1.5.15, OpenSSL v3.6.1 and libiconv v1.19 for Windows and Linux builds.
+
 ## 3.4.0
 
 * Add Ruby 4.0 to the cross compile list

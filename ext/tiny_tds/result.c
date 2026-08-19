@@ -89,18 +89,16 @@ VALUE rb_tinytds_new_result_obj(tinytds_client_wrapper *cwrap)
 
 // No GVL Helpers
 
+/* Do not pass dbcancel as the unblock function. MRI invokes the UBF
+   whenever the waiting thread has a pending interrupt, including
+   process-directed signals such as SIGCHLD delivered to main.
+   dbcancel then aborts the SQL batch and Result#each treats FAIL as
+   an empty success. Client :timeout still uses dbsetinterrupt. */
 #define NOGVL_DBCALL(_dbfunction, _client) ( \
   (RETCODE)(intptr_t)rb_thread_call_without_gvl( \
     (void *(*)(void *))_dbfunction, _client, \
-    (rb_unblock_function_t*)dbcancel_ubf, _client ) \
+    NULL, NULL ) \
 )
-
-static void dbcancel_ubf(DBPROCESS *client)
-{
-  GET_CLIENT_USERDATA(client);
-  dbcancel(client);
-  userdata->dbcancel_sent = 1;
-}
 
 static void nogvl_setup(DBPROCESS *client)
 {

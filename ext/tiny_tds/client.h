@@ -40,6 +40,8 @@ typedef struct {
   tinytds_client_userdata *userdata;
   const char *identity_insert_sql;
   rb_encoding *encoding;
+  /* Last FreeTDS DBSETTIME value applied to this client (seconds). */
+  int query_timeout;
 } tinytds_client_wrapper;
 
 VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, tinytds_errordata error);

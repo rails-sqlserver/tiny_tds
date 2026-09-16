@@ -295,8 +295,29 @@ static VALUE allocate(VALUE klass)
   cwrap->charset = Qnil;
   cwrap->userdata = malloc(sizeof(tinytds_client_userdata));
   cwrap->userdata->closed = 1;
+  cwrap->query_timeout = 0;
   rb_tinytds_client_reset_userdata(cwrap->userdata);
   return obj;
+}
+
+static int tinytds_apply_query_timeout(tinytds_client_wrapper *cwrap, int seconds)
+{
+  VALUE timeout_string;
+
+  if (seconds < 0) {
+    return 0;
+  }
+
+  timeout_string = rb_sprintf("%d", seconds);
+
+  if (dbsetopt(cwrap->client, DBSETTIME, StringValueCStr(timeout_string), 0) == FAIL) {
+    if (dbsettime(seconds) == FAIL) {
+      return 0;
+    }
+  }
+
+  cwrap->query_timeout = seconds;
+  return 1;
 }
 
 
@@ -344,6 +365,30 @@ static VALUE rb_tinytds_sqlsent(VALUE self)
 {
   GET_CLIENT_WRAPPER(self);
   return cwrap->userdata->dbsql_sent ? Qtrue : Qfalse;
+}
+
+static VALUE rb_tinytds_query_timeout(VALUE self)
+{
+  GET_CLIENT_WRAPPER(self);
+  return INT2NUM(cwrap->query_timeout);
+}
+
+static VALUE rb_tinytds_query_timeout_set(VALUE self, VALUE value)
+{
+  int seconds;
+  GET_CLIENT_WRAPPER(self);
+  REQUIRE_OPEN_CLIENT(cwrap);
+  seconds = NUM2INT(value);
+
+  if (seconds < 0) {
+    rb_raise(rb_eArgError, "query timeout must be >= 0");
+  }
+
+  if (!tinytds_apply_query_timeout(cwrap, seconds)) {
+    rb_raise(cTinyTdsError, "failed to set query timeout");
+  }
+
+  return INT2NUM(cwrap->query_timeout);
 }
 
 static VALUE rb_tinytds_execute(VALUE self, VALUE sql)
@@ -502,7 +547,7 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts)
       rb_raise(cTinyTdsError, "connecting with a TDS version older than 7.3!");
     }
 
-    VALUE transposed_encoding, timeout_string;
+    VALUE transposed_encoding;
 
     cwrap->closed = 0;
     cwrap->charset = charset;
@@ -512,10 +557,8 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts)
     }
 
     if (!NIL_P(timeout)) {
-      timeout_string = rb_sprintf("%"PRIsVALUE"", timeout);
-
-      if (dbsetopt(cwrap->client, DBSETTIME, StringValueCStr(timeout_string), 0) == FAIL) {
-        dbsettime(NUM2INT(timeout));
+      if (!tinytds_apply_query_timeout(cwrap, NUM2INT(timeout))) {
+        rb_raise(cTinyTdsError, "failed to set query timeout");
       }
     }
 
@@ -550,6 +593,8 @@ void init_tinytds_client()
   rb_define_method(cTinyTdsClient, "dead?", rb_tinytds_dead, 0);
   rb_define_method(cTinyTdsClient, "sqlsent?", rb_tinytds_sqlsent, 0);
   rb_define_method(cTinyTdsClient, "execute", rb_tinytds_execute, 1);
+  rb_define_method(cTinyTdsClient, "query_timeout", rb_tinytds_query_timeout, 0);
+  rb_define_method(cTinyTdsClient, "query_timeout=", rb_tinytds_query_timeout_set, 1);
   rb_define_method(cTinyTdsClient, "charset", rb_tinytds_charset, 0);
   rb_define_method(cTinyTdsClient, "encoding", rb_tinytds_encoding, 0);
   rb_define_method(cTinyTdsClient, "escape", rb_tinytds_escape, 1);

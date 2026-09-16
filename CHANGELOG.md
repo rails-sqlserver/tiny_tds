@@ -1,5 +1,7 @@
 ## (unreleased)
 
+* Add `Client#ping(timeout:)` for a short FreeTDS-bounded liveness round-trip, plus `query_timeout` / `query_timeout=` to change `DBSETTIME` on a live client.
+
 ## 3.4.0
 
 * Add Ruby 4.0 to the cross compile list

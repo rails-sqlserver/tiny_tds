@@ -6,6 +6,53 @@ class ClientTest < TinyTds::TestCase
       @client = new_connection
     end
 
+    it "exposes query_timeout from the connect :timeout option" do
+      assert_equal connection_timeout, @client.query_timeout
+    end
+
+    it "applies query_timeout= via FreeTDS for subsequent batches" do
+      @client.query_timeout = 1
+      assert_equal 1, @client.query_timeout
+      action = lambda { @client.execute("WaitFor Delay '00:00:02'").do }
+      assert_raise_tinytds_error(action) do |e|
+        assert_equal 20003, e.db_error_number
+        assert_match %r{timed out}i, e.message, "ignore if non-english test run"
+      end
+    end
+
+    it "ping returns true and restores the previous query timeout" do
+      @client.query_timeout = connection_timeout
+      assert_equal true, @client.ping(timeout: 2)
+      assert_equal connection_timeout, @client.query_timeout
+      assert_client_works(@client)
+    end
+
+    it "ping returns false when the round-trip exceeds the ping timeout" do
+      client = new_connection timeout: 30
+      # Swap the ping batch for a delay longer than the ping timeout so FreeTDS
+      # SYBETIME fires under the temporary DBSETTIME, not Ruby Timeout.
+      def client.execute(sql)
+        if sql == "SELECT 1"
+          super("WaitFor Delay '00:00:03'")
+        else
+          super
+        end
+      end
+      assert_equal false, client.ping(timeout: 1)
+    ensure
+      close_client(client)
+    end
+
+    it "ping raises ArgumentError for non-positive timeout" do
+      assert_raises(ArgumentError) { @client.ping(timeout: 0) }
+      assert_raises(ArgumentError) { @client.ping(timeout: -1) }
+    end
+
+    it "ping raises when the client is closed" do
+      @client.close
+      assert_raises(TinyTds::Error) { @client.ping(timeout: 2) }
+    end
+
     it "must not be closed" do
       assert !@client.closed?
       assert @client.active?

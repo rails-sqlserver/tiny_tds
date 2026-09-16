@@ -70,6 +70,28 @@ module TinyTds
       !closed? && !dead?
     end
 
+    # Liveness round-trip with a temporary FreeTDS query timeout (seconds).
+    # Returns true when SELECT 1 succeeds and the previous timeout is restored.
+    # Returns false on timeout / dead handle / query failure (caller should discard).
+    # Raises on a closed client or invalid timeout.
+    def ping(timeout: 2)
+      raise TinyTds::Error, "closed connection" if closed?
+      return false unless active?
+
+      seconds = Integer(timeout)
+      raise ArgumentError, "timeout must be positive" unless seconds.positive?
+
+      previous = query_timeout
+      begin
+        self.query_timeout = seconds
+        execute("SELECT 1").each { break }
+        self.query_timeout = previous
+        true
+      rescue TinyTds::Error
+        false
+      end
+    end
+
     private
 
     def parse_username(opts)

@@ -77,5 +77,37 @@ class ThreadTest < TinyTds::TestCase
 
       assert exception
     end
+
+    # Demonstrates the NULL-UBF tradeoff
+    it "Thread#kill does not abort an in-flight batch without UBF" do
+      skip if sqlserver_azure?
+
+      client = new_connection
+      assert_client_works(client)
+
+      thread = Thread.new do
+        client.execute("waitfor delay '00:00:05'").do
+      end
+
+      sleep 0.1
+
+      kill_time = Benchmark.measure do
+        thread.kill
+      end
+
+      join_time = Benchmark.measure do
+        thread.join
+      end
+
+      puts "Thread#kill real=#{kill_time.real.round(3)}s join real=#{join_time.real.round(3)}s"
+
+      # kill does not block
+      assert kill_time.real < 5, "Thread#kill took #{kill_time.real}s"
+
+      # Actual tradeoff: without UBF, join waits for the ~5s WAITFOR.
+      assert join_time.real > 4, "expected join to wait for WAITFOR, got #{join_time.real}s"
+    ensure
+      close_client(client) if defined?(client)
+    end
   end
 end

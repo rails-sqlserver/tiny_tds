@@ -1,4 +1,5 @@
 require "test_helper"
+require "rbconfig"
 
 class ClientTest < TinyTds::TestCase
   describe "with valid credentials" do
@@ -93,6 +94,23 @@ class ClientTest < TinyTds::TestCase
         end
       end
       assert_new_connections_work
+    end
+
+    it "does not cancel a query when another thread reaps a child process" do
+      skip if sqlserver_azure?
+      client = new_connection timeout: 15
+      reaper = Thread.new do
+        sleep 0.5
+        5.times do
+          Process.wait(Process.spawn(RbConfig.ruby, "-e", "nil"))
+          sleep 0.2
+        end
+      end
+      rows = client.execute("WaitFor Delay '00:00:02'; SELECT 42 AS [n]").each
+      reaper.join
+      assert_equal 1, rows.length
+      assert_equal 42, rows.first["n"]
+      close_client(client)
     end
 
     it "raises TinyTds exception with long query past :timeout option" do

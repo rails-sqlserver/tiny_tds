@@ -1,5 +1,7 @@
 ## (unreleased)
 
+* Do not use `dbcancel` as the `rb_thread_call_without_gvl` unblock function. An interrupt (for example SIGCHLD) during `dbsqlok`/`dbresults`/`dbnextrow` aborted the batch and returned empty results. Client `:timeout` is unchanged.
+
 ## 3.4.0
 
 * Add Ruby 4.0 to the cross compile list

@@ -702,9 +702,12 @@ void init_tinytds_result()
 {
   /* Data Classes */
   cKernel = rb_const_get(rb_cObject, rb_intern("Kernel"));
+  rb_global_variable(&cKernel);
   cDate = rb_const_get(rb_cObject, rb_intern("Date"));
+  rb_global_variable(&cDate);
   /* Define TinyTds::Result */
   cTinyTdsResult = rb_define_class_under(mTinyTds, "Result", rb_cObject);
+  rb_global_variable(&cTinyTdsResult);
   rb_undef_alloc_func(cTinyTdsResult);
   /* Define TinyTds::Result Public Methods */
   rb_define_method(cTinyTdsResult, "fields", rb_tinytds_result_fields, 0);

@@ -77,5 +77,36 @@ class ThreadTest < TinyTds::TestCase
 
       assert exception
     end
+
+    # Baseline for https://github.com/rails-sqlserver/tiny_tds/pull/607:
+    # with dbcancel as the nogvl UBF, Thread#kill aborts WAITFOR and join
+    # finishes quickly. Compare to fix/null-nogvl-ubf where join waits ~5s.
+    it "Thread#kill aborts an in-flight batch with dbcancel UBF" do
+      skip if sqlserver_azure?
+
+      client = new_connection
+      assert_client_works(client)
+
+      thread = Thread.new do
+        client.execute("waitfor delay '00:00:05'").do
+      end
+
+      sleep 0.1
+
+      kill_time = Benchmark.measure do
+        thread.kill
+      end
+
+      join_time = Benchmark.measure do
+        thread.join
+      end
+
+      puts "Thread#kill real=#{kill_time.real.round(3)}s join real=#{join_time.real.round(3)}s"
+
+      assert kill_time.real < 5, "Thread#kill took #{kill_time.real}s"
+      assert join_time.real < 1, "expected UBF cancel; join took #{join_time.real}s"
+    ensure
+      close_client(client) if defined?(client)
+    end
   end
 end

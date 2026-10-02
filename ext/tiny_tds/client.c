@@ -541,6 +541,7 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts)
 void init_tinytds_client()
 {
   cTinyTdsClient = rb_define_class_under(mTinyTds, "Client", rb_cObject);
+  rb_global_variable(&cTinyTdsClient);
   rb_define_alloc_func(cTinyTdsClient, allocate);
   /* Define TinyTds::Client Public Methods */
   rb_define_method(cTinyTdsClient, "tds_version", rb_tinytds_tds_version, 0);

@@ -1,7 +1,7 @@
 ## (unreleased)
 
 * Register the C globals that hold Ruby classes and modules with the GC, so raising `TinyTds::Error` after GC compaction no longer crashes with a segmentation fault. Fixes #608.
-* Use OpenSSL v3.6.5 for Windows and Linux builds.
+* Use freetds v1.5.19 and OpenSSL v3.6.5 for Windows and Linux builds.
 
 ## 3.4.0
 

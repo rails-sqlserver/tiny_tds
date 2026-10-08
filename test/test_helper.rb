@@ -7,13 +7,13 @@ require "toxiproxy"
 require "minitest/reporters"
 Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new, Minitest::Reporters::JUnitReporter.new]
 
-TINYTDS_SCHEMAS = ["sqlserver_2017", "sqlserver_azure"].freeze
+TINYTDS_SCHEMAS = ["sqlserver_2019", "sqlserver_azure"].freeze
 
 module TinyTds
   class TestCase < Minitest::Spec
     class << self
       def current_schema
-        ENV["TINYTDS_SCHEMA"] || "sqlserver_2017"
+        ENV["TINYTDS_SCHEMA"] || "sqlserver_2019"
       end
 
       TINYTDS_SCHEMAS.each do |schema|
@@ -41,23 +41,24 @@ module TinyTds
       client.close if defined?(client) && client.is_a?(TinyTds::Client)
     end
 
-    def new_connection(options = {})
-      client = TinyTds::Client.new(connection_options(options))
+    def new_connection(**options)
+      client = TinyTds::Client.new(**connection_options(options))
+
       if sqlserver_azure?
-        client.execute("SET ANSI_NULLS ON").do
-        client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
-        client.execute("SET ANSI_NULL_DFLT_ON ON").do
-        client.execute("SET IMPLICIT_TRANSACTIONS OFF").do
-        client.execute("SET ANSI_PADDING ON").do
-        client.execute("SET QUOTED_IDENTIFIER ON").do
-        client.execute("SET ANSI_WARNINGS ON").do
+        client.do("SET ANSI_NULLS ON")
+        client.do("SET CURSOR_CLOSE_ON_COMMIT OFF")
+        client.do("SET ANSI_NULL_DFLT_ON ON")
+        client.do("SET IMPLICIT_TRANSACTIONS OFF")
+        client.do("SET ANSI_PADDING ON")
+        client.do("SET QUOTED_IDENTIFIER ON")
+        client.do("SET ANSI_WARNINGS ON")
       else
-        client.execute("SET ANSI_DEFAULTS ON").do
-        client.execute("SET CURSOR_CLOSE_ON_COMMIT OFF").do
-        client.execute("SET IMPLICIT_TRANSACTIONS OFF").do
+        client.do("SET ANSI_DEFAULTS ON")
+        client.do("SET CURSOR_CLOSE_ON_COMMIT OFF")
+        client.do("SET IMPLICIT_TRANSACTIONS OFF")
       end
-      client.execute("SET TEXTSIZE 2147483647").do
-      client.execute("SET CONCAT_NULL_YIELDS_NULL ON").do
+      client.do("SET TEXTSIZE 2147483647")
+      client.do("SET CONCAT_NULL_YIELDS_NULL ON")
       client
     end
 
@@ -71,7 +72,7 @@ module TinyTds
        username: username,
        password: password,
        database: ENV["TINYTDS_UNIT_DATABASE"] || "tinytdstest",
-       appname: "TinyTds Dev",
+       app_name: "TinyTds Dev",
        login_timeout: 5,
        timeout: connection_timeout,
        azure: sqlserver_azure?}.merge(options)
@@ -82,7 +83,7 @@ module TinyTds
     end
 
     def assert_client_works(client)
-      _(client.execute("SELECT 'client_works' as [client_works]").each).must_equal [{"client_works" => "client_works"}]
+      _(client.execute("SELECT 'client_works' as [client_works]").rows).must_equal [{"client_works" => "client_works"}]
     end
 
     def assert_new_connections_work
@@ -137,11 +138,11 @@ module TinyTds
       loader = new_connection
       schema_file = File.expand_path File.join(File.dirname(__FILE__), "schema", "#{current_schema}.sql")
       schema_sql = File.open(schema_file, "rb:UTF-8") { |f| f.read }
-      loader.execute(drop_sql).do
-      loader.execute(schema_sql).do
-      loader.execute(sp_sql).do
-      loader.execute(sp_error_sql).do
-      loader.execute(sp_several_prints_sql).do
+      loader.do(drop_sql)
+      loader.do(schema_sql)
+      loader.do(sp_sql)
+      loader.do(sp_error_sql)
+      loader.do(sp_several_prints_sql)
       loader.close
       true
     end
@@ -191,9 +192,8 @@ module TinyTds
     end
 
     def find_value(id, column, query_options = {})
-      query_options[:timezone] ||= :utc
       sql = "SELECT [#{column}] FROM [datatypes] WHERE [id] = #{id}"
-      @client.execute(sql).each(query_options).first[column.to_s]
+      @client.execute(sql, timezone: query_options[:timezone] || :utc).first[column.to_s]
     end
 
     def local_offset
@@ -205,10 +205,10 @@ module TinyTds
     end
 
     def rollback_transaction(client)
-      client.execute("BEGIN TRANSACTION").do
+      client.do("BEGIN TRANSACTION")
       yield
     ensure
-      client.execute("ROLLBACK TRANSACTION").do
+      client.do("ROLLBACK TRANSACTION")
     end
 
     def init_toxiproxy

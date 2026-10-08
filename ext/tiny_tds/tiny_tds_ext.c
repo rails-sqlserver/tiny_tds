@@ -13,6 +13,4 @@ void Init_tiny_tds()
   cTinyTdsError = rb_const_get(mTinyTds, rb_intern("Error"));
   rb_global_variable(&cTinyTdsError);
   init_tinytds_client();
-  init_tinytds_result();
 }
-

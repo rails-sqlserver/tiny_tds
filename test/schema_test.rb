@@ -114,14 +114,14 @@ class SchemaTest < TinyTds::TestCase
       assert_utf8_encoding find_value(182, :ntext)
       # If this test fails, try setting the "text size" in your freetds.conf. See: http://www.freetds.org/faq.html#textdata
       large_value = "x" * 5000
-      large_value_id = @client.execute("INSERT INTO [datatypes] ([ntext]) VALUES (N'#{large_value}')").insert
+      large_value_id = @client.insert("INSERT INTO [datatypes] ([ntext]) VALUES (N'#{large_value}')")
       assert_equal large_value, find_value(large_value_id, :ntext)
     end
 
     it "casts numeric" do
       assert_instance_of BigDecimal, find_value(191, :numeric_18_0)
-      assert_equal BigDecimal("191"), find_value(191, :numeric_18_0)
-      assert_equal BigDecimal("123456789012345678"), find_value(192, :numeric_18_0)
+      assert_equal BigDecimal(191), find_value(191, :numeric_18_0)
+      assert_equal BigDecimal(123456789012345678), find_value(192, :numeric_18_0)
       assert_equal BigDecimal("12345678901234567890.01"), find_value(193, :numeric_36_2)
       assert_equal BigDecimal("123.46"), find_value(194, :numeric_36_2)
     end

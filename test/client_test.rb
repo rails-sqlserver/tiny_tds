@@ -1,14 +1,27 @@
 require "test_helper"
 
 class ClientTest < TinyTds::TestCase
+  before do
+    @@current_schema_loaded ||= load_current_schema
+  end
+
   describe "with valid credentials" do
     before do
       @client = new_connection
     end
 
-    it "must not be closed" do
-      assert !@client.closed?
-      assert @client.active?
+    it "is considered close without a connection" do
+      client = TinyTds::Client.new(**connection_options)
+
+      assert client.closed?
+      assert !client.active?
+    end
+
+    it "returns nil values for server version without a connection" do
+      client = TinyTds::Client.new(**connection_options)
+
+      assert_nil client.server_version
+      assert_nil client.server_version_info
     end
 
     it "allows client connection to be closed" do
@@ -16,20 +29,11 @@ class ClientTest < TinyTds::TestCase
       assert @client.closed?
       assert !@client.active?
       assert @client.dead?
-      action = lambda { @client.execute("SELECT 1 as [one]").each }
-      assert_raise_tinytds_error(action) do |e|
-        assert_match %r{closed connection}i, e.message, "ignore if non-english test run"
-      end
     end
 
-    it "has getters for the tds version information (brittle since conf takes precedence)" do
-      if @client.tds_73?
-        assert_equal 11, @client.tds_version
-        assert_equal "DBTDS_7_3 - Microsoft SQL Server 2008", @client.tds_version_info
-      else
-        assert_equal 9, @client.tds_version
-        assert_equal "DBTDS_7_1/DBTDS_8_0 - Microsoft SQL Server 2000", @client.tds_version_info
-      end
+    it "has getters for the server version information (brittle since conf takes precedence)" do
+      assert_equal 11, @client.server_version
+      assert_equal "DBTDS_7_3 - Microsoft SQL Server 2008", @client.server_version_info
     end
 
     it "uses UTF-8 client charset/encoding by default" do
@@ -41,11 +45,11 @@ class ClientTest < TinyTds::TestCase
       assert_equal "''hello''", @client.escape("'hello'")
     end
 
-    ["CP850", "CP1252", "ISO-8859-1"].each do |encoding|
-      it "allows valid iconv character set - #{encoding}" do
-        client = new_connection(encoding: encoding)
-        assert_equal encoding, client.charset
-        assert_equal Encoding.find(encoding), client.encoding
+    ["CP850", "CP1252", "ISO-8859-1"].each do |charset|
+      it "allows valid iconv character set - #{charset}" do
+        client = new_connection(charset:)
+        assert_equal charset, client.charset
+        assert_equal Encoding.find(charset), client.encoding
       ensure
         client&.close
       end
@@ -78,8 +82,7 @@ class ClientTest < TinyTds::TestCase
     end
 
     it "raises TinyTds exception with undefined :dataserver" do
-      options = connection_options login_timeout: 1, dataserver: "DOESNOTEXIST"
-      action = lambda { new_connection(options) }
+      action = lambda { new_connection(login_timeout: 1, dataserver: "DOESNOTEXIST") }
       assert_raise_tinytds_error(action) do |e|
         # Not sure why tese are different.
         if ruby_darwin?
@@ -97,7 +100,7 @@ class ClientTest < TinyTds::TestCase
 
     it "raises TinyTds exception with long query past :timeout option" do
       client = new_connection timeout: 1
-      action = lambda { client.execute("WaitFor Delay '00:00:02'").do }
+      action = lambda { client.do("WaitFor Delay '00:00:02'") }
       assert_raise_tinytds_error(action) do |e|
         assert_equal 20003, e.db_error_number
         assert_equal 6, e.severity
@@ -110,21 +113,21 @@ class ClientTest < TinyTds::TestCase
 
     it "must not timeout per sql batch when not under transaction" do
       client = new_connection timeout: 2
-      client.execute("WaitFor Delay '00:00:01'").do
-      client.execute("WaitFor Delay '00:00:01'").do
-      client.execute("WaitFor Delay '00:00:01'").do
+      client.do("WaitFor Delay '00:00:01'")
+      client.do("WaitFor Delay '00:00:01'")
+      client.do("WaitFor Delay '00:00:01'")
       close_client(client)
     end
 
     it "must not timeout per sql batch when under transaction" do
       client = new_connection timeout: 2
       begin
-        client.execute("BEGIN TRANSACTION").do
-        client.execute("WaitFor Delay '00:00:01'").do
-        client.execute("WaitFor Delay '00:00:01'").do
-        client.execute("WaitFor Delay '00:00:01'").do
+        client.do("BEGIN TRANSACTION")
+        client.do("WaitFor Delay '00:00:01'")
+        client.do("WaitFor Delay '00:00:01'")
+        client.do("WaitFor Delay '00:00:01'")
       ensure
-        client.execute("COMMIT TRANSACTION").do
+        client.do("COMMIT TRANSACTION")
         close_client(client)
       end
     end
@@ -132,7 +135,7 @@ class ClientTest < TinyTds::TestCase
     it "raises TinyTds exception with tcp socket network failure" do
       client = new_connection timeout: 2, port: 1234, host: ENV["TOXIPROXY_HOST"]
       assert_client_works(client)
-      action = lambda { client.execute("waitfor delay '00:00:05'").do }
+      action = lambda { client.do("waitfor delay '00:00:05'") }
 
       # Use toxiproxy to close the TCP socket after 1 second.
       # We want TinyTds to execute the statement, hit the timeout configured above, and then not be able to use the network to cancel
@@ -154,7 +157,7 @@ class ClientTest < TinyTds::TestCase
       begin
         client = new_connection timeout: 2, port: 1234, host: ENV["TOXIPROXY_HOST"]
         assert_client_works(client)
-        action = lambda { client.execute("waitfor delay '00:00:05'").do }
+        action = lambda { client.do("waitfor delay '00:00:05'") }
 
         # Use toxiproxy to close the network connection after 1 second.
         # We want TinyTds to execute the statement, hit the timeout configured above, and then not be able to use the network to cancel
@@ -189,12 +192,24 @@ class ClientTest < TinyTds::TestCase
     it "raises TinyTds exception with wrong :username" do
       skip if ENV["CI"] && sqlserver_azure? # Some issue with db_error_number.
       options = connection_options username: "willnotwork"
-      action = lambda { new_connection(options) }
+      action = lambda { new_connection(**options) }
       assert_raise_tinytds_error(action) do |e|
         assert_equal 18456, e.db_error_number
         assert_equal 14, e.severity
         assert_match %r{login failed}i, e.message, "ignore if non-english test run"
       end
+      assert_new_connections_work
+    end
+
+    it "raises TinyTds exception with invalid database name" do
+      action = lambda { new_connection(database: "DOESNOTEXIST") }
+
+      assert_raise_tinytds_error(action) do |e|
+        assert_equal 911, e.db_error_number
+        assert_equal 16, e.severity
+        assert_equal "Database 'DOESNOTEXIST' does not exist. Make sure that the name is entered correctly.", e.message
+      end
+
       assert_new_connections_work
     end
   end
@@ -261,6 +276,45 @@ class ClientTest < TinyTds::TestCase
           azure: false
         )
       ).must_equal "user"
+    end
+  end
+
+  describe "#insert" do
+    before do
+      @client = new_connection
+    end
+
+    it "has an #insert method that cancels result rows and returns IDENTITY natively" do
+      rollback_transaction(@client) do
+        text = "test scope identity rows native"
+        @client.do("DELETE FROM [datatypes] WHERE [varchar_50] = '#{text}'")
+        @client.do("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')")
+        sql_identity = @client.execute(@client.identity_sql).first["Ident"]
+        native_identity = @client.insert("INSERT INTO [datatypes] ([varchar_50]) VALUES ('#{text}')")
+
+        assert_equal(sql_identity + 1, native_identity)
+        assert_client_works(@client)
+      end
+    end
+
+    it "returns bigint for #insert when needed" do
+      return if sqlserver_azure? # We can not alter clustered index like this test does.
+      # 'CREATE TABLE' command is not allowed within a multi-statement transaction
+      # and and sp_helpindex creates a temporary table #spindtab.
+
+      rollback_transaction(@client) do
+        seed = 9223372036854775805
+        @client.do("DELETE FROM [datatypes]")
+        id_constraint_name = @client.execute("EXEC sp_helpindex [datatypes]").detect { |row| row["index_keys"] == "id" }["index_name"]
+        @client.do("ALTER TABLE [datatypes] DROP CONSTRAINT [#{id_constraint_name}]")
+        @client.do("ALTER TABLE [datatypes] DROP COLUMN [id]")
+        @client.do("ALTER TABLE [datatypes] ADD [id] [bigint] NOT NULL IDENTITY(1,1) PRIMARY KEY")
+        @client.do("DBCC CHECKIDENT ('datatypes', RESEED, #{seed})")
+        identity = @client.insert("INSERT INTO [datatypes] ([varchar_50]) VALUES ('something')")
+
+        assert_equal(seed, identity)
+        assert_client_works(@client)
+      end
     end
   end
 end

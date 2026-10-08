@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/ruby:2.7
+FROM mcr.microsoft.com/devcontainers/ruby:3.2
 
 # Install the SQL Server command-line tools and the Artistic Style code formatter
 RUN curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc \
@@ -8,7 +8,7 @@ RUN curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/t
 ENV PATH=$PATH:/opt/mssql-tools18/bin
 
 # Install FreeTDS
-ENV FREETDS_VERSION=1.5.1
+ENV FREETDS_VERSION=1.5.4
 COPY test/bin/install-freetds.sh /tmp/
 RUN /tmp/install-freetds.sh
 

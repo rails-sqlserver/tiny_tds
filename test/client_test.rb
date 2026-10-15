@@ -186,6 +186,14 @@ class ClientTest < TinyTds::TestCase
       assert_new_connections_work
     end
 
+    it "raises TinyTds exception when the negotiated TDS version is older than 7.3" do
+      action = lambda { new_connection(tds_version: "7.1") }
+      assert_raise_tinytds_error(action) do |e|
+        assert_match %r{older than 7.3}i, e.message
+      end
+      assert_new_connections_work
+    end
+
     it "raises TinyTds exception with wrong :username" do
       skip if ENV["CI"] && sqlserver_azure? # Some issue with db_error_number.
       options = connection_options username: "willnotwork"

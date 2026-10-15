@@ -121,16 +121,29 @@ static void nogvl_cleanup(DBPROCESS *client)
   exceptions based on errors from SQL Server.
   */
   short int i;
+  short int errors_length = userdata->nonblocking_errors_length;
 
-  for (i = 0; i < userdata->nonblocking_errors_length; i++) {
-    tinytds_errordata error = userdata->nonblocking_errors[i];
+  /*
+  A raise longjmps out of this function and skips the code after it.
+  Free the malloc'd array first. If an error is raised, the GC frees the copy.
+  */
+  VALUE errors_buffer;
+  tinytds_errordata *errors = ALLOCV_N(tinytds_errordata, errors_buffer, errors_length);
+  MEMCPY(errors, userdata->nonblocking_errors, tinytds_errordata, errors_length);
+  free(userdata->nonblocking_errors);
+  userdata->nonblocking_errors = NULL;
+  userdata->nonblocking_errors_length = 0;
+  userdata->nonblocking_errors_size = 0;
+
+  for (i = 0; i < errors_length; i++) {
+    tinytds_errordata error = errors[i];
 
     // lookahead to drain any info messages ahead of raising error
     if (!error.is_message) {
       short int j;
 
-      for (j = i; j < userdata->nonblocking_errors_length; j++) {
-        tinytds_errordata msg_error = userdata->nonblocking_errors[j];
+      for (j = i; j < errors_length; j++) {
+        tinytds_errordata msg_error = errors[j];
 
         if (msg_error.is_message) {
           rb_tinytds_raise_error(client, msg_error);
@@ -141,9 +154,7 @@ static void nogvl_cleanup(DBPROCESS *client)
     rb_tinytds_raise_error(client, error);
   }
 
-  free(userdata->nonblocking_errors);
-  userdata->nonblocking_errors_length = 0;
-  userdata->nonblocking_errors_size = 0;
+  ALLOCV_END(errors_buffer);
 }
 
 static RETCODE nogvl_dbsqlok(DBPROCESS *client)

@@ -66,19 +66,9 @@ static const rb_data_type_t tinytds_client_wrapper_type = {
 
 // Lib Backend (Helpers)
 
-VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, tinytds_errordata error)
+static VALUE rb_tinytds_new_error(tinytds_errordata error)
 {
-  VALUE e;
-  GET_CLIENT_USERDATA(dbproc);
-
-  if (error.cancel && !dbdead(dbproc) && userdata && !userdata->closed) {
-    userdata->dbsqlok_sent = 1;
-    dbsqlok(dbproc);
-    userdata->dbcancel_sent = 1;
-    dbcancel(dbproc);
-  }
-
-  e = rb_exc_new2(cTinyTdsError, error.error);
+  VALUE e = rb_exc_new2(cTinyTdsError, error.error);
   rb_funcall(e, intern_source_eql, 1, rb_str_new2(error.source));
 
   if (error.severity) {
@@ -92,6 +82,23 @@ VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, tinytds_errordata error)
   if (error.oserr) {
     rb_funcall(e, intern_os_error_number_eql, 1, INT2FIX(error.oserr));
   }
+
+  return e;
+}
+
+VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, tinytds_errordata error)
+{
+  VALUE e;
+  GET_CLIENT_USERDATA(dbproc);
+
+  if (error.cancel && !dbdead(dbproc) && userdata && !userdata->closed) {
+    userdata->dbsqlok_sent = 1;
+    dbsqlok(dbproc);
+    userdata->dbcancel_sent = 1;
+    dbcancel(dbproc);
+  }
+
+  e = rb_tinytds_new_error(error);
 
   if (error.severity <= 10 && error.is_message) {
     VALUE message_handler = userdata && userdata->message_handler ? userdata->message_handler : Qnil;
@@ -119,6 +126,34 @@ static void push_userdata_error(tinytds_client_userdata *userdata, tinytds_error
 
   userdata->nonblocking_errors[userdata->nonblocking_errors_length] = error;
   userdata->nonblocking_errors_length++;
+}
+
+/*
+dbopen() calls the handlers during the login, before the DBPROCESS has its userdata.
+A raise at that point longjmps out of FreeTDS and leaks the half-open connection.
+Thus the handlers keep the first error here, and rb_tinytds_connect() raises it after dbopen().
+dbopen() runs with the GVL held, so only one login is in progress at a time.
+*/
+typedef struct {
+  int occurred;
+  tinytds_errordata error;
+} tinytds_login_error;
+
+static tinytds_login_error *pending_login_error = NULL;
+
+static int defer_login_error(tinytds_client_userdata *userdata, tinytds_errordata error)
+{
+  if (userdata || !pending_login_error) {
+    return 0;
+  }
+
+  // Ignore info messages: the login does not pass them to the message handler.
+  if (!error.is_message && !pending_login_error->occurred) {
+    pending_login_error->error = error;
+    pending_login_error->occurred = 1;
+  }
+
+  return 1;
 }
 
 int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, char *dberrstr, char *oserrstr)
@@ -185,6 +220,10 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
   strncpy(error_data.error, dberrstr, ERROR_MSG_SIZE);
   strncpy(error_data.source, source, ERROR_MSG_SIZE);
 
+  if (defer_login_error(userdata, error_data)) {
+    return return_value;
+  }
+
   /*
   When in non-blocking mode we need to store the exception data to throw it
   once the blocking call returns, otherwise we will segfault ruby since part
@@ -221,6 +260,10 @@ int tinytds_msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severi
   };
   strncpy(error_data.error, msgtext, ERROR_MSG_SIZE);
   strncpy(error_data.source, source, ERROR_MSG_SIZE);
+
+  if (defer_login_error(userdata, error_data)) {
+    return 0;
+  }
 
   // See tinytds_err_handler() for info about why we do this
   if (userdata && userdata->nonblocking) {
@@ -495,10 +538,25 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts)
     DBSETLUTF16(cwrap->login, 0);
   }
 
-  cwrap->client = dbopen(cwrap->login, StringValueCStr(dataserver));
+  char *dataserver_name = StringValueCStr(dataserver);
+  tinytds_login_error login_error = { .occurred = 0 };
+  pending_login_error = &login_error;
+  cwrap->client = dbopen(cwrap->login, dataserver_name);
+  pending_login_error = NULL;
+
+  if (login_error.occurred) {
+    if (cwrap->client) {
+      dbclose(cwrap->client);
+      cwrap->client = NULL;
+    }
+
+    rb_exc_raise(rb_tinytds_new_error(login_error.error));
+  }
 
   if (cwrap->client) {
     if (dbtds(cwrap->client) < 11) {
+      dbclose(cwrap->client);
+      cwrap->client = NULL;
       rb_raise(cTinyTdsError, "connecting with a TDS version older than 7.3!");
     }
 

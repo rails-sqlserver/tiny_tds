@@ -7,6 +7,16 @@ static ID sym_username, sym_password, sym_dataserver, sym_database, sym_appname,
 static ID intern_source_eql, intern_severity_eql, intern_db_error_number_eql, intern_os_error_number_eql;
 static ID intern_new, intern_dup, intern_transpose_iconv_encoding, intern_local_offset, intern_gsub, intern_call;
 VALUE opt_escape_regex, opt_escape_dblquote;
+static VALUE login_mutex;
+static int dblib_initialized;
+
+typedef struct {
+  int raised;
+  tinytds_errordata error;
+} tinytds_login_error;
+
+/* Login callbacks run before dbsetuserdata can associate them with a client. */
+static __thread tinytds_login_error *login_error;
 
 static void rb_tinytds_client_mark(void *ptr)
 {
@@ -14,6 +24,9 @@ static void rb_tinytds_client_mark(void *ptr)
 
   if (cwrap) {
     rb_gc_mark(cwrap->charset);
+    if (cwrap->userdata) {
+      rb_gc_mark(cwrap->userdata->message_handler);
+    }
   }
 }
 
@@ -71,7 +84,7 @@ VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, tinytds_errordata error)
   VALUE e;
   GET_CLIENT_USERDATA(dbproc);
 
-  if (error.cancel && !dbdead(dbproc) && userdata && !userdata->closed) {
+  if (error.cancel && dbproc && userdata && !userdata->closed && !dbdead(dbproc)) {
     userdata->dbsqlok_sent = 1;
     dbsqlok(dbproc);
     userdata->dbcancel_sent = 1;
@@ -109,6 +122,15 @@ VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, tinytds_errordata error)
 
 
 // Lib Backend (Memory Management & Handlers)
+static void save_login_error(tinytds_errordata error)
+{
+  /* Preserve the first exception, which previously unwound dbopen immediately. */
+  if (!login_error->raised) {
+    login_error->error = error;
+    login_error->raised = 1;
+  }
+}
+
 static void push_userdata_error(tinytds_client_userdata *userdata, tinytds_errordata error)
 {
   // reallocate memory for the array as needed
@@ -191,7 +213,10 @@ int tinytds_err_handler(DBPROCESS *dbproc, int severity, int dberr, int oserr, c
   of the contract of the ruby non-blocking indicator is that you do not call
   any of the ruby C API.
   */
-  if (userdata && userdata->nonblocking) {
+  if (login_error) {
+    save_login_error(error_data);
+    return INT_CANCEL;
+  } else if (userdata && userdata->nonblocking) {
     if (cancel && !dbdead(dbproc) && !userdata->closed) {
       dbcancel(dbproc);
       userdata->dbcancel_sent = 1;
@@ -223,7 +248,12 @@ int tinytds_msg_handler(DBPROCESS *dbproc, DBINT msgno, int msgstate, int severi
   strncpy(error_data.source, source, ERROR_MSG_SIZE);
 
   // See tinytds_err_handler() for info about why we do this
-  if (userdata && userdata->nonblocking) {
+  if (login_error) {
+    /* Login info messages were ignored before dbsetuserdata; keep that behavior. */
+    if (is_message_an_error) {
+      save_login_error(error_data);
+    }
+  } else if (userdata && userdata->nonblocking) {
     /*
     In the case of non-blocking command batch execution we can receive multiple messages
     (including errors). We keep track of those here so they can be processed once the
@@ -295,6 +325,7 @@ static VALUE allocate(VALUE klass)
   cwrap->charset = Qnil;
   cwrap->userdata = malloc(sizeof(tinytds_client_userdata));
   cwrap->userdata->closed = 1;
+  cwrap->userdata->message_handler = Qnil;
   rb_tinytds_client_reset_userdata(cwrap->userdata);
   return obj;
 }
@@ -415,6 +446,63 @@ static VALUE rb_tinytds_identity_sql(VALUE self)
 
 // TinyTds::Client (protected)
 
+typedef struct {
+  tinytds_client_wrapper *cwrap;
+  char *dataserver;
+  VALUE login_timeout;
+  tinytds_login_error error;
+} tinytds_login_args;
+
+static void *nogvl_dbopen(void *ptr)
+{
+  tinytds_login_args *args = ptr;
+  tinytds_client_wrapper *cwrap = args->cwrap;
+  login_error = &args->error;
+  cwrap->client = dbopen(cwrap->login, args->dataserver);
+  login_error = NULL;
+
+  /* Own the connection before Ruby can deliver an interrupt on GVL reacquisition. */
+  if (cwrap->client) {
+    cwrap->closed = 0;
+  }
+
+  return NULL;
+}
+
+static VALUE synchronized_dbopen(VALUE ptr)
+{
+  tinytds_login_args *args = (tinytds_login_args *)ptr;
+
+  /* FreeTDS's login timeout is global; serialize logins, not Ruby execution. */
+  if (!NIL_P(args->login_timeout)) {
+    dbsetlogintime(NUM2INT(args->login_timeout));
+  }
+
+  /* No DBPROCESS exists yet to cancel; let the configured login timeout finish. */
+  rb_thread_call_without_gvl(nogvl_dbopen, args, NULL, NULL);
+  return Qnil;
+}
+
+static VALUE open_client(VALUE ptr)
+{
+  tinytds_login_args *args = (tinytds_login_args *)ptr;
+  rb_mutex_synchronize(login_mutex, synchronized_dbopen, ptr);
+
+  /* dbopen may have freed its DBPROCESS on failure; replay without using it. */
+  if (args->error.raised) {
+    rb_tinytds_raise_error(NULL, args->error.error);
+  }
+
+  return Qnil;
+}
+
+static VALUE cleanup_login(VALUE ptr)
+{
+  tinytds_login_args *args = (tinytds_login_args *)ptr;
+  xfree(args->dataserver);
+  return Qnil;
+}
+
 static VALUE rb_tinytds_connect(VALUE self, VALUE opts)
 {
   /* Parsing options hash to local vars. */
@@ -435,14 +523,17 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts)
   use_utf16 = rb_hash_aref(opts, sym_use_utf16);
   cwrap->userdata->message_handler = rb_hash_aref(opts, sym_message_handler);
 
-  /* Dealing with options. */
-  if (dbinit() == FAIL) {
-    rb_raise(cTinyTdsError, "failed dbinit() function");
-    return self;
+  /* Initialize once under the GVL; dbinit resets the process-wide error handler. */
+  if (!dblib_initialized) {
+    if (dbinit() == FAIL) {
+      rb_raise(cTinyTdsError, "failed dbinit() function");
+    }
+    dberrhandle(tinytds_err_handler);
+    dbmsghandle(tinytds_msg_handler);
+    dblib_initialized = 1;
   }
 
-  dberrhandle(tinytds_err_handler);
-  dbmsghandle(tinytds_msg_handler);
+  /* Dealing with options. */
   cwrap->login = dblogin();
 
   if (!NIL_P(version)) {
@@ -459,10 +550,6 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts)
 
   if (!NIL_P(app)) {
     dbsetlapp(cwrap->login, StringValueCStr(app));
-  }
-
-  if (!NIL_P(ltimeout)) {
-    dbsetlogintime(NUM2INT(ltimeout));
   }
 
   if (!NIL_P(charset)) {
@@ -495,7 +582,11 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts)
     DBSETLUTF16(cwrap->login, 0);
   }
 
-  cwrap->client = dbopen(cwrap->login, StringValueCStr(dataserver));
+  tinytds_login_args args = { .cwrap = cwrap, .login_timeout = ltimeout };
+  const char *server_name = StringValueCStr(dataserver);
+  args.dataserver = ALLOC_N(char, RSTRING_LEN(dataserver) + 1);
+  memcpy(args.dataserver, server_name, RSTRING_LEN(dataserver) + 1);
+  rb_ensure(open_client, (VALUE)&args, cleanup_login, (VALUE)&args);
 
   if (cwrap->client) {
     if (dbtds(cwrap->client) < 11) {
@@ -540,6 +631,8 @@ static VALUE rb_tinytds_connect(VALUE self, VALUE opts)
 
 void init_tinytds_client()
 {
+  login_mutex = rb_mutex_new();
+  rb_global_variable(&login_mutex);
   cTinyTdsClient = rb_define_class_under(mTinyTds, "Client", rb_cObject);
   rb_global_variable(&cTinyTdsClient);
   rb_define_alloc_func(cTinyTdsClient, allocate);

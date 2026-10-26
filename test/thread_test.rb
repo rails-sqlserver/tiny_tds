@@ -1,5 +1,6 @@
 require "test_helper"
 require "benchmark"
+require "socket"
 
 class ThreadTest < TinyTds::TestCase
   describe "Threaded SELECT queries" do
@@ -12,6 +13,30 @@ class ThreadTest < TinyTds::TestCase
 
     after do
       @pool.shutdown { |c| c.close }
+    end
+
+    it "runs queries and their message handlers while another connection is logging in" do
+      messages = []
+      client = new_connection(message_handler: proc { |message| messages << message.message })
+      messages.clear
+      server = TCPServer.new("127.0.0.1", 0)
+      login = Thread.new do
+        new_connection(dataserver: nil, host: "127.0.0.1", port: server.addr[1], login_timeout: 5)
+      rescue TinyTds::Error => error
+        error
+      end
+      peer = server.accept
+      GC.start
+      GC.compact if GC.respond_to?(:compact)
+      client.execute("PRINT 'query during login'").do
+      assert_client_works(client)
+      assert_equal ["query during login"], messages
+      assert login.alive?, "the query waited for the unrelated login to finish"
+    ensure
+      peer&.close
+      server&.close
+      login&.join
+      close_client(client)
     end
 
     it "should finish faster in parallel" do

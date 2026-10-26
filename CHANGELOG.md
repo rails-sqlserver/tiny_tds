@@ -1,5 +1,7 @@
 ## (unreleased)
 
+* Release Ruby's GVL during SQL Server login so slow connections do not block unrelated Ruby threads.
+
 ## 3.4.1
 
 * Register the C globals that hold Ruby classes and modules with the GC, so raising `TinyTds::Error` after GC compaction no longer crashes with a segmentation fault. Fixes #608.

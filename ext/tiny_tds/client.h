@@ -47,7 +47,7 @@ VALUE rb_tinytds_raise_error(DBPROCESS *dbproc, tinytds_errordata error);
 // Lib Macros
 
 #define GET_CLIENT_USERDATA(dbproc) \
-  tinytds_client_userdata *userdata = (tinytds_client_userdata *)dbgetuserdata(dbproc);
+  tinytds_client_userdata *userdata = (dbproc) ? (tinytds_client_userdata *)dbgetuserdata(dbproc) : NULL;
 
 
 #endif
